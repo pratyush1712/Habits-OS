@@ -171,3 +171,52 @@ def test_unknown_auto_habit_returns_none():
     unknown = Habit(key="hydration", label="Hydration", short="H", kind="auto")
     entry = evaluate_day(DAY, unknown, [_event("workout", 30)], None)
     assert entry is None
+
+# ---------- recovery ----------
+
+from packages.core.config import RecoveryRule
+from packages.core.rules import evaluate_recovery
+
+
+def _recovery_event(score, **kwargs):
+    return _event(
+        "recovery",
+        0,
+        id=kwargs.pop("id", f"x:recovery-{score}"),
+        source_event_id=kwargs.pop("source_event_id", f"recovery-{score}"),
+        metrics={
+            "score_state": kwargs.pop("score_state", "SCORED"),
+            "user_calibrating": kwargs.pop("user_calibrating", False),
+            "recovery_score": score,
+        },
+        **kwargs,
+    )
+
+
+def test_recovery_no_events_returns_none():
+    assert evaluate_recovery(DAY, []) is None
+
+
+def test_recovery_checked_boundary():
+    entry = evaluate_recovery(DAY, [_recovery_event(67)])
+    assert entry is not None
+    assert entry.status == "checked"
+    assert entry.habit_key == "recovery"
+
+
+def test_recovery_under_threshold_is_warning():
+    entry = evaluate_recovery(DAY, [_recovery_event(44)])
+    assert entry is not None
+    assert entry.status == "warning"
+
+
+def test_recovery_ignores_unscored_or_calibrating():
+    assert evaluate_recovery(DAY, [_recovery_event(80, score_state="PENDING_SCORE")]) is None
+    assert evaluate_recovery(DAY, [_recovery_event(80, user_calibrating=True)]) is None
+
+
+def test_recovery_custom_threshold():
+    cfg = HabitRuleConfig(recovery=RecoveryRule(checked_min_score=80))
+    entry = evaluate_recovery(DAY, [_recovery_event(77)], cfg)
+    assert entry is not None
+    assert entry.status == "warning"

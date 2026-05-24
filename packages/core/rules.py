@@ -130,10 +130,49 @@ def evaluate_sleep(
     )
 
 
+def evaluate_recovery(
+    day: date,
+    events: list[SourceEvent],
+    config: HabitRuleConfig = DEFAULT_RULES,
+) -> HabitEntry | None:
+    recoveries = [e for e in events if e.event_type == "recovery"]
+    scored = [
+        e
+        for e in recoveries
+        if e.metrics.get("score_state") == "SCORED"
+        and e.metrics.get("user_calibrating") is not True
+        and e.metrics.get("recovery_score") is not None
+    ]
+    if not scored:
+        return None
+
+    # Multiple recovery records for one date should be rare; use the latest
+    # normalized record so update/reconciliation semantics stay intuitive.
+    latest = max(scored, key=lambda e: e.start_time_utc)
+    score = int(latest.metrics["recovery_score"])
+    status: HabitStatus = (
+        "checked" if score >= config.recovery.checked_min_score else "warning"
+    )
+    return HabitEntry(
+        date=day,
+        habit_key="recovery",
+        status=status,
+        source=latest.source,
+        summary=f"{score}% recovery",
+        description=latest.description,
+        linked_source_event_ids=[latest.id],
+        explanation=(
+            f"Recovery score {score}% "
+            f"(checked >= {config.recovery.checked_min_score}%)"
+        ),
+    )
+
+
 EVALUATORS: dict[str, Callable[[date, list[SourceEvent], HabitRuleConfig], HabitEntry | None]] = {
     "workout": evaluate_workout,
     "meditation": evaluate_meditation,
     "sleep": evaluate_sleep,
+    "recovery": evaluate_recovery,
 }
 
 

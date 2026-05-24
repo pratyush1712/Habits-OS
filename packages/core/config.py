@@ -9,6 +9,11 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict
 
+from dotenv import load_dotenv, find_dotenv
+
+
+load_dotenv(find_dotenv())
+
 
 class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -28,10 +33,15 @@ class SleepRule(_Strict):
     target_hours: float = 7.0
 
 
+class RecoveryRule(_Strict):
+    checked_min_score: int = 67
+
+
 class HabitRuleConfig(_Strict):
     workout: WorkoutRule = WorkoutRule()
     meditation: MeditationRule = MeditationRule()
     sleep: SleepRule = SleepRule()
+    recovery: RecoveryRule = RecoveryRule()
 
 
 DEFAULT_RULES = HabitRuleConfig()
