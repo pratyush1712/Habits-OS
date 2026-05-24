@@ -40,6 +40,13 @@ class Settings:
     habitos_timezone: str
     output_dir: Path
     sample_events_path: Path
+    scheduler_enabled: bool
+    nightly_run_hour: int
+    nightly_run_minute: int
+    reconcile_days: int
+    default_whoop_external_user_id: str
+    auto_upload_remarkable: bool
+    remarkable_dry_run: bool
     whoop: WhoopSettings
 
 
@@ -60,6 +67,15 @@ def load_settings() -> Settings:
         sample_events_path=Path(
             os.getenv("HABITOS_SAMPLE_EVENTS", str(DEFAULT_SAMPLE_EVENTS))
         ),
+        scheduler_enabled=_env_bool("HABITOS_SCHEDULER_ENABLED", default=False),
+        nightly_run_hour=_env_int("HABITOS_NIGHTLY_RUN_HOUR", default=3, minimum=0, maximum=23),
+        nightly_run_minute=_env_int(
+            "HABITOS_NIGHTLY_RUN_MINUTE", default=0, minimum=0, maximum=59
+        ),
+        reconcile_days=_env_int("HABITOS_RECONCILE_DAYS", default=14, minimum=1),
+        default_whoop_external_user_id=os.getenv("HABITOS_DEFAULT_WHOOP_EXTERNAL_USER_ID", ""),
+        auto_upload_remarkable=_env_bool("HABITOS_AUTO_UPLOAD_REMARKABLE", default=False),
+        remarkable_dry_run=_env_bool("HABITOS_REMARKABLE_DRY_RUN", default=True),
         whoop=WhoopSettings(
             client_id=os.getenv("WHOOP_CLIENT_ID", ""),
             client_secret=os.getenv("WHOOP_CLIENT_SECRET", ""),
@@ -83,3 +99,34 @@ def load_settings() -> Settings:
             webhook_secret=os.getenv("WHOOP_WEBHOOK_SECRET", ""),
         ),
     )
+
+
+def _env_bool(name: str, *, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    normalized = raw.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean-like value, got {raw!r}")
+
+
+def _env_int(
+    name: str,
+    *,
+    default: int,
+    minimum: int | None = None,
+    maximum: int | None = None,
+) -> int:
+    raw = os.getenv(name)
+    if raw is None or raw.strip() == "":
+        value = default
+    else:
+        value = int(raw)
+    if minimum is not None and value < minimum:
+        raise ValueError(f"{name} must be >= {minimum}, got {value}")
+    if maximum is not None and value > maximum:
+        raise ValueError(f"{name} must be <= {maximum}, got {value}")
+    return value

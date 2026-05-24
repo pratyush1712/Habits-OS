@@ -28,6 +28,11 @@ INDEX_SPECS: dict[str, list[IndexModel]] = {
         IndexModel([("month", ASCENDING), ("requested_at", DESCENDING)], name="month_recent"),
         IndexModel([("status", ASCENDING), ("requested_at", DESCENDING)], name="status_recent"),
     ],
+    "automation_runs": [
+        IndexModel([("started_at", DESCENDING)], name="started_recent"),
+        IndexModel([("run_type", ASCENDING), ("started_at", DESCENDING)], name="run_type_recent"),
+        IndexModel([("status", ASCENDING), ("started_at", DESCENDING)], name="status_recent"),
+    ],
     "source_accounts": [
         IndexModel([("source", ASCENDING)], name="by_source"),
     ],

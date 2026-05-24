@@ -62,6 +62,15 @@ curl -X POST "$BASE/pipeline/month?external_user_id=$WHOOP_USER_ID&start=$START&
 
 `dry_run=false` with the current manual reMarkable adapter still does not mutate the device; it returns ready-to-upload instructions.
 
+Run nightly automation manually:
+
+```bash
+curl "$BASE/automation/status"
+curl -X POST "$BASE/automation/nightly-run?dry_run=true"
+curl -X POST "$BASE/automation/month-rollover?from_month=2026-05&to_month=2026-06&dry_run=true"
+curl "$BASE/remarkable/paths?month=$MONTH"
+```
+
 ## Routes
 
 ### GET /health
@@ -494,7 +503,34 @@ Response:
   "dry_run_supported": true,
   "machine_owned_root": "HabitOS",
   "latest_render_job": null,
-  "safety": "Uploads target only generated HabitOS PDFs under HabitOS/YYYY."
+  "safety": "Uploads target only generated HabitOS PDFs under HabitOS/00 Current or HabitOS/YYYY/Archive."
+}
+```
+
+### GET /remarkable/paths
+
+Returns the machine-owned current and archive targets for a month.
+
+Request:
+
+```bash
+curl "$BASE/remarkable/paths?month=$MONTH"
+```
+
+Response:
+
+```json
+{
+  "month": "2026-05",
+  "current": {
+    "name": "00 Current Month - 2026-05 Habit Dashboard",
+    "path": "HabitOS/00 Current/00 Current Month - 2026-05 Habit Dashboard.pdf"
+  },
+  "archive": {
+    "name": "2026-05 Habit Dashboard",
+    "path": "HabitOS/2026/Archive/2026-05 Habit Dashboard.pdf"
+  },
+  "machine_owned_root": "HabitOS"
 }
 ```
 
@@ -523,7 +559,7 @@ Response:
   "adapter": "manual",
   "action": "upload",
   "dry_run": true,
-  "target_path": "HabitOS/2026/2026-05 Habit Dashboard.pdf",
+  "target_path": "HabitOS/00 Current/00 Current Month - 2026-05 Habit Dashboard.pdf",
   "status": "manual_required",
   "device_mutated": false,
   "message": "Manual upload instructions generated. No files were modified on the reMarkable device.",
@@ -620,6 +656,96 @@ Response:
 If rendering fails, upload is skipped and the response is a `500` with a summary showing `render.status = failed` and `remarkable.status = skipped`.
 
 If upload fails, the endpoint still returns the rendered PDF path and reports `remarkable.status = failed`.
+
+### GET /automation/status
+
+Reports scheduler configuration, resolved automation settings, and the latest persisted automation run.
+
+Request:
+
+```bash
+curl "$BASE/automation/status"
+```
+
+Response:
+
+```json
+{
+  "scheduler": {
+    "enabled": false,
+    "running": false,
+    "next_run_at": null
+  },
+  "timezone": "America/New_York",
+  "reconcile_days": 14,
+  "default_whoop_external_user_id_configured": true,
+  "auto_upload_remarkable": false,
+  "remarkable_dry_run": true,
+  "latest_run": null
+}
+```
+
+### POST /automation/nightly-run
+
+Manually invokes the nightly automation pipeline using the configured default WHOOP external user id.
+
+Query params:
+
+| Param     | Required | Default | Description                                 |
+| --------- | -------: | ------: | ------------------------------------------- |
+| `dry_run` |       no |  `true` | Passed through to reMarkable lifecycle prep |
+
+Request:
+
+```bash
+curl -X POST "$BASE/automation/nightly-run?dry_run=true"
+```
+
+Response shape:
+
+```json
+{
+  "run_id": "665...",
+  "run_type": "manual",
+  "date": "2026-06-10",
+  "timezone": "America/New_York",
+  "window": {
+    "start": "2026-05-27",
+    "end": "2026-06-10",
+    "reconcile_days": 14
+  },
+  "months": {
+    "current": "2026-06",
+    "previous": null,
+    "affected": ["2026-05", "2026-06"]
+  },
+  "rollover": { "detected": false },
+  "whoop": {},
+  "habits": [],
+  "render": {},
+  "remarkable": {}
+}
+```
+
+### POST /automation/month-rollover
+
+Forces month-rollover behavior explicitly.
+
+Query params:
+
+| Param        | Required | Description              |
+| ------------ | -------: | ------------------------ |
+| `from_month` |      yes | `YYYY-MM` previous month |
+| `to_month`   |      yes | `YYYY-MM` next month     |
+| `dry_run`    |       no | `true` by default        |
+
+Request:
+
+```bash
+curl -X POST "$BASE/automation/month-rollover?from_month=2026-05&to_month=2026-06&dry_run=true"
+```
+
+Returns render summaries for both months plus current/archive reMarkable lifecycle preparation details.
 
 ## Idempotency
 

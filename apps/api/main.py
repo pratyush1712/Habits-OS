@@ -18,7 +18,9 @@ from packages.core.indexes import ensure_indexes
 from packages.core.repositories import HabitsRepo
 
 from apps.api.config import load_settings
+from apps.api.deps import build_automation_service_from_state
 from apps.api.routes import ROUTERS
+from apps.api.scheduler import build_scheduler
 from apps.api.services import HabitCatalogService
 
 
@@ -39,10 +41,18 @@ async def lifespan(app: FastAPI):
     app.state.output_dir = settings.output_dir
     app.state.sample_events_path = settings.sample_events_path
     app.state.whoop_oauth_states = set()
+    app.state.scheduler = build_scheduler(
+        settings=settings,
+        run_job=lambda: build_automation_service_from_state(app.state).run_nightly_pipeline(
+            triggered_by="nightly"
+        ),
+    )
 
     try:
         yield
     finally:
+        if app.state.scheduler is not None:
+            app.state.scheduler.shutdown(wait=False)
         await client.close()
 
 

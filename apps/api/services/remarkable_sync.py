@@ -32,7 +32,10 @@ class RemarkableSyncService:
             "dry_run_supported": True,
             "machine_owned_root": "HabitOS",
             "latest_render_job": latest.model_dump(mode="json") if latest else None,
-            "safety": "Uploads target only generated HabitOS PDFs under HabitOS/YYYY.",
+            "safety": (
+                "Uploads target only generated HabitOS PDFs under "
+                "HabitOS/00 Current or HabitOS/YYYY/Archive."
+            ),
         }
 
     async def sync_latest_month(

@@ -85,7 +85,13 @@ class RemarkableSyncAdapter(Protocol):
 
 
 def build_machine_owned_target(month: str) -> MachineOwnedTarget:
-    """Build `HabitOS / YYYY / YYYY-MM Habit Dashboard` naming.
+    """Backward-compatible alias for the current month target."""
+
+    return build_current_month_target(month)
+
+
+def build_current_month_target(month: str) -> MachineOwnedTarget:
+    """Build the machine-owned current dashboard target.
 
     The folder prefix is intentionally fixed so adapters can distinguish
     generated HabitOS artifacts from human-owned notebooks.
@@ -95,7 +101,19 @@ def build_machine_owned_target(month: str) -> MachineOwnedTarget:
     month_str = f"{year:04d}-{month_num:02d}"
     return MachineOwnedTarget(
         month=month_str,
-        folder_path=(MACHINE_ROOT_FOLDER, f"{year:04d}"),
+        folder_path=(MACHINE_ROOT_FOLDER, "00 Current"),
+        document_name=f"00 Current Month - {month_str} Habit Dashboard",
+    )
+
+
+def build_archive_month_target(month: str) -> MachineOwnedTarget:
+    """Build the machine-owned archive target for a finalized month."""
+
+    year, month_num = _parse_month(month)
+    month_str = f"{year:04d}-{month_num:02d}"
+    return MachineOwnedTarget(
+        month=month_str,
+        folder_path=(MACHINE_ROOT_FOLDER, f"{year:04d}", "Archive"),
         document_name=f"{month_str} Habit Dashboard",
     )
 

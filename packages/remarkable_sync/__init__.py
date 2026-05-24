@@ -6,6 +6,8 @@ from packages.remarkable_sync.base import (
     RemarkableSyncAdapter,
     SyncRequest,
     SyncResult,
+    build_archive_month_target,
+    build_current_month_target,
     build_machine_owned_target,
 )
 from packages.remarkable_sync.manual import ManualRemarkableSyncAdapter
@@ -17,5 +19,7 @@ __all__ = [
     "RemarkableSyncAdapter",
     "SyncRequest",
     "SyncResult",
+    "build_archive_month_target",
+    "build_current_month_target",
     "build_machine_owned_target",
 ]

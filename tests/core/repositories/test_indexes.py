@@ -23,3 +23,9 @@ async def test_ensure_indexes_is_idempotent(db):
     first = await ensure_indexes(db)
     second = await ensure_indexes(db)
     assert first == second
+
+
+def test_automation_runs_index_specs_declared():
+    specs = INDEX_SPECS["automation_runs"]
+    names = {spec.document["name"] for spec in specs}
+    assert names == {"started_recent", "run_type_recent", "status_recent"}

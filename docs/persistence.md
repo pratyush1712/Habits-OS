@@ -17,15 +17,15 @@ Connection settings come from environment variables; see `.env.example`.
 
 ## Stack choices
 
-| | |
-|---|---|
-| Driver | `pymongo>=4.9`, **async client** `pymongo.AsyncMongoClient` |
-| ID strategy | deterministic string `_id` from natural keys where possible |
-| Date storage | ISO string `"YYYY-MM-DD"` (sorts chronologically, indexable) |
-| Datetime storage | BSON ISODate (Python `datetime`, always UTC) |
-| Binary storage | BSON BinData (Python `bytes`) — used for encrypted tokens |
-| Schema evolution | additive, validated by Pydantic on read |
-| Migrations | none; `ensure_indexes()` is the only build step |
+|                  |                                                              |
+| ---------------- | ------------------------------------------------------------ |
+| Driver           | `pymongo>=4.9`, **async client** `pymongo.AsyncMongoClient`  |
+| ID strategy      | deterministic string `_id` from natural keys where possible  |
+| Date storage     | ISO string `"YYYY-MM-DD"` (sorts chronologically, indexable) |
+| Datetime storage | BSON ISODate (Python `datetime`, always UTC)                 |
+| Binary storage   | BSON BinData (Python `bytes`) — used for encrypted tokens    |
+| Schema evolution | additive, validated by Pydantic on read                      |
+| Migrations       | none; `ensure_indexes()` is the only build step              |
 
 > Motor is **not** used. PyMongo's native async client (4.9+) is the supported
 > direction; Motor is being deprecated.
@@ -41,6 +41,7 @@ Normalized events ingested from connectors or manual imports.
 - Application shape: `SourceEvent`.
 
 Secondary indexes:
+
 - `{local_date: 1, event_type: 1}` — rule engine's daily-event lookup
 - `{start_time_utc: -1}` — recency queries
 - `{source: 1, local_date: -1}` — "WHOOP events in May 2026"
@@ -53,6 +54,7 @@ User-asserted entries that win over computed results.
 - Application shape: `HabitOverride`.
 
 Secondary indexes:
+
 - `{date: 1}` — month-range queries
 
 ### `habit_entries`
@@ -64,6 +66,7 @@ the renderer.
 - Application shape: `HabitEntry`.
 
 Secondary indexes:
+
 - `{date: 1, status: 1}` — "show all warnings in May"
 - `{ruleset_version: 1}` — selective recompute when rule thresholds change
 
@@ -80,8 +83,23 @@ Audit trail of PDF render requests.
   the repo).
 
 Secondary indexes:
+
 - `{month: 1, requested_at: -1}` — latest render for a month
 - `{status: 1, requested_at: -1}` — queue / failure inspection
+
+### `automation_runs`
+
+Audit trail of nightly, manual, and rollover automation runs.
+
+- `_id`: `ObjectId` — many automation runs over time are valid.
+- Application shape: `AutomationRun` (`id: str` field; ObjectId never leaks past
+  the repo).
+
+Secondary indexes:
+
+- `{started_at: -1}` — newest automation runs first
+- `{run_type: 1, started_at: -1}` — filter nightly vs manual vs rollover
+- `{status: 1, started_at: -1}` — inspect failed runs quickly
 
 ### `source_accounts`
 
@@ -95,6 +113,7 @@ OAuth-connected sources (WHOOP, Muse, ...).
   change.
 
 Secondary indexes:
+
 - `{source: 1}` — "list all WHOOP accounts"
 
 ### `habits`
@@ -107,6 +126,7 @@ The habit catalog.
   preserved across `upsert`s via `$setOnInsert`.
 
 Secondary indexes:
+
 - `{archived_at: 1}` — `list_active()` query (`archived_at: null`)
 
 ## Indexes module

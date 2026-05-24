@@ -8,6 +8,7 @@ import pytest
 from pydantic import ValidationError
 
 from packages.core.models import (
+    AutomationRun,
     Habit,
     HabitEntry,
     HabitOverride,
@@ -81,3 +82,42 @@ def test_month_state_round_trip():
 def test_override_default_source_is_manual():
     o = HabitOverride(date=date(2026, 5, 1), habit_key="journaling", status="checked")
     assert o.source == "manual"
+
+
+def test_automation_run_round_trip():
+    run = AutomationRun(
+        run_type="nightly",
+        status="running",
+        dry_run=True,
+        timezone="America/New_York",
+        date="2026-06-01",
+        window={"start": "2026-05-18", "end": "2026-06-01", "reconcile_days": 14},
+        months={"current": "2026-06", "previous": "2026-05", "affected": ["2026-05", "2026-06"]},
+        whoop_summary={"status": "pending"},
+        habit_recompute_summary=[],
+        render_summary={"current": {"status": "pending"}},
+        remarkable_summary={"status": "pending"},
+    )
+
+    blob = run.model_dump_json()
+    reloaded = AutomationRun.model_validate_json(blob)
+    assert reloaded.run_type == "nightly"
+    assert reloaded.window["reconcile_days"] == 14
+    assert reloaded.months["affected"] == ["2026-05", "2026-06"]
+
+
+def test_automation_run_rejects_invalid_date_string():
+    with pytest.raises(ValidationError):
+        AutomationRun(
+            run_type="manual",
+            status="running",
+            dry_run=True,
+            timezone="UTC",
+            date="2026/06/01",
+            window={"start": "2026-05-18", "end": "2026-06-01", "reconcile_days": 14},
+            months={"current": "2026-06", "previous": "2026-05", "affected": ["2026-05", "2026-06"]},
+            whoop_summary={},
+            habit_recompute_summary=[],
+            render_summary={},
+            remarkable_summary={},
+        )

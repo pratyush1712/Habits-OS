@@ -12,6 +12,7 @@ from pathlib import Path
 from fastapi import Depends, Request
 
 from packages.core.repositories import (
+    AutomationRunsRepo,
     HabitEntriesRepo,
     HabitsRepo,
     ManualOverridesRepo,
@@ -21,12 +22,14 @@ from packages.core.repositories import (
 )
 
 from apps.api.services import (
+    AutomationService,
     EventIngestionService,
     HabitCatalogService,
     HabitEvaluationService,
     MonthStateService,
     PipelineService,
     RenderService,
+    RemarkableLifecycleService,
     RemarkableSyncService,
     StatusService,
     WhoopSyncService,
@@ -62,6 +65,10 @@ def get_entries_repo(db=Depends(get_db)) -> HabitEntriesRepo:
 
 def get_jobs_repo(db=Depends(get_db)) -> RenderJobsRepo:
     return RenderJobsRepo(db)
+
+
+def get_automation_runs_repo(db=Depends(get_db)) -> AutomationRunsRepo:
+    return AutomationRunsRepo(db)
 
 
 def get_habits_repo(db=Depends(get_db)) -> HabitsRepo:
@@ -133,6 +140,12 @@ def get_remarkable_sync_service(
     return RemarkableSyncService(jobs_repo)
 
 
+def get_remarkable_lifecycle_service(
+    output_dir: Path = Depends(get_output_dir),
+) -> RemarkableLifecycleService:
+    return RemarkableLifecycleService(output_dir=output_dir)
+
+
 def get_status_service(
     request: Request,
     accounts_repo: SourceAccountsRepo = Depends(get_accounts_repo),
@@ -148,3 +161,33 @@ def get_pipeline_service(
     remarkable: RemarkableSyncService = Depends(get_remarkable_sync_service),
 ) -> PipelineService:
     return PipelineService(whoop, evaluation, render, remarkable)
+
+
+def build_automation_service_from_state(state) -> AutomationService:
+    db = state.db
+    output_dir: Path = state.output_dir
+    settings = state.settings
+    events_repo = SourceEventsRepo(db)
+    overrides_repo = ManualOverridesRepo(db)
+    habits_repo = HabitsRepo(db)
+    entries_repo = HabitEntriesRepo(db)
+    jobs_repo = RenderJobsRepo(db)
+    accounts_repo = SourceAccountsRepo(db)
+    runs_repo = AutomationRunsRepo(db)
+    evaluation = HabitEvaluationService(events_repo, overrides_repo, habits_repo, entries_repo)
+    month_state = MonthStateService(habits_repo, entries_repo)
+    render = RenderService(jobs_repo, month_state, output_dir)
+    lifecycle = RemarkableLifecycleService(output_dir=output_dir)
+    whoop = WhoopSyncService(settings.whoop, accounts_repo, events_repo, evaluation)
+    return AutomationService(
+        settings=settings,
+        whoop=whoop,
+        habits=evaluation,
+        render=render,
+        lifecycle=lifecycle,
+        runs_repo=runs_repo,
+    )
+
+
+def get_automation_service(request: Request) -> AutomationService:
+    return build_automation_service_from_state(request.app.state)

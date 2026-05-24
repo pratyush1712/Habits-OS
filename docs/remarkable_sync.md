@@ -8,8 +8,11 @@ machine-owned artifacts only.
 
 - Do not directly edit reMarkable notebook internals in v1.
 - Do not overwrite human-owned handwritten notebooks.
-- Keep generated dashboards under a machine-owned path:
-  `HabitOS / YYYY / YYYY-MM Habit Dashboard.pdf`.
+- Keep generated dashboards under machine-owned paths only:
+  - current month:
+    `HabitOS / 00 Current / 00 Current Month - YYYY-MM Habit Dashboard.pdf`
+  - archived month:
+    `HabitOS / YYYY / Archive / YYYY-MM Habit Dashboard.pdf`
 - Manual upload is the default and safest sync path.
 - USB web interface and cloud tooling are optional adapters after manual sync is
   working and tested.
@@ -29,11 +32,33 @@ Typical flow:
    - On the reMarkable 2, enable Settings → Storage → USB web interface.
    - Connect over USB.
    - Open `http://10.11.99.1/`.
-   - Upload the generated PDF as `YYYY-MM Habit Dashboard.pdf` under
-     `HabitOS / YYYY`.
+   - Upload the current month PDF as
+     `00 Current Month - YYYY-MM Habit Dashboard.pdf` under
+     `HabitOS / 00 Current`.
 
 The sync service reads `RenderJobsRepo.latest_for_month(month)` and uses only the
 stored `output_path`. It does not call or modify the PDF renderer.
+
+## Current and archive lifecycle
+
+HabitOS keeps the current month easy to find while still organizing old months.
+
+- Current month:
+  `HabitOS / 00 Current / 00 Current Month - YYYY-MM Habit Dashboard.pdf`
+- Archived month:
+  `HabitOS / YYYY / Archive / YYYY-MM Habit Dashboard.pdf`
+
+Monthly rollover behavior:
+
+1. Render/finalize the previous month.
+2. Prepare/archive the previous month under the year archive path.
+3. Render the new current month.
+4. Keep the new month visible under the fixed `00 Current` path.
+
+Archived months are treated as frozen after they leave the reconcile window.
+If the previous month is still inside the rolling WHOOP reconcile window,
+HabitOS may re-render and refresh that archived month so late sleep/recovery
+settling is preserved.
 
 ## Researched options
 

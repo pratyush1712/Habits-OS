@@ -131,6 +131,8 @@ class MonthHabitState(_Strict):
 RenderJobStatus = Literal["pending", "running", "completed", "failed"]
 RenderTrigger = Literal["manual", "schedule", "webhook"]
 AccountStatus = Literal["active", "revoked", "expired"]
+AutomationRunType = Literal["nightly", "manual", "rollover"]
+AutomationRunStatus = Literal["running", "completed", "failed"]
 
 
 class RenderJob(_Strict):
@@ -168,3 +170,76 @@ class SourceAccount(_Strict):
     last_sync_at: datetime | None = None
     last_webhook_at: datetime | None = None
     status: AccountStatus = "active"
+
+
+class AutomationRun(_Strict):
+    """Audit trail entry for one nightly/manual automation execution."""
+
+    id: str | None = None
+    run_type: AutomationRunType
+    status: AutomationRunStatus
+    started_at: datetime = Field(default_factory=_utcnow)
+    finished_at: datetime | None = None
+    dry_run: bool = True
+    timezone: str
+    date: str
+    window: dict[str, Any]
+    months: dict[str, Any]
+    whoop_summary: dict[str, Any] = Field(default_factory=dict)
+    habit_recompute_summary: list[dict[str, Any]] = Field(default_factory=list)
+    render_summary: dict[str, Any] = Field(default_factory=dict)
+    remarkable_summary: dict[str, Any] = Field(default_factory=dict)
+    error: str | None = None
+
+    @field_validator("date")
+    @classmethod
+    def _check_date(cls, v: str) -> str:
+        try:
+            date.fromisoformat(v)
+        except ValueError as e:
+            raise ValueError(f"date must be YYYY-MM-DD, got {v!r}") from e
+        return v
+
+    @field_validator("window")
+    @classmethod
+    def _check_window(cls, v: dict[str, Any]) -> dict[str, Any]:
+        start = v.get("start")
+        end = v.get("end")
+        reconcile_days = v.get("reconcile_days")
+        if not isinstance(start, str) or not isinstance(end, str):
+            raise ValueError("window.start and window.end must be ISO date strings")
+        try:
+            date.fromisoformat(start)
+            date.fromisoformat(end)
+        except ValueError as e:
+            raise ValueError("window.start and window.end must be YYYY-MM-DD") from e
+        if not isinstance(reconcile_days, int) or reconcile_days < 0:
+            raise ValueError("window.reconcile_days must be a non-negative integer")
+        return v
+
+    @field_validator("months")
+    @classmethod
+    def _check_months(cls, v: dict[str, Any]) -> dict[str, Any]:
+        current = v.get("current")
+        previous = v.get("previous")
+        affected = v.get("affected")
+        if not isinstance(current, str):
+            raise ValueError("months.current must be a YYYY-MM string")
+        _parse_month_value(current)
+        if previous is not None:
+            if not isinstance(previous, str):
+                raise ValueError("months.previous must be null or a YYYY-MM string")
+            _parse_month_value(previous)
+        if not isinstance(affected, list) or not all(isinstance(month, str) for month in affected):
+            raise ValueError("months.affected must be a list of YYYY-MM strings")
+        for month in affected:
+            _parse_month_value(month)
+        return v
+
+
+def _parse_month_value(month: str) -> None:
+    try:
+        year_s, month_s = month.split("-")
+        date(int(year_s), int(month_s), 1)
+    except Exception as e:
+        raise ValueError(f"month must be YYYY-MM, got {month!r}") from e

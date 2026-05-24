@@ -1,4 +1,5 @@
 from apps.api.routes import (
+    automation,
     events,
     habit_entries,
     habits,
@@ -14,6 +15,7 @@ from apps.api.routes import (
 ROUTERS = [
     health.router,
     status.router,
+    automation.router,
     events.router,
     habits.router,
     habit_entries.router,

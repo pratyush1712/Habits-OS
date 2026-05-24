@@ -13,7 +13,11 @@ def test_local_control_surface_routes_registered(monkeypatch):
     assert ("POST", "/habits/seed-defaults") in routes
     assert ("GET", "/whoop/status") in routes
     assert ("POST", "/whoop/sync") in routes
+    assert ("GET", "/automation/status") in routes
+    assert ("POST", "/automation/nightly-run") in routes
+    assert ("POST", "/automation/month-rollover") in routes
     assert ("GET", "/remarkable/status") in routes
+    assert ("GET", "/remarkable/paths") in routes
     assert ("POST", "/remarkable/upload") in routes
     assert ("POST", "/remarkable/sync") in routes
     assert ("POST", "/pipeline/month") in routes
