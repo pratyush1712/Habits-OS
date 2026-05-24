@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: setup test render-sample evaluate-sample clean
+.PHONY: setup test render-sample evaluate-sample run-api clean
 
 setup:
 	python3 -m venv .venv
@@ -14,6 +14,9 @@ render-sample:
 
 evaluate-sample:
 	$(PY) -m packages.core.evaluate data/sample_events.json
+
+run-api:
+	.venv/bin/uvicorn apps.api.main:app --reload --host 127.0.0.1 --port 8000
 
 test:
 	$(PY) -m pytest -q

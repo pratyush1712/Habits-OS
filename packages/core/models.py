@@ -121,3 +121,45 @@ class MonthHabitState(_Strict):
         except Exception as e:
             raise ValueError(f"month must be YYYY-MM, got {v!r}") from e
         return v
+
+
+RenderJobStatus = Literal["queued", "running", "done", "failed"]
+RenderTrigger = Literal["manual", "schedule", "webhook"]
+AccountStatus = Literal["active", "revoked", "expired"]
+
+
+class RenderJob(_Strict):
+    """Audit-trail entry for one PDF render. The repo assigns `id` after insert."""
+
+    id: str | None = None
+    month: str
+    status: RenderJobStatus = "queued"
+    requested_at: datetime = Field(default_factory=_utcnow)
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    output_path: str | None = None
+    ruleset_version: str = "v1"
+    triggered_by: RenderTrigger = "manual"
+    error: str | None = None
+
+
+class SourceAccount(_Strict):
+    """An OAuth-connected source (WHOOP, Muse, ...).
+
+    Tokens are stored as opaque `bytes` so a future encryption layer can wrap
+    them without schema changes. Encryption itself is deferred — see
+    CLAUDE.md §10 and docs/persistence.md.
+    """
+
+    id: str | None = None
+    source: EventSource
+    external_user_id: str
+    display_name: str = ""
+    scopes: list[str] = Field(default_factory=list)
+    encrypted_access_token: bytes | None = None
+    encrypted_refresh_token: bytes | None = None
+    token_expires_at: datetime | None = None
+    connected_at: datetime = Field(default_factory=_utcnow)
+    last_sync_at: datetime | None = None
+    last_webhook_at: datetime | None = None
+    status: AccountStatus = "active"

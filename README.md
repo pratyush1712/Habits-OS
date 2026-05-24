@@ -37,6 +37,66 @@ To run the smoke tests:
 make test
 ```
 
+## Persistence
+
+The renderer (Milestone 1) and rule engine (Milestone 2) work on local JSON
+and need no database. From Milestone 3 onward HabitOS persists everything in
+**MongoDB** — Atlas in production, a local Mongo for dev. Configuration via
+`.env` (copy `.env.example`):
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `MONGODB_URI` | Connection string | `mongodb://localhost:27017` |
+| `MONGODB_DB_NAME` | Database name | `habitos` |
+| `MONGODB_TEST_URI` | Used by repository integration tests; tests auto-skip when unset | _(unset)_ |
+
+The driver is **PyMongo Async** (`pymongo>=4.9`, `AsyncMongoClient`). Motor
+is not used. Migrations are not used either — indexes are declared in
+`packages/core/indexes.py` and applied idempotently at app startup via
+`ensure_indexes()`.
+
+Collection design and index rationale: see [docs/persistence.md](docs/persistence.md).
+
+## Running the API (Milestone 3)
+
+Once `.env` is set up and a MongoDB is reachable:
+
+```bash
+make run-api      # uvicorn apps.api.main:app --reload on 127.0.0.1:8000
+```
+
+Quick end-to-end smoke test against the sample data:
+
+```bash
+curl http://127.0.0.1:8000/health
+curl -X POST http://127.0.0.1:8000/events/import-sample
+curl    "http://127.0.0.1:8000/events?month=2026-05"
+curl -X POST "http://127.0.0.1:8000/habits/recompute?month=2026-05"
+curl    "http://127.0.0.1:8000/habit-entries?month=2026-05"
+curl    "http://127.0.0.1:8000/state/month?month=2026-05"
+curl -X POST "http://127.0.0.1:8000/render/month?month=2026-05"
+curl    "http://127.0.0.1:8000/render/latest"
+curl    "http://127.0.0.1:8000/render/jobs"
+```
+
+Or browse the interactive docs at <http://127.0.0.1:8000/docs>.
+
+### Routes
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/health` | Liveness + Mongo ping |
+| GET | `/events?month=&source=&limit=` | List ingested source events |
+| POST | `/events/import-sample` | Ingest `data/sample_events.json` into Mongo |
+| GET | `/habit-entries?month=YYYY-MM` | Stored, resolved entries for a month |
+| POST | `/habits/recompute?month=YYYY-MM` | Run the rule engine and persist entries |
+| GET | `/state/month?month=YYYY-MM` | `MonthHabitState` assembled from entries (derived, never stored) |
+| POST | `/render/month?month=YYYY-MM` | Render a PDF; records a `RenderJob` |
+| GET | `/render/jobs?limit=` | Recent render jobs |
+| GET | `/render/latest` | Most recent render job |
+
+Indexes are applied idempotently on startup via `ensure_indexes()`.
+
 ---
 
 ## What the PDF contains

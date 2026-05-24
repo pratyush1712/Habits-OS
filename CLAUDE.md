@@ -124,12 +124,18 @@ Use:
 ```text
 FastAPI
 Pydantic
-SQLAlchemy or SQLModel
-SQLite first
+PyMongo Async (pymongo >= 4.9, AsyncMongoClient)
+MongoDB (local or Atlas)
 APScheduler first
 ```
 
-Do not add Postgres, Redis, Celery, Kubernetes, or a complex deployment until the local MVP works.
+Do not use SQLAlchemy, Alembic, Postgres, Redis, Celery, Kubernetes, or
+Docker for a database. Repositories under `packages/core/repositories/` are
+the only layer allowed to touch MongoDB; everything else stays storage-
+agnostic. Motor is not used — PyMongo's native async client is the
+supported direction.
+
+See `docs/persistence.md` for collection design and indexes.
 
 ### PDF renderer
 
@@ -430,7 +436,7 @@ Do not:
 - build a social/gamified habit platform
 - add a complex admin dashboard before the PDF works
 - add LLM coaching before deterministic summaries work
-- add Postgres/Redis/Celery before SQLite/APScheduler are insufficient
+- add SQLAlchemy/Alembic/Postgres/Redis/Celery — persistence is MongoDB-only, see `docs/persistence.md`
 - make the user depend on a web dashboard for daily tracking
 
 ---

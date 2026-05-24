@@ -46,7 +46,7 @@ The backend/database is the source of truth. The generated PDF is a replaceable 
 7. **Do not store secrets in Git.**
 8. **Do not assume reMarkable Paper Pro instructions apply to reMarkable 2.**
 9. **Do not implement raw Muse EEG processing in the MVP.**
-10. **Do not add Celery/Redis/Postgres until the simpler local version needs them.**
+10. **Do not add SQLAlchemy/Alembic/Postgres/Redis/Celery.** Persistence is MongoDB-only via PyMongo Async — see `docs/persistence.md`.
 
 ---
 
@@ -70,13 +70,15 @@ Backend:
 - Python
 - FastAPI
 - Pydantic
-- SQLAlchemy or SQLModel
-- SQLite first
-- Postgres later only if useful
+- PyMongo Async (pymongo >= 4.9, AsyncMongoClient)
+- MongoDB (local for dev, Atlas for hosted)
+- Repository layer under packages/core/repositories/ is the only place
+  that touches MongoDB
+- No SQLAlchemy, no Alembic, no Postgres, no Motor
 
 Scheduling:
 - APScheduler first
-- RQ/Celery + Redis later only if needed
+- No Redis, RQ, or Celery
 
 PDF:
 - HTML/CSS templates
@@ -97,7 +99,8 @@ reMarkable sync:
 
 Deployment:
 - Local-first
-- Docker Compose optional
+- MongoDB Atlas free tier acceptable for hosted use
+- Docker is optional; not required for the database
 - Hosted deployment only after local MVP works
 ```
 
@@ -386,9 +389,12 @@ Build FastAPI service that can ingest events, compute habit entries, render curr
 Acceptance criteria:
 
 - Local API runs.
-- SQLite persists source events and habit entries.
+- MongoDB persists source events, manual overrides, habit entries, render jobs,
+  source accounts, and the habit catalog (see `docs/persistence.md`).
+- Repositories are the only layer that touches MongoDB.
 - `POST /render/current-month` creates PDF.
-- `GET /habit-entries?month=YYYY-MM` returns month state.
+- `GET /habit-entries?month=YYYY-MM` returns month state assembled from
+  `habit_entries` (no separate MonthHabitState snapshots).
 
 ### Milestone 4 — WHOOP import
 
@@ -655,13 +661,17 @@ Do not implement WHOOP internals beyond calling the WHOOP connector interface.
 Do not design the PDF layout.
 Do not implement reMarkable sync internals beyond calling the sync interface.
 
+Persistence: MongoDB via PyMongo Async — use the existing repositories in
+`packages/core/repositories/`. Do not introduce SQLAlchemy, Alembic, or
+Postgres. Wire `ensure_indexes()` into the FastAPI lifespan handler.
+
 Deliverables:
 - apps/api/main.py
 - apps/api/routes/
 - apps/api/services/
 - apps/api/scheduler.py
-- docker-compose.yml
-- .env.example
+- apps/api/lifespan.py (Mongo client + ensure_indexes on startup)
+- .env.example updates if new vars are needed
 - README.md updates
 ```
 
