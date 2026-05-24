@@ -5,6 +5,7 @@ from apps.api.routes import (
     health,
     render,
     state,
+    whoop,
 )
 
 ROUTERS = [
@@ -14,4 +15,5 @@ ROUTERS = [
     habit_entries.router,
     state.router,
     render.router,
+    whoop.router,
 ]
