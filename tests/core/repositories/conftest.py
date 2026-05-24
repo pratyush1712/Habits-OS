@@ -17,6 +17,10 @@ import pytest_asyncio
 
 from packages.core.db import make_client
 
+from dotenv import load_dotenv, find_dotenv
+
+
+load_dotenv(find_dotenv())
 
 TEST_URI_ENV = "MONGODB_TEST_URI"
 

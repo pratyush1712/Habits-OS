@@ -14,17 +14,22 @@ from typing import AsyncIterator
 
 from pymongo import AsyncMongoClient
 
+from dotenv import load_dotenv, find_dotenv
 
-DEFAULT_URI = "mongodb://localhost:27017"
-DEFAULT_DB_NAME = "habitos"
+
+load_dotenv(find_dotenv())
+
+
+DEFAULT_URI = os.getenv("MONGODB_URI")
+DEFAULT_DB_NAME = os.getenv("MONGODB_DB_NAME", "Habit-OS")
 
 
 def get_mongo_uri() -> str:
-    return os.getenv("MONGODB_URI", DEFAULT_URI)
+    return DEFAULT_URI
 
 
 def get_db_name() -> str:
-    return os.getenv("MONGODB_DB_NAME", DEFAULT_DB_NAME)
+    return DEFAULT_DB_NAME
 
 
 def make_client(uri: str | None = None) -> AsyncMongoClient:
