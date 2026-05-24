@@ -45,7 +45,7 @@ All collection endpoints are paginated with `limit <= 25`, `start`, `end`, and
 
 1. `GET /whoop/oauth/start` returns an authorization URL and state.
 2. User authorizes the app in WHOOP.
-3. `POST /whoop/oauth/callback?code=...` exchanges the code, fetches profile,
+3. `GET /whoop/oauth/callback?code=...` exchanges the code, fetches profile,
    and stores a `SourceAccount` through `SourceAccountsRepo`.
 4. `POST /whoop/sync?external_user_id=...&start=YYYY-MM-DD&end=YYYY-MM-DD`
    fetches workouts/sleeps/recoveries, normalizes them to `SourceEvent`, writes

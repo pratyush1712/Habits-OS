@@ -21,6 +21,7 @@ class RecomputeResult(TypedDict):
     overrides: int
     entries_deleted: int
     entries_written: int
+    warning: str | None
 
 
 class HabitEvaluationService:
@@ -43,6 +44,20 @@ class HabitEvaluationService:
         events = await self.events_repo.list_by_month(month)
         overrides = await self.overrides_repo.list_by_month(month)
 
+        if not habits:
+            return {
+                "month": month,
+                "habits": 0,
+                "events": len(events),
+                "overrides": len(overrides),
+                "entries_deleted": 0,
+                "entries_written": 0,
+                "warning": (
+                    "No active habits found. Seed defaults via POST /habits/seed-defaults "
+                    "or enable at least one habit before recomputing."
+                ),
+            }
+
         state = evaluate_month(month, habits, events, overrides, self.config)
 
         deleted = await self.entries_repo.delete_month(month)
@@ -55,4 +70,5 @@ class HabitEvaluationService:
             "overrides": len(overrides),
             "entries_deleted": deleted,
             "entries_written": written,
+            "warning": None,
         }

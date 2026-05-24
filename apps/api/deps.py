@@ -22,9 +22,13 @@ from packages.core.repositories import (
 
 from apps.api.services import (
     EventIngestionService,
+    HabitCatalogService,
     HabitEvaluationService,
     MonthStateService,
+    PipelineService,
     RenderService,
+    RemarkableSyncService,
+    StatusService,
     WhoopSyncService,
 )
 
@@ -35,6 +39,10 @@ def get_db(request: Request):
 
 def get_output_dir(request: Request) -> Path:
     return request.app.state.output_dir
+
+
+def get_settings(request: Request):
+    return request.app.state.settings
 
 
 # ---------- repositories ----------
@@ -84,6 +92,12 @@ def get_evaluation(
     return HabitEvaluationService(events_repo, overrides_repo, habits_repo, entries_repo)
 
 
+def get_habit_catalog(
+    habits_repo: HabitsRepo = Depends(get_habits_repo),
+) -> HabitCatalogService:
+    return HabitCatalogService(habits_repo)
+
+
 def get_month_state(
     habits_repo: HabitsRepo = Depends(get_habits_repo),
     entries_repo: HabitEntriesRepo = Depends(get_entries_repo),
@@ -111,3 +125,26 @@ def get_whoop_sync_service(
         events_repo,
         evaluation,
     )
+
+
+def get_remarkable_sync_service(
+    jobs_repo: RenderJobsRepo = Depends(get_jobs_repo),
+) -> RemarkableSyncService:
+    return RemarkableSyncService(jobs_repo)
+
+
+def get_status_service(
+    request: Request,
+    accounts_repo: SourceAccountsRepo = Depends(get_accounts_repo),
+    jobs_repo: RenderJobsRepo = Depends(get_jobs_repo),
+) -> StatusService:
+    return StatusService(request.app.state.db, request.app.state.settings, accounts_repo, jobs_repo)
+
+
+def get_pipeline_service(
+    whoop: WhoopSyncService = Depends(get_whoop_sync_service),
+    evaluation: HabitEvaluationService = Depends(get_evaluation),
+    render: RenderService = Depends(get_render_service),
+    remarkable: RemarkableSyncService = Depends(get_remarkable_sync_service),
+) -> PipelineService:
+    return PipelineService(whoop, evaluation, render, remarkable)

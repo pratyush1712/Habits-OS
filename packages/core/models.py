@@ -40,6 +40,11 @@ class Habit(_Strict):
     label: str
     short: str
     kind: HabitKind = "auto"
+    enabled: bool = True
+    sort_order: int = 100
+    description: str = ""
+    event_types: list[EventType] = Field(default_factory=list)
+    sources: list[EventSource] = Field(default_factory=list)
 
 
 class SourceEvent(_Strict):
@@ -123,7 +128,7 @@ class MonthHabitState(_Strict):
         return v
 
 
-RenderJobStatus = Literal["queued", "running", "done", "failed"]
+RenderJobStatus = Literal["pending", "running", "completed", "failed"]
 RenderTrigger = Literal["manual", "schedule", "webhook"]
 AccountStatus = Literal["active", "revoked", "expired"]
 
@@ -133,7 +138,7 @@ class RenderJob(_Strict):
 
     id: str | None = None
     month: str
-    status: RenderJobStatus = "queued"
+    status: RenderJobStatus = "pending"
     requested_at: datetime = Field(default_factory=_utcnow)
     started_at: datetime | None = None
     finished_at: datetime | None = None

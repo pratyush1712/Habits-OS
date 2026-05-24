@@ -20,7 +20,13 @@ async def render_month(
     month: str = Query(..., pattern=MONTH_PATTERN),
     service: RenderService = Depends(get_render_service),
 ) -> RenderJob:
-    return await service.render(month)
+    try:
+        return await service.render(month)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={"status": "failed", "error": f"{type(e).__name__}: {e}"},
+        ) from e
 
 
 @router.get("/jobs")
@@ -32,8 +38,11 @@ async def list_jobs(
 
 
 @router.get("/latest")
-async def latest(repo: RenderJobsRepo = Depends(get_jobs_repo)) -> RenderJob:
-    job = await repo.latest()
+async def latest(
+    month: str | None = Query(None, pattern=MONTH_PATTERN),
+    repo: RenderJobsRepo = Depends(get_jobs_repo),
+) -> RenderJob:
+    job = await repo.latest_for_month(month) if month else await repo.latest()
     if job is None:
         raise HTTPException(404, "no renders yet")
     return job

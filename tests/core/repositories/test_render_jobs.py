@@ -18,7 +18,7 @@ async def test_create_returns_string_id(db):
     assert fetched is not None
     assert fetched.id == job_id
     assert fetched.month == "2026-05"
-    assert fetched.status == "queued"
+    assert fetched.status == "pending"
 
 
 async def test_update_status_transitions(db):
@@ -31,14 +31,14 @@ async def test_update_status_transitions(db):
     finished_at = datetime.now(timezone.utc)
     assert await repo.update_status(
         job_id,
-        status="done",
+        status="completed",
         finished_at=finished_at,
         output_path="data/generated/2026-05-habit-dashboard.pdf",
     )
 
     job = await repo.get(job_id)
     assert job is not None
-    assert job.status == "done"
+    assert job.status == "completed"
     assert job.output_path == "data/generated/2026-05-habit-dashboard.pdf"
     assert job.started_at is not None and job.finished_at is not None
 
@@ -56,10 +56,10 @@ async def test_latest_for_month_picks_most_recent(db):
 
 async def test_list_by_status(db):
     repo = RenderJobsRepo(db)
-    await repo.create(RenderJob(month="2026-05", status="queued"))
+    await repo.create(RenderJob(month="2026-05", status="pending"))
     j2 = await repo.create(RenderJob(month="2026-05"))
-    await repo.update_status(j2, status="done")
+    await repo.update_status(j2, status="completed")
 
-    done = await repo.list_by_status("done")
-    assert len(done) == 1
-    assert done[0].id == j2
+    completed = await repo.list_by_status("completed")
+    assert len(completed) == 1
+    assert completed[0].id == j2

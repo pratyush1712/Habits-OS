@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import calendar
+import re
 import sys
 from dataclasses import dataclass
 from datetime import date
@@ -44,6 +45,8 @@ WEEKDAY_LONG = [
     "Monday", "Tuesday", "Wednesday", "Thursday",
     "Friday", "Saturday", "Sunday",
 ]
+
+_LONG_DECIMAL_RE = re.compile(r"(?P<int>\d+)\.(?P<frac>\d{3,})")
 
 
 @dataclass
@@ -85,7 +88,7 @@ def _build_days(
     """Index entries by ISO date and stash per-habit lookup."""
     entries_by_date: dict[str, list[HabitEntry]] = {}
     for e in entries:
-        entries_by_date.setdefault(e.date.isoformat(), []).append(e)
+        entries_by_date.setdefault(e.date.isoformat(), []).append(_for_render(e))
 
     days_by_date: dict[str, dict] = {}
     for row in rows:
@@ -108,6 +111,32 @@ def _build_days(
         day["prev_iso"] = ordered[i - 1] if i > 0 else None
         day["next_iso"] = ordered[i + 1] if i < len(ordered) - 1 else None
     return days_by_date
+
+
+def _clip_decimal_precision(text: str) -> str:
+    """Keep decimal precision to at most two places for display."""
+    if not text:
+        return text
+
+    def _replace(match: re.Match[str]) -> str:
+        whole = match.group("int")
+        frac = match.group("frac")[:2].rstrip("0")
+        if not frac:
+            return whole
+        return f"{whole}.{frac}"
+
+    return _LONG_DECIMAL_RE.sub(_replace, text)
+
+
+def _for_render(entry: HabitEntry) -> HabitEntry:
+    """Sanitize free-text fields used in the PDF without mutating stored data."""
+    return entry.model_copy(
+        update={
+            "summary": _clip_decimal_precision(entry.summary),
+            "description": _clip_decimal_precision(entry.description),
+            "explanation": _clip_decimal_precision(entry.explanation),
+        }
+    )
 
 
 def _build_weeks(

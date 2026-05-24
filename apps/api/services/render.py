@@ -40,7 +40,7 @@ class RenderService:
             pdf_path = await asyncio.to_thread(render_pdf, state, self.output_dir)
             await self.jobs_repo.update_status(
                 job_id,
-                status="done",
+                status="completed",
                 finished_at=_now(),
                 output_path=str(pdf_path),
             )

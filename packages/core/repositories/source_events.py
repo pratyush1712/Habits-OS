@@ -6,6 +6,7 @@ from datetime import date
 from typing import Iterable
 
 from pymongo import ReplaceOne
+from pymongo.results import BulkWriteResult
 
 from packages.core.models import SourceEvent
 from packages.core.repositories.base import doc_to_model, model_to_doc, month_range
@@ -23,15 +24,21 @@ class SourceEventsRepo:
         await self.coll.replace_one({"_id": event.id}, doc, upsert=True)
 
     async def upsert_many(self, events: Iterable[SourceEvent]) -> int:
+        result = await self.upsert_many_counts(events)
+        return result["inserted"] + result["updated"]
+
+    async def upsert_many_counts(self, events: Iterable[SourceEvent]) -> dict[str, int]:
         ops: list[ReplaceOne] = []
         for e in events:
             doc = model_to_doc(e)
             doc["_id"] = e.id
             ops.append(ReplaceOne({"_id": e.id}, doc, upsert=True))
         if not ops:
-            return 0
-        result = await self.coll.bulk_write(ops, ordered=False)
-        return result.upserted_count + result.modified_count
+            return {"inserted": 0, "updated": 0, "total": 0}
+        result: BulkWriteResult = await self.coll.bulk_write(ops, ordered=False)
+        inserted = result.upserted_count
+        updated = result.modified_count
+        return {"inserted": inserted, "updated": updated, "total": inserted + updated}
 
     async def get(self, event_id: str) -> SourceEvent | None:
         doc = await self.coll.find_one({"_id": event_id})
@@ -53,15 +60,27 @@ class SourceEventsRepo:
         *,
         month: str | None = None,
         source: str | None = None,
+        event_type: str | None = None,
+        start: date | None = None,
+        end: date | None = None,
         limit: int = 100,
     ) -> list[SourceEvent]:
         """Flexible query for the debugging GET /events route."""
         query: dict = {}
         if month:
-            start, end = month_range(month)
-            query["local_date"] = {"$gte": start, "$lt": end}
+            range_start, range_end = month_range(month)
+            query["local_date"] = {"$gte": range_start, "$lt": range_end}
+        elif start or end:
+            local_date_filter: dict[str, str] = {}
+            if start:
+                local_date_filter["$gte"] = start.isoformat()
+            if end:
+                local_date_filter["$lte"] = end.isoformat()
+            query["local_date"] = local_date_filter
         if source:
             query["source"] = source
+        if event_type:
+            query["event_type"] = event_type
         cursor = (
             self.coll.find(query)
             .sort([("local_date", -1), ("start_time_utc", -1)])

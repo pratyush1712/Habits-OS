@@ -67,17 +67,20 @@ async def test_full_pipeline(api_client):
     # generated_at is set by the model default at read time, proving derivation.
     assert state["generated_at"] is not None
 
-    # 7) Render a PDF. The job moves queued → running → done.
+    # 7) Render a PDF. The job moves pending → running → completed.
     r = await api_client.post(f"/render/month?month={MONTH}")
     assert r.status_code == 200, r.text
     job = r.json()
-    assert job["status"] == "done"
+    assert job["status"] == "completed"
     assert job["month"] == MONTH
     assert job["output_path"].endswith(f"{MONTH}-habit-dashboard.pdf")
     assert Path(job["output_path"]).exists()
 
     # 8) /render/latest reflects the newest job.
     r = await api_client.get("/render/latest")
+    assert r.status_code == 200
+    assert r.json()["id"] == job["id"]
+    r = await api_client.get(f"/render/latest?month={MONTH}")
     assert r.status_code == 200
     assert r.json()["id"] == job["id"]
 

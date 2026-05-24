@@ -15,9 +15,11 @@ from fastapi import FastAPI
 
 from packages.core.db import make_client
 from packages.core.indexes import ensure_indexes
+from packages.core.repositories import HabitsRepo
 
 from apps.api.config import load_settings
 from apps.api.routes import ROUTERS
+from apps.api.services import HabitCatalogService
 
 
 @asynccontextmanager
@@ -28,12 +30,15 @@ async def lifespan(app: FastAPI):
 
     settings.output_dir.mkdir(parents=True, exist_ok=True)
     await ensure_indexes(db)
+    habit_catalog = HabitCatalogService(HabitsRepo(db))
+    await habit_catalog.ensure_default_habits()
 
     app.state.settings = settings
     app.state.client = client
     app.state.db = db
     app.state.output_dir = settings.output_dir
     app.state.sample_events_path = settings.sample_events_path
+    app.state.whoop_oauth_states = set()
 
     try:
         yield

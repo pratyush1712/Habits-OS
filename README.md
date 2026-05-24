@@ -3,12 +3,11 @@
 A small, local-first habit dashboard generator that turns tracker data into a
 calm, hyperlinked monthly PDF for **reMarkable 2**.
 
-This repository is currently at **Milestone 1**:
+This repository now has the local MVP pipeline plus early integrations:
 
-> Fake/sample JSON → beautiful hyperlinked monthly PDF for reMarkable 2,
-> uploaded manually.
+> sample/WHOOP-style events → habit entries → rendered monthly PDF → manual reMarkable 2 sync instructions.
 
-No WHOOP, Muse, Apple Health, backend API, sync automation, or admin UI yet.
+WHOOP import and reMarkable sync are intentionally small and manual-first. The reMarkable adapter does not mutate device or cloud state; it returns safe upload instructions for generated, machine-owned PDFs. Muse, Apple Health, automated USB/cloud sync, and admin UI remain future work.
 See [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) for the full plan.
 
 ---
@@ -94,6 +93,8 @@ Or browse the interactive docs at <http://127.0.0.1:8000/docs>.
 | POST | `/render/month?month=YYYY-MM` | Render a PDF; records a `RenderJob` |
 | GET | `/render/jobs?limit=` | Recent render jobs |
 | GET | `/render/latest` | Most recent render job |
+| GET | `/remarkable/instructions?month=YYYY-MM` | Manual upload instructions for latest rendered month PDF |
+| POST | `/remarkable/sync?month=YYYY-MM&dry_run=true` | Manual reMarkable sync adapter result; no device/cloud mutation |
 
 Indexes are applied idempotently on startup via `ensure_indexes()`.
 
@@ -136,16 +137,30 @@ network connection.
 
 ## Putting the PDF onto a reMarkable 2
 
-For now this is manual. Either:
+The current sync path is still manual-first and safe. HabitOS can now generate
+manual upload instructions for the latest completed render job:
+
+```bash
+curl "http://127.0.0.1:8000/remarkable/instructions?month=2026-05"
+```
+
+The target naming convention is machine-owned:
+
+```text
+HabitOS / YYYY / YYYY-MM Habit Dashboard.pdf
+```
+
+Then either:
 
 1. Plug the tablet in over USB, enable the USB web interface in **Settings →
-   Storage**, open `http://10.11.99.1/`, and drag the PDF in; **or**
+   Storage**, open `http://10.11.99.1/`, and upload the PDF; **or**
 2. Email the PDF to yourself and open it in the reMarkable mobile app to
    send it to the tablet; **or**
 3. Use the reMarkable desktop app's "Send to reMarkable" flow.
 
-Sync automation (`rmcl`/`rmapi`) is intentionally out of scope for this
-milestone.
+The manual adapter never overwrites handwritten notebooks and does not touch
+reMarkable device/cloud state. USB/cloud automation (`rmcl`, `rmapi`, SSH) is
+still deferred until explicitly tested behind a conservative adapter.
 
 ---
 

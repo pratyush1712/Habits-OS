@@ -13,9 +13,12 @@
   margin: 0;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background: #ffffff;
@@ -26,11 +29,21 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: inherit; text-decoration: none; }
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
-h1, h2, h3 { font-weight: 600; }
+h1,
+h2,
+h3 {
+  font-weight: 600;
+}
 
-.sans { font-family: -apple-system, "Helvetica Neue", Helvetica, "Inter", Arial, sans-serif; }
+.sans {
+  font-family:
+    -apple-system, "Helvetica Neue", Helvetica, "Inter", Arial, sans-serif;
+}
 
 .page {
   width: 157mm;
@@ -54,7 +67,9 @@ h1, h2, h3 { font-weight: 600; }
   box-sizing: border-box;
   overflow: hidden;
 }
-.month-page .page-inner { padding: 9mm 9mm 8mm 9mm; }
+.month-page .page-inner {
+  padding: 9mm 9mm 8mm 9mm;
+}
 
 /* ---------- Top nav / back links ---------- */
 
@@ -62,6 +77,10 @@ h1, h2, h3 { font-weight: 600; }
   border-bottom: 1.5pt solid #111;
   padding-bottom: 4mm;
   margin-bottom: 6mm;
+}
+.day-page .page-header,
+.week-page .page-header {
+  margin-bottom: 3.6mm;
 }
 .page-header h1 {
   font-size: 22pt;
@@ -89,7 +108,10 @@ h1, h2, h3 { font-weight: 600; }
 
 /* ---------- Monthly dashboard ---------- */
 
-.month-header { text-align: center; margin-bottom: 4mm; }
+.month-header {
+  text-align: center;
+  margin-bottom: 4mm;
+}
 .month-title {
   font-size: 28pt;
   letter-spacing: 1pt;
@@ -133,7 +155,9 @@ h1, h2, h3 { font-weight: 600; }
   flex: 1;
   border-bottom: 0.5pt solid #bbb;
 }
-.week-row:last-child { border-bottom: 0.75pt solid #111; }
+.week-row:last-child {
+  border-bottom: 0.75pt solid #111;
+}
 
 .day-cell {
   padding: 1.5mm 1.5mm 1mm 1.5mm;
@@ -143,7 +167,9 @@ h1, h2, h3 { font-weight: 600; }
   justify-content: space-between;
   min-height: 22mm;
 }
-.day-cell:last-child { border-right: none; }
+.day-cell:last-child {
+  border-right: none;
+}
 .day-cell.empty {
   background-image: repeating-linear-gradient(
     -45deg,
@@ -183,7 +209,9 @@ h1, h2, h3 { font-weight: 600; }
   font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #111;
 }
-.status.status-none { color: #bbb; }
+.status.status-none {
+  color: #bbb;
+}
 
 /* ---------- Legend / footer on month page ---------- */
 
@@ -204,8 +232,15 @@ h1, h2, h3 { font-weight: 600; }
   color: #444;
   margin: 0 0 1.5mm 0;
 }
-.legend ul { list-style: none; padding: 0; margin: 0; }
-.legend li { margin-bottom: 1mm; line-height: 1.3; }
+.legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.legend li {
+  margin-bottom: 1mm;
+  line-height: 1.3;
+}
 .legend .key {
   display: inline-block;
   min-width: 5mm;
@@ -285,13 +320,24 @@ h1, h2, h3 { font-weight: 600; }
   border-color: #aaa;
   border-style: dashed;
 }
-.habit-card.empty .card-glyph { color: #aaa; }
-.habit-card.empty .card-name { color: #777; }
-.habit-card.empty .card-state { color: #999; }
-.habit-card.empty .card-summary { color: #aaa; }
+.habit-card.empty .card-glyph {
+  color: #aaa;
+}
+.habit-card.empty .card-name {
+  color: #777;
+}
+.habit-card.empty .card-state {
+  color: #999;
+}
+.habit-card.empty .card-summary {
+  color: #aaa;
+}
 
 .details {
   margin-bottom: 3mm;
+}
+.details + .section-heading {
+  margin-top: 1mm;
 }
 .entry-detail {
   font-size: 9.5pt;
@@ -320,6 +366,10 @@ h1, h2, h3 { font-weight: 600; }
   padding-bottom: 1mm;
   border-bottom: 0.5pt solid #aaa;
 }
+.day-page .section-heading:first-of-type,
+.week-page .section-heading:first-of-type {
+  margin-top: 1.9mm;
+}
 
 /* ---------- Handwriting space ---------- */
 
@@ -335,10 +385,22 @@ h1, h2, h3 { font-weight: 600; }
   );
   margin-top: 2mm;
 }
-.lines.short { height: 30mm; flex: 0 0 30mm; }
-.lines.medium { height: 50mm; flex: 0 0 50mm; }
-.lines.tall { flex: 1 1 auto; min-height: 40mm; }
-.lines.fill { flex: 1 1 auto; min-height: 60mm; }
+.lines.short {
+  height: 30mm;
+  flex: 0 0 30mm;
+}
+.lines.medium {
+  height: 50mm;
+  flex: 0 0 50mm;
+}
+.lines.tall {
+  flex: 1 1 auto;
+  min-height: 40mm;
+}
+.lines.fill {
+  flex: 1 1 auto;
+  min-height: 60mm;
+}
 
 .prompt {
   font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -356,7 +418,10 @@ h1, h2, h3 { font-weight: 600; }
   background-size: 5mm 5mm;
   margin-top: 2mm;
 }
-.dotted.tall { flex: 1; min-height: 60mm; }
+.dotted.tall {
+  flex: 1;
+  min-height: 60mm;
+}
 
 /* ---------- Week page ---------- */
 
@@ -375,8 +440,14 @@ h1, h2, h3 { font-weight: 600; }
   font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 9.5pt;
 }
-.week-days li a .date { font-weight: 700; margin-right: 2mm; }
-.week-days li a .status-strip { float: right; letter-spacing: 1pt; }
+.week-days li a .date {
+  font-weight: 700;
+  margin-right: 2mm;
+}
+.week-days li a .status-strip {
+  float: right;
+  letter-spacing: 1pt;
+}
 
 .week-summary {
   display: grid;

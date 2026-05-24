@@ -53,7 +53,9 @@ class HabitsRepo:
         return _to_habit(doc) if doc else None
 
     async def list_active(self) -> list[Habit]:
-        cursor = self.coll.find({"archived_at": None}).sort("_id", 1)
+        cursor = self.coll.find({"archived_at": None, "enabled": True}).sort(
+            [("sort_order", 1), ("_id", 1)]
+        )
         return [_to_habit(d) async for d in cursor]
 
     async def list_all(self) -> list[Habit]:
@@ -65,3 +67,6 @@ class HabitsRepo:
             {"_id": key}, {"$set": {"archived_at": now_utc()}}
         )
         return result.modified_count > 0
+
+    async def count_all(self) -> int:
+        return await self.coll.count_documents({})

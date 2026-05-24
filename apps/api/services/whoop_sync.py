@@ -8,7 +8,7 @@ only code that touches MongoDB.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import TypedDict
 
 import httpx
@@ -43,6 +43,7 @@ class WhoopSyncResult(TypedDict):
     recoveries: int
     events_written: int
     recomputed_months: list[str]
+    written: dict[str, dict[str, int]]
 
 
 @dataclass(frozen=True)
@@ -97,6 +98,13 @@ class WhoopSyncService:
         stored = await self.accounts_repo.get("whoop", external_user_id)
         return stored or account
 
+    async def status(self) -> dict:
+        accounts = await self.accounts_repo.list_by_source("whoop")
+        return {
+            "configured": bool(self.settings.client_id and self.settings.client_secret),
+            "accounts": [_account_status(account) for account in accounts],
+        }
+
     async def sync_range(
         self,
         *,
@@ -114,8 +122,8 @@ class WhoopSyncService:
         account = await self._fresh_account(account)
         access_token = access_token_from_account(account)
         start_dt = datetime.combine(start, time.min, tzinfo=timezone.utc)
-        # WHOOP end query is exclusive/intersecting per docs; use next midnight.
-        end_dt = datetime.combine(end, time.min, tzinfo=timezone.utc)
+        # Public API date ranges are inclusive; WHOOP's query end is exclusive.
+        end_dt = datetime.combine(end + timedelta(days=1), time.min, tzinfo=timezone.utc)
 
         async with httpx.AsyncClient(timeout=30) as http_client:
             client = WhoopClient(
@@ -128,14 +136,18 @@ class WhoopSyncService:
             recoveries = await client.list_recoveries(start=start_dt, end=end_dt)
 
         sleep_by_id = {str(s.get("id")): s for s in sleeps if s.get("id")}
-        events: list[SourceEvent] = [normalize_workout(w) for w in workouts]
-        events.extend(normalize_sleep(s) for s in sleeps)
-        events.extend(
+        workout_events: list[SourceEvent] = [normalize_workout(w) for w in workouts]
+        sleep_events: list[SourceEvent] = [normalize_sleep(s) for s in sleeps]
+        recovery_events: list[SourceEvent] = [
             normalize_recovery(r, sleep_payload=sleep_by_id.get(str(r.get("sleep_id"))))
             for r in recoveries
-        )
+        ]
+        events = [*workout_events, *sleep_events, *recovery_events]
 
-        written = await self.events_repo.upsert_many(events)
+        workout_written = await self.events_repo.upsert_many_counts(workout_events)
+        sleep_written = await self.events_repo.upsert_many_counts(sleep_events)
+        recovery_written = await self.events_repo.upsert_many_counts(recovery_events)
+        written = workout_written["total"] + sleep_written["total"] + recovery_written["total"]
         await self.accounts_repo.mark_synced("whoop", external_user_id, datetime.now(timezone.utc))
 
         recomputed_months: list[str] = []
@@ -153,6 +165,11 @@ class WhoopSyncService:
             "recoveries": len(recoveries),
             "events_written": written,
             "recomputed_months": recomputed_months,
+            "written": {
+                "workouts": _counts_for_response(workout_written),
+                "sleeps": _counts_for_response(sleep_written),
+                "recoveries": _counts_for_response(recovery_written),
+            },
         }
 
     async def _fresh_account(self, account: SourceAccount) -> SourceAccount:
@@ -207,3 +224,19 @@ def _display_name(profile: dict) -> str:
     last = profile.get("last_name")
     full = " ".join(str(p) for p in [first, last] if p)
     return full or str(profile.get("email") or "WHOOP")
+
+
+def _counts_for_response(counts: dict[str, int]) -> dict[str, int]:
+    return {"inserted": counts["inserted"], "updated": counts["updated"]}
+
+
+def _account_status(account: SourceAccount) -> dict:
+    return {
+        "external_user_id": account.external_user_id,
+        "display_name": account.display_name,
+        "status": account.status,
+        "connected_at": account.connected_at.isoformat(),
+        "last_sync_at": account.last_sync_at.isoformat() if account.last_sync_at else None,
+        "token_expires_at": account.token_expires_at.isoformat() if account.token_expires_at else None,
+        "scopes": account.scopes,
+    }
