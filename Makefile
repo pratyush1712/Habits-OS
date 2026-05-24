@@ -1,0 +1,20 @@
+PY := .venv/bin/python
+PIP := .venv/bin/pip
+
+.PHONY: setup test render-sample clean
+
+setup:
+	python3 -m venv .venv
+	$(PIP) install -U pip
+	$(PIP) install -e ".[dev]"
+	$(PY) -m playwright install chromium
+
+render-sample:
+	$(PY) -m packages.renderer.render_month data/sample_month.json
+
+test:
+	$(PY) -m pytest -q
+
+clean:
+	rm -rf .venv .pytest_cache *.egg-info
+	find . -type d -name __pycache__ -prune -exec rm -rf {} +

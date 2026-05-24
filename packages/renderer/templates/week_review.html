@@ -1,0 +1,33 @@
+<section class="page week-page week-review" id="{{ week.review_anchor }}">
+<div class="page-inner">
+  <div class="nav-row">
+    <a class="back-link" href="#month">← {{ month_label }}</a>
+    <a class="back-link" href="#{{ week.anchor }}">← {{ week.label }} plan</a>
+  </div>
+
+  <header class="page-header">
+    <h1>{{ week.review_label }}</h1>
+    <p class="subtitle">{{ week.start_label }} – {{ week.end_label }} · looking back</p>
+  </header>
+
+  <h2 class="section-heading">This week, by habit</h2>
+  <div class="week-summary">
+    {% for h in habits %}
+      {% set count = week.habit_counts.get(h.key, 0) %}
+      <div class="stat">
+        <span class="label">{{ h.label }}</span>
+        <span class="value">{{ count }}<span class="value-denom">/{{ week.dates|length }}</span></span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <h2 class="section-heading">Reflection</h2>
+  <p class="prompt">What worked? What didn't? What changes next week?</p>
+  <div class="lines fill"></div>
+
+  <div class="page-footer">
+    <span><a href="#month">↑ Month</a></span>
+    <span><a href="#{{ week.anchor }}">← plan</a> &nbsp;·&nbsp; {{ week.review_label }}</span>
+  </div>
+</div>
+</section>

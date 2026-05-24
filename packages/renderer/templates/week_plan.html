@@ -1,0 +1,40 @@
+<section class="page week-page week-plan" id="{{ week.anchor }}">
+<div class="page-inner">
+  <div class="nav-row">
+    <a class="back-link" href="#month">← {{ month_label }}</a>
+    <a class="back-link" href="#{{ week.review_anchor }}">{{ week.label }} review →</a>
+  </div>
+
+  <header class="page-header">
+    <h1>{{ week.plan_label }}</h1>
+    <p class="subtitle">{{ week.start_label }} – {{ week.end_label }} · looking forward</p>
+  </header>
+
+  <h2 class="section-heading">Days this week</h2>
+  <ul class="week-days">
+    {% for cell in week.dates %}
+      {% set day = days_by_date[cell.iso] %}
+      <li>
+        <a href="#day-{{ cell.iso }}">
+          <span class="date">{{ cell.weekday_short }} {{ cell.day }}</span>
+          <span class="status-strip">
+            {% for h in habits %}
+              {% set entry = day.by_habit.get(h.key) %}
+              {% if entry %}{{ status_glyph[entry.status] }}{% else %}·{% endif %}
+            {% endfor %}
+          </span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <h2 class="section-heading">Intention for the week</h2>
+  <p class="prompt">What matters most this week? What would make it a good one?</p>
+  <div class="lines fill"></div>
+
+  <div class="page-footer">
+    <span><a href="#month">↑ Month</a></span>
+    <span>{{ week.plan_label }} &nbsp;·&nbsp; <a href="#{{ week.review_anchor }}">review →</a></span>
+  </div>
+</div>
+</section>

@@ -1,0 +1,52 @@
+<section class="page day-page" id="day-{{ day.date }}">
+<div class="page-inner">
+  <div class="nav-row">
+    <a class="back-link" href="#month">← {{ month_label }}</a>
+    {% if day.week_anchor %}<a class="back-link" href="#{{ day.week_anchor }}">{{ day.week_label }}</a>{% endif %}
+    {% if day.prev_iso %}<a class="back-link" href="#day-{{ day.prev_iso }}">← prev</a>{% endif %}
+    {% if day.next_iso %}<a class="back-link" href="#day-{{ day.next_iso }}">next →</a>{% endif %}
+  </div>
+
+  <header class="page-header">
+    <h1>{{ day.weekday_long }}, {{ day.month_day_long }}</h1>
+    <p class="subtitle">{{ day.date }}</p>
+  </header>
+
+  <h2 class="section-heading">Habits</h2>
+  <div class="habit-grid">
+    {% for h in habits %}
+      {% set entry = day.by_habit.get(h.key) %}
+      <div class="habit-card status-{{ entry.status if entry else 'none' }}{% if not entry %} empty{% endif %}">
+        <div class="card-top">
+          <span class="card-glyph">{% if entry %}{{ status_glyph[entry.status] }}{% else %}·{% endif %}</span>
+          <span class="card-name">{{ h.label }}</span>
+          <span class="card-state">{{ entry.status if entry else '—' }}</span>
+        </div>
+        <div class="card-summary">{{ entry.summary if entry and entry.summary else '' }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% set has_details = namespace(value=false) %}
+  {% for h in habits %}{% if day.by_habit.get(h.key) and day.by_habit[h.key].description %}{% set has_details.value = true %}{% endif %}{% endfor %}
+  {% if has_details.value %}
+    <h2 class="section-heading">Details</h2>
+    <div class="details">
+      {% for h in habits %}
+        {% set entry = day.by_habit.get(h.key) %}
+        {% if entry and entry.description %}
+          <p class="entry-detail"><span class="label">{{ h.label }}</span>{{ entry.description }}</p>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <h2 class="section-heading">Notes</h2>
+  <div class="lines fill"></div>
+
+  <div class="page-footer">
+    <span><a href="#month">↑ Month</a></span>
+    <span>{{ day.weekday_long }} · {{ day.date }}</span>
+  </div>
+</div>
+</section>

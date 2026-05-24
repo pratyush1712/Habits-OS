@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HabitOS — {{ month_label }}</title>
+  <style>{{ css|safe }}</style>
+</head>
+<body>
+  {% include "month.html" %}
+  {% for week in weeks %}
+    {% include "week_plan.html" %}
+    {% include "week_review.html" %}
+  {% endfor %}
+  {% for day in days %}
+    {% include "day.html" %}
+  {% endfor %}
+</body>
+</html>
