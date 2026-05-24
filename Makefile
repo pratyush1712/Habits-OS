@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
 
-.PHONY: setup test render-sample clean
+.PHONY: setup test render-sample evaluate-sample clean
 
 setup:
 	python3 -m venv .venv
@@ -11,6 +11,9 @@ setup:
 
 render-sample:
 	$(PY) -m packages.renderer.render_month data/sample_month.json
+
+evaluate-sample:
+	$(PY) -m packages.core.evaluate data/sample_events.json
 
 test:
 	$(PY) -m pytest -q
