@@ -25,6 +25,7 @@ from apps.api.services import (
     HabitEvaluationService,
     MonthStateService,
     RenderService,
+    WhoopSyncService,
 )
 
 
@@ -96,3 +97,17 @@ def get_render_service(
     output_dir: Path = Depends(get_output_dir),
 ) -> RenderService:
     return RenderService(jobs_repo, month_state, output_dir)
+
+
+def get_whoop_sync_service(
+    request: Request,
+    accounts_repo: SourceAccountsRepo = Depends(get_accounts_repo),
+    events_repo: SourceEventsRepo = Depends(get_events_repo),
+    evaluation: HabitEvaluationService = Depends(get_evaluation),
+) -> WhoopSyncService:
+    return WhoopSyncService(
+        request.app.state.settings.whoop,
+        accounts_repo,
+        events_repo,
+        evaluation,
+    )
