@@ -164,6 +164,33 @@ still deferred until explicitly tested behind a conservative adapter.
 
 ---
 
+## Integration architecture
+
+HabitOS has a formal integration contract for adding new services (Muse, Day
+One, Apple Health, medication trackers, future wearables). New integrations
+normalize into `SourceEvent`, never write `habit_entries` directly, and plug
+into the nightly automation pipeline through a typed sync summary.
+
+Start here:
+
+- [docs/integration_blueprint.md](docs/integration_blueprint.md) — philosophy,
+  pipeline mapping, and the Automation Compatibility Contract.
+- [docs/integration_template.md](docs/integration_template.md) — fill-in-the-
+  blanks template every new integration doc must use.
+- [docs/integration_examples.md](docs/integration_examples.md) — sketches for
+  Muse, Day One, Apple Health, and a medication tool.
+- [docs/new_integration_agent_prompt.md](docs/new_integration_agent_prompt.md)
+  — copy-paste prompt for spawning a sub-agent that adds one.
+- [docs/automation.md](docs/automation.md) — how the nightly pipeline calls
+  integrations today and what status it exposes.
+- [`packages/connectors/base.py`](packages/connectors/base.py) — the typed
+  contract (`ConnectorCapability`, `IntegrationSyncSummary`, `BaseConnector`).
+
+WHOOP is the reference connector. It predates the formal contract; the
+blueprint documents the migration path without forcing a refactor now.
+
+---
+
 ## Project layout
 
 ```text

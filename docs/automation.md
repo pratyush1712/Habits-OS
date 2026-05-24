@@ -3,6 +3,14 @@
 HabitOS now includes a local-first automation layer for nightly sync, month
 recompute, PDF rendering, and safe reMarkable document lifecycle preparation.
 
+> **Adding a new integration to this pipeline?** Read
+> [docs/integration_blueprint.md](integration_blueprint.md) first. Every
+> integration that participates in nightly automation must conform to the
+> Automation Compatibility Contract in that document and return an
+> `IntegrationSyncSummary` (see
+> [`packages/connectors/base.py`](../packages/connectors/base.py)) from its
+> `sync_range` method.
+
 ## What the nightly job does
 
 The nightly pipeline runs this sequence:
