@@ -269,6 +269,36 @@ Response:
 
 Unauthorized WHOOP tokens return a clear `401` diagnostic and should be fixed by re-running OAuth.
 
+### GET /dayone/status
+
+Reports whether the configured Day One SQLite database is reachable, the latest
+sync timestamps, and any skip reason from the last nightly run (e.g.
+`missing_db_path`, `unsupported_schema`).
+
+```bash
+curl "$BASE/dayone/status"
+```
+
+### POST /dayone/sync
+
+Reads the Day One SQLite DB for an inclusive local date range, normalizes
+entries into `source_events` (metadata-only by default; raw text is never
+persisted), and optionally recomputes affected months.
+
+| Param        | Required | Default | Description                               |
+| ------------ | -------: | ------: | ----------------------------------------- |
+| `start`      |      yes |         | Inclusive `YYYY-MM-DD` start date         |
+| `end`        |      yes |         | Inclusive `YYYY-MM-DD` end date           |
+| `recompute` |       no |  `true` | Recompute months touched by synced events |
+
+```bash
+curl -X POST "$BASE/dayone/sync?start=$START&end=$END"
+```
+
+When `DAYONE_DB_PATH` is unset or unreadable, the route returns a typed
+skipped summary rather than failing — the same behavior nightly automation
+relies on.
+
 ### GET /events
 
 Lists normalized source events for debugging.
@@ -348,6 +378,22 @@ Response:
     "summary": "42 min workout"
   }
 ]
+```
+
+### GET /habits
+
+Lists the habit catalog. Defaults are seeded on app startup.
+
+```bash
+curl "$BASE/habits"
+```
+
+### POST /habits/seed-defaults
+
+Re-seeds the default habits idempotently. Safe to call repeatedly.
+
+```bash
+curl -X POST "$BASE/habits/seed-defaults"
 ```
 
 ### POST /habits/recompute

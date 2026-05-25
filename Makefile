@@ -36,3 +36,9 @@ service-logs:
 
 service-status:
 	launchctl print gui/$$(id -u)/com.pratyush.habitos.api
+
+run-admin:
+	pnpm --dir apps/admin dev
+
+admin-types:
+	pnpm --dir apps/admin api-types

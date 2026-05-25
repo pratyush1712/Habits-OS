@@ -1,10 +1,30 @@
 # AGENTS.md
 
-_Last updated: 2026-05-24_
+_Last updated: 2026-05-25_
 
 This file defines the agent plan for **HabitOS**, a small local-first personal automation system that turns tracker activity into a beautiful monthly habit dashboard for **reMarkable 2**.
 
 The goal is not to build a giant productivity platform. The goal is to make the user's existing behavior visible with as little manual effort as possible.
+
+> **Current implementation status (2026-05-25).** Milestones 1–5 are complete
+> and wired together end-to-end:
+>
+> - ✅ M1 Static PDF renderer (`packages/renderer/`)
+> - ✅ M2 Pydantic models + pure rule engine (`packages/core/`)
+> - ✅ M3 FastAPI + MongoDB orchestration (`apps/api/`, `packages/core/repositories/`)
+>   plus a nightly APScheduler job, `automation_runs` history, and launchd
+>   scripts under `scripts/`
+> - ✅ M4 WHOOP OAuth + pull-based reconciliation (`packages/connectors/whoop/`)
+> - ✅ M5 reMarkable sync: manual instructions adapter (default, safe) plus an
+>   optional `ddvk/rmapi` cloud adapter (`packages/remarkable_sync/`)
+> - 🆕 Day One integration (read-only SQLite, metadata-only) was added
+>   outside the original milestone list to drive the `journaling` habit
+>   (`packages/connectors/dayone/`, [`docs/integrations/dayone.md`](docs/integrations/dayone.md))
+> - ⏳ M6 Muse / meditation ingestion — not started
+> - ⏳ M7 Admin / debug UI — not started
+>
+> See [README.md](README.md) for the user-facing surface and
+> [docs/api.md](docs/api.md) for the live HTTP routes.
 
 ---
 
@@ -354,7 +374,7 @@ deep_work
 
 ## 7. Milestones
 
-### Milestone 1 — Static PDF MVP
+### Milestone 1 — Static PDF MVP ✅ done
 
 Build a beautiful, hyperlinked monthly reMarkable 2 habit dashboard PDF from fake JSON.
 
@@ -370,7 +390,7 @@ Acceptance criteria:
 - PDF is comfortable to read on reMarkable 2.
 - Generated file can be manually uploaded to reMarkable 2.
 
-### Milestone 2 — Core state and rule engine
+### Milestone 2 — Core state and rule engine ✅ done
 
 Build normalized models and habit evaluation from fake events.
 
@@ -382,7 +402,11 @@ Acceptance criteria:
 - Manual override takes priority.
 - Unit tests exist.
 
-### Milestone 3 — Backend orchestration
+### Milestone 3 — Backend orchestration ✅ done
+
+> The shipped surface is `POST /render/month?month=YYYY-MM` (not
+> `/render/current-month`); nightly automation handles the implicit
+> "current month" flow.
 
 Build FastAPI service that can ingest events, compute habit entries, render current month, and expose a download endpoint.
 
@@ -396,7 +420,7 @@ Acceptance criteria:
 - `GET /habit-entries?month=YYYY-MM` returns month state assembled from
   `habit_entries` (no separate MonthHabitState snapshots).
 
-### Milestone 4 — WHOOP import
+### Milestone 4 — WHOOP import ✅ done (pull-based; webhooks deferred)
 
 Add WHOOP OAuth, fetch, normalization, and reconciliation.
 
@@ -407,9 +431,11 @@ Acceptance criteria:
 - WHOOP records normalize into `source_events`.
 - Reconciliation job can refetch recent days.
 
-### Milestone 5 — reMarkable sync
+### Milestone 5 — reMarkable sync ✅ done (manual + rmapi; rmcl/USB not built)
 
-Add manual sync first, then optional rmcl/USB adapter.
+Add manual sync first, then optional rmcl/USB adapter. _Shipped: manual
+adapter + ddvk/rmapi cloud adapter. rmcl and the USB web adapter were
+not built because rmapi covers the same need._
 
 Acceptance criteria:
 
@@ -417,7 +443,7 @@ Acceptance criteria:
 - Manual upload instructions are printed.
 - Optional adapter can upload or update machine-owned dashboard PDF.
 
-### Milestone 6 — Meditation import
+### Milestone 6 — Meditation import ⏳ not started
 
 Add lowest-friction meditation import.
 
@@ -426,7 +452,7 @@ Acceptance criteria:
 - Manual endpoint or Apple Health import can create meditation event.
 - Meditation rules convert sessions into habit entries.
 
-### Milestone 7 — Optional admin/debug UI
+### Milestone 7 — Optional admin/debug UI ⏳ not started
 
 Add minimal Next.js UI for inspection and override.
 

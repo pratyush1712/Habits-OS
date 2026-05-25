@@ -7,6 +7,14 @@ HabitOS is a small local-first automation system that converts tracker data into
 
 Read this file before making changes.
 
+> **Current state (2026-05-25).** The renderer, rule engine, MongoDB-backed
+> FastAPI, WHOOP OAuth + sync, Day One read-only SQLite integration, manual
+> reMarkable adapter, and rmapi cloud adapter are all live. A nightly
+> APScheduler job ties them together. Muse/meditation ingestion and the
+> admin/debug UI are the remaining planned scope. See AGENTS.md §
+> "Current implementation status" and the README for the user-facing
+> picture.
+
 ---
 
 ## 1. Mission
@@ -374,26 +382,28 @@ HabitOS handles health and behavior data.
 
 ---
 
-## 11. Initial commands to support
+## 11. Commands
 
-Eventually support:
-
-```bash
-make setup
-make test
-make render-sample
-make render-current-month
-make reconcile
-make run-api
-```
-
-For the first milestone, only these are required:
+Currently implemented Make targets:
 
 ```bash
-make setup
-make test
-make render-sample
+make setup            # venv + deps + Chromium
+make test             # pytest
+make render-sample    # data/sample_month.json → PDF (no DB)
+make evaluate-sample  # rules over data/sample_events.json (no DB)
+make run-api          # uvicorn apps.api.main:app --reload
+
+# launchd-backed background service (optional, macOS)
+make service-restart
+make service-update
+make service-logs
+make service-status
 ```
+
+`render-current-month` and `reconcile` from the original plan were absorbed
+into the API and the nightly automation pipeline; trigger the equivalents
+with `POST /render/month?month=YYYY-MM` and
+`POST /automation/nightly-run`.
 
 ---
 
@@ -443,16 +453,21 @@ Do not:
 
 ## 14. Recommended implementation order
 
-1. Create sample month JSON.
-2. Create HTML/CSS renderer.
-3. Generate PDF with internal links.
-4. Add core Pydantic models.
-5. Add pure habit rule functions.
-6. Add FastAPI orchestration.
-7. Add WHOOP connector.
-8. Add manual reMarkable sync adapter.
-9. Add meditation import.
-10. Add optional admin/debug UI.
+1. ✅ Create sample month JSON.
+2. ✅ Create HTML/CSS renderer.
+3. ✅ Generate PDF with internal links.
+4. ✅ Add core Pydantic models.
+5. ✅ Add pure habit rule functions.
+6. ✅ Add FastAPI orchestration (with nightly APScheduler and
+   `automation_runs` history).
+7. ✅ Add WHOOP connector (OAuth + pull-based reconciliation;
+   webhook receivers still deferred).
+8. ✅ Add manual reMarkable sync adapter (and an optional rmapi
+   cloud adapter, gated behind a folder allowlist).
+9. ➕ Day One read-only SQLite integration added outside the original list
+   to drive the `journaling` habit (metadata-only by default).
+10. ⏳ Add meditation import (Muse / Apple Health). Not started.
+11. ⏳ Add optional admin/debug UI. Not started.
 
 If blocked, return to the smallest useful artifact: a generated PDF that the user can upload manually.
 
