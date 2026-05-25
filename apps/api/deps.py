@@ -20,6 +20,12 @@ from packages.core.repositories import (
     SourceAccountsRepo,
     SourceEventsRepo,
 )
+from packages.remarkable_sync import (
+    ManualRemarkableSyncAdapter,
+    RemarkableSyncAdapter,
+    RmapiConfig,
+    RmapiRemarkableSyncAdapter,
+)
 
 from apps.api.services import (
     AutomationService,
@@ -134,16 +140,43 @@ def get_whoop_sync_service(
     )
 
 
+def build_remarkable_adapter_from_state(state) -> RemarkableSyncAdapter:
+    settings = state.settings.remarkable
+    if settings.adapter == "rmapi":
+        config_path = (
+            Path(settings.rmapi_config_path)
+            if settings.rmapi_config_path
+            else None
+        )
+        return RmapiRemarkableSyncAdapter(
+            RmapiConfig(
+                binary=settings.rmapi_binary,
+                config_path=config_path,
+                timeout_seconds=settings.rmapi_timeout_seconds,
+                trace=settings.rmapi_trace,
+                replace_existing_current=settings.rmapi_replace_existing_current,
+                machine_root=settings.machine_root,
+            )
+        )
+    return ManualRemarkableSyncAdapter()
+
+
+def get_remarkable_adapter(request: Request) -> RemarkableSyncAdapter:
+    return build_remarkable_adapter_from_state(request.app.state)
+
+
 def get_remarkable_sync_service(
     jobs_repo: RenderJobsRepo = Depends(get_jobs_repo),
+    adapter: RemarkableSyncAdapter = Depends(get_remarkable_adapter),
 ) -> RemarkableSyncService:
-    return RemarkableSyncService(jobs_repo)
+    return RemarkableSyncService(jobs_repo, adapter=adapter)
 
 
 def get_remarkable_lifecycle_service(
     output_dir: Path = Depends(get_output_dir),
+    adapter: RemarkableSyncAdapter = Depends(get_remarkable_adapter),
 ) -> RemarkableLifecycleService:
-    return RemarkableLifecycleService(output_dir=output_dir)
+    return RemarkableLifecycleService(adapter=adapter, output_dir=output_dir)
 
 
 def get_status_service(
@@ -177,7 +210,8 @@ def build_automation_service_from_state(state) -> AutomationService:
     evaluation = HabitEvaluationService(events_repo, overrides_repo, habits_repo, entries_repo)
     month_state = MonthStateService(habits_repo, entries_repo)
     render = RenderService(jobs_repo, month_state, output_dir)
-    lifecycle = RemarkableLifecycleService(output_dir=output_dir)
+    adapter = build_remarkable_adapter_from_state(state)
+    lifecycle = RemarkableLifecycleService(adapter=adapter, output_dir=output_dir)
     whoop = WhoopSyncService(settings.whoop, accounts_repo, events_repo, evaluation)
     return AutomationService(
         settings=settings,

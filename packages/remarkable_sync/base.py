@@ -19,6 +19,8 @@ SyncStatus = Literal[
     "uploaded",
     "updated",
     "unsupported",
+    "planned",
+    "failed",
 ]
 
 

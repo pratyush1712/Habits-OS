@@ -8,6 +8,7 @@ from packages.core.repositories import RenderJobsRepo
 from packages.remarkable_sync import (
     ManualRemarkableSyncAdapter,
     RemarkableSyncAdapter,
+    RmapiRemarkableSyncAdapter,
     SyncRequest,
     SyncResult,
     build_machine_owned_target,
@@ -25,10 +26,15 @@ class RemarkableSyncService:
 
     async def status(self) -> dict:
         latest = await self.jobs_repo.latest()
-        return {
+        mode = (
+            "automated_cloud"
+            if isinstance(self.adapter, RmapiRemarkableSyncAdapter)
+            else "manual_upload"
+        )
+        payload: dict = {
             "configured": True,
             "adapter": self.adapter.name,
-            "mode": "manual_upload",
+            "mode": mode,
             "dry_run_supported": True,
             "machine_owned_root": "HabitOS",
             "latest_render_job": latest.model_dump(mode="json") if latest else None,
@@ -37,6 +43,9 @@ class RemarkableSyncService:
                 "HabitOS/00 Current or HabitOS/YYYY/Archive."
             ),
         }
+        if isinstance(self.adapter, RmapiRemarkableSyncAdapter):
+            payload["rmapi"] = await self.adapter.diagnostics()
+        return payload
 
     async def sync_latest_month(
         self,

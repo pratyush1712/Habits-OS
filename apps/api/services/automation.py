@@ -128,21 +128,23 @@ class AutomationService:
             if previous_month is not None:
                 previous_job = await self.render.render(previous_month, triggered_by="schedule")
                 summary["render"]["previous"] = _render_job_summary(previous_job)
-                summary["remarkable"]["archive"] = _sync_result_summary(
-                    await self.lifecycle.prepare_archive_previous_month(
+                summary["remarkable"]["archive"] = await _safe_upload(
+                    self.lifecycle.prepare_archive_previous_month(
                         previous_month,
                         dry_run=effective_dry_run,
-                    )
+                    ),
+                    label="archive",
                 )
 
             if self.settings.auto_upload_remarkable:
                 current_pdf_path = Path(current_job.output_path or "")
-                summary["remarkable"]["current"] = _sync_result_summary(
-                    await self.lifecycle.prepare_current_month_upload(
+                summary["remarkable"]["current"] = await _safe_upload(
+                    self.lifecycle.prepare_current_month_upload(
                         current_month,
                         current_pdf_path,
                         dry_run=effective_dry_run,
-                    )
+                    ),
+                    label="current",
                 )
             else:
                 summary["remarkable"]["current"] = {
@@ -216,16 +218,18 @@ class AutomationService:
             current_job = await self.render.render(to_month, triggered_by="schedule")
             summary["render"]["previous"] = _render_job_summary(previous_job)
             summary["render"]["current"] = _render_job_summary(current_job)
-            summary["remarkable"]["archive"] = _sync_result_summary(
-                await self.lifecycle.prepare_archive_previous_month(from_month, dry_run=dry_run)
+            summary["remarkable"]["archive"] = await _safe_upload(
+                self.lifecycle.prepare_archive_previous_month(from_month, dry_run=dry_run),
+                label="archive",
             )
             if self.settings.auto_upload_remarkable:
-                summary["remarkable"]["current"] = _sync_result_summary(
-                    await self.lifecycle.prepare_current_month_upload(
+                summary["remarkable"]["current"] = await _safe_upload(
+                    self.lifecycle.prepare_current_month_upload(
                         to_month,
                         Path(current_job.output_path or ""),
                         dry_run=dry_run,
-                    )
+                    ),
+                    label="current",
                 )
             else:
                 summary["remarkable"]["current"] = {
@@ -306,6 +310,35 @@ def _render_job_summary(job: RenderJob) -> dict:
         "status": job.status,
         "pdf_path": job.output_path,
     }
+
+
+async def _safe_upload(coro, *, label: str) -> dict:
+    """Run a lifecycle upload coroutine and contain failures.
+
+    Adapter exceptions are recorded as a failed sync result rather than
+    raised, so a rmapi error does not erase the successful render that
+    preceded it.
+    """
+
+    try:
+        result = await coro
+    except Exception as exc:  # noqa: BLE001 — we explicitly want to record any failure
+        return {
+            "attempted": True,
+            "adapter": None,
+            "action": "upload",
+            "dry_run": None,
+            "status": "failed",
+            "target_path": None,
+            "message": f"{type(exc).__name__}: {exc}",
+            "device_mutated": False,
+            "instructions": [
+                f"reMarkable {label} upload raised {type(exc).__name__}; "
+                "render result is preserved.",
+            ],
+            "local_pdf_path": None,
+        }
+    return _sync_result_summary(result)
 
 
 def _sync_result_summary(result: SyncResult) -> dict:

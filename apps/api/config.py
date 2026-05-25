@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 from dotenv import find_dotenv, load_dotenv
 
@@ -34,6 +35,17 @@ class WhoopSettings:
 
 
 @dataclass(frozen=True)
+class RemarkableSettings:
+    adapter: Literal["manual", "rmapi"]
+    rmapi_binary: str
+    rmapi_config_path: str
+    rmapi_timeout_seconds: int
+    rmapi_trace: bool
+    rmapi_replace_existing_current: bool
+    machine_root: str
+
+
+@dataclass(frozen=True)
 class Settings:
     mongodb_uri: str
     mongodb_db_name: str
@@ -48,6 +60,7 @@ class Settings:
     auto_upload_remarkable: bool
     remarkable_dry_run: bool
     whoop: WhoopSettings
+    remarkable: RemarkableSettings
 
 
 def load_settings() -> Settings:
@@ -76,6 +89,23 @@ def load_settings() -> Settings:
         default_whoop_external_user_id=os.getenv("HABITOS_DEFAULT_WHOOP_EXTERNAL_USER_ID", ""),
         auto_upload_remarkable=_env_bool("HABITOS_AUTO_UPLOAD_REMARKABLE", default=False),
         remarkable_dry_run=_env_bool("HABITOS_REMARKABLE_DRY_RUN", default=True),
+        remarkable=RemarkableSettings(
+            adapter=_env_choice(
+                "HABITOS_REMARKABLE_ADAPTER",
+                default="manual",
+                allowed=("manual", "rmapi"),
+            ),
+            rmapi_binary=os.getenv("HABITOS_RMAPI_BINARY", "rmapi"),
+            rmapi_config_path=os.getenv("HABITOS_RMAPI_CONFIG_PATH", ""),
+            rmapi_timeout_seconds=_env_int(
+                "HABITOS_RMAPI_TIMEOUT_SECONDS", default=60, minimum=1
+            ),
+            rmapi_trace=_env_bool("HABITOS_RMAPI_TRACE", default=False),
+            rmapi_replace_existing_current=_env_bool(
+                "HABITOS_RMAPI_REPLACE_EXISTING_CURRENT", default=False
+            ),
+            machine_root=os.getenv("HABITOS_REMARKABLE_MACHINE_ROOT", "HabitOS"),
+        ),
         whoop=WhoopSettings(
             client_id=os.getenv("WHOOP_CLIENT_ID", ""),
             client_secret=os.getenv("WHOOP_CLIENT_SECRET", ""),
@@ -111,6 +141,18 @@ def _env_bool(name: str, *, default: bool) -> bool:
     if normalized in {"0", "false", "no", "off"}:
         return False
     raise ValueError(f"{name} must be a boolean-like value, got {raw!r}")
+
+
+def _env_choice(name: str, *, default: str, allowed: tuple[str, ...]) -> str:
+    raw = os.getenv(name)
+    if raw is None or raw.strip() == "":
+        return default
+    value = raw.strip().lower()
+    if value not in allowed:
+        raise ValueError(
+            f"{name} must be one of {allowed!r}, got {raw!r}"
+        )
+    return value
 
 
 def _env_int(

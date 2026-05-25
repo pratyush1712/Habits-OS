@@ -106,6 +106,29 @@ WHOOP reconcile window, HabitOS may still recompute and re-render it so late
 sleep/recovery updates are not lost. Once that month falls outside the rolling
 window, it becomes effectively frozen.
 
+## reMarkable adapter selection
+
+Nightly automation uses whichever adapter is selected by
+`HABITOS_REMARKABLE_ADAPTER`. With `manual` (default) the nightly job
+produces upload instructions and `device_mutated=false`. With `rmapi`
+and `HABITOS_AUTO_UPLOAD_REMARKABLE=true` and
+`HABITOS_REMARKABLE_DRY_RUN=false`, the nightly job actually pushes the
+current-month dashboard to the reMarkable Cloud via the
+[ddvk/rmapi](https://github.com/ddvk/rmapi) CLI.
+
+See [remarkable_sync.md](remarkable_sync.md#automated-adapter-rmapi)
+for setup and safety details.
+
+### Upload failures don't erase renders
+
+Each upload call in `AutomationService` is wrapped so that any adapter
+exception is recorded as a failed sync result in
+`automation_runs.remarkable_summary` without aborting the run. The
+preceding render result is already persisted by the time upload runs,
+so a transient rmapi or network problem can never destroy a successful
+render. Resolve the rmapi issue and re-trigger the upload manually via
+`POST /remarkable/upload?month=YYYY-MM` when convenient.
+
 ## reMarkable safety rules
 
 - HabitOS only targets machine-owned PDF paths under the `HabitOS` root.

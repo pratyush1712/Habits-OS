@@ -11,12 +11,24 @@ from packages.remarkable_sync.base import (
     build_machine_owned_target,
 )
 from packages.remarkable_sync.manual import ManualRemarkableSyncAdapter
+from packages.remarkable_sync.rmapi import (
+    AsyncioSubprocessRunner,
+    CompletedRun,
+    RmapiConfig,
+    RmapiRemarkableSyncAdapter,
+    SubprocessRunner,
+)
 
 __all__ = [
     "MACHINE_ROOT_FOLDER",
+    "AsyncioSubprocessRunner",
+    "CompletedRun",
     "ManualRemarkableSyncAdapter",
     "RemarkableDocument",
     "RemarkableSyncAdapter",
+    "RmapiConfig",
+    "RmapiRemarkableSyncAdapter",
+    "SubprocessRunner",
     "SyncRequest",
     "SyncResult",
     "build_archive_month_target",

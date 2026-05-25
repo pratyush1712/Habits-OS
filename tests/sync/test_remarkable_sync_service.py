@@ -6,6 +6,12 @@ import pytest
 
 from apps.api.services.remarkable_sync import RemarkableSyncService
 from packages.core.models import RenderJob
+from packages.remarkable_sync import (
+    CompletedRun,
+    ManualRemarkableSyncAdapter,
+    RmapiConfig,
+    RmapiRemarkableSyncAdapter,
+)
 
 
 class FakeRenderJobsRepo:
@@ -15,6 +21,9 @@ class FakeRenderJobsRepo:
 
     async def latest_for_month(self, month: str) -> RenderJob | None:
         self.requested_month = month
+        return self.job
+
+    async def latest(self) -> RenderJob | None:
         return self.job
 
 
@@ -57,3 +66,41 @@ async def test_service_requires_render_job_output_path():
 
     with pytest.raises(ValueError, match="no output_path"):
         await RemarkableSyncService(FakeRenderJobsRepo(job)).sync_latest_month("2026-05")
+
+
+class _StubRunner:
+    async def run(self, argv, *, env, timeout):
+        return CompletedRun(argv=tuple(argv), returncode=0, stdout="", stderr="")
+
+
+@pytest.mark.asyncio
+async def test_status_reports_manual_adapter():
+    repo = FakeRenderJobsRepo(None)
+    service = RemarkableSyncService(repo, adapter=ManualRemarkableSyncAdapter())
+
+    info = await service.status()
+
+    assert info["adapter"] == "manual"
+    assert info["mode"] == "manual_upload"
+    assert "rmapi" not in info
+
+
+@pytest.mark.asyncio
+async def test_status_reports_rmapi_adapter_with_diagnostics(tmp_path):
+    repo = FakeRenderJobsRepo(None)
+    cfg_path = tmp_path / "rmapi.conf"
+    cfg_path.write_text("device_token=abc\n")
+    adapter = RmapiRemarkableSyncAdapter(
+        RmapiConfig(binary="/nonexistent/rmapi", config_path=cfg_path),
+        runner=_StubRunner(),
+    )
+    service = RemarkableSyncService(repo, adapter=adapter)
+
+    info = await service.status()
+
+    assert info["adapter"] == "rmapi"
+    assert info["mode"] == "automated_cloud"
+    assert info["rmapi"]["binary"] == "/nonexistent/rmapi"
+    assert info["rmapi"]["binary_available"] is False
+    assert info["rmapi"]["config_path_readable"] is True
+    assert info["rmapi"]["authenticated"] is False

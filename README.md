@@ -159,8 +159,19 @@ Then either:
 3. Use the reMarkable desktop app's "Send to reMarkable" flow.
 
 The manual adapter never overwrites handwritten notebooks and does not touch
-reMarkable device/cloud state. USB/cloud automation (`rmcl`, `rmapi`, SSH) is
-still deferred until explicitly tested behind a conservative adapter.
+reMarkable device/cloud state.
+
+### Automated cloud sync (optional, via rmapi)
+
+HabitOS ships an `rmapi` adapter that pushes generated PDFs to the
+reMarkable Cloud non-interactively, gated behind a folder allowlist and a
+conservative replace policy. It uses the actively-maintained
+[ddvk/rmapi](https://github.com/ddvk/rmapi) CLI. Setup, env vars,
+safety model, and troubleshooting are in
+[docs/remarkable_sync.md](docs/remarkable_sync.md#automated-adapter-rmapi).
+
+Switch on with `HABITOS_REMARKABLE_ADAPTER=rmapi` after installing and
+authenticating rmapi locally. The default remains `manual`.
 
 ---
 
