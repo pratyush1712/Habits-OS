@@ -10,6 +10,21 @@ export const ADMIN_EMAIL = "pratyushsudhakar03@gmail.com";
  */
 export const AUTH_GUARDS_DISABLED = false;
 
+type AuthCookieRequestShape = {
+  cookies: {
+    getAll(): Array<{
+      name: string;
+      value: string;
+    }>;
+  };
+  headers: {
+    get(name: string): string | null;
+  };
+  nextUrl: {
+    protocol: string;
+  };
+};
+
 /**
  * Public routes stay reachable without authentication.
  * Everything else in the app is treated as a private admin surface.
@@ -63,4 +78,30 @@ export function buildLoginRedirectPath(
   const nextParam = encodeURIComponent(nextTarget);
 
   return `/login?next=${nextParam}`;
+}
+
+/**
+ * Match NextAuth's secure cookie naming on HTTPS production deployments,
+ * even when `NEXTAUTH_URL` or `VERCEL` are not set.
+ */
+export function shouldUseSecureAuthCookie(
+  request: AuthCookieRequestShape,
+): boolean {
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const normalizedForwardedProto = forwardedProto
+    ?.split(",")[0]
+    ?.trim()
+    .toLowerCase();
+
+  if (normalizedForwardedProto === "https") {
+    return true;
+  }
+
+  if (request.nextUrl.protocol === "https:") {
+    return true;
+  }
+
+  return request.cookies
+    .getAll()
+    .some(({ name }) => name.startsWith("__Secure-next-auth.session-token"));
 }

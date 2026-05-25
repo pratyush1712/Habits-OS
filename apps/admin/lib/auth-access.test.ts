@@ -5,6 +5,7 @@ import {
   buildLoginRedirectPath,
   isAllowedAdminEmail,
   isPrivateAppPath,
+  shouldUseSecureAuthCookie,
 } from "./auth-access";
 
 describe("auth access controls", () => {
@@ -31,5 +32,58 @@ describe("auth access controls", () => {
     expect(buildLoginRedirectPath("/settings", "")).toBe(
       "/login?next=%2Fsettings",
     );
+  });
+
+  it("uses secure auth cookies for forwarded https requests", () => {
+    expect(
+      shouldUseSecureAuthCookie({
+        cookies: {
+          getAll: () => [],
+        },
+        headers: {
+          get: (name) => (name === "x-forwarded-proto" ? "https" : null),
+        },
+        nextUrl: {
+          protocol: "http:",
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it("falls back to secure cookie detection when the secure cookie already exists", () => {
+    expect(
+      shouldUseSecureAuthCookie({
+        cookies: {
+          getAll: () => [
+            {
+              name: "__Secure-next-auth.session-token",
+              value: "token",
+            },
+          ],
+        },
+        headers: {
+          get: () => null,
+        },
+        nextUrl: {
+          protocol: "http:",
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it("keeps local http requests on the non-secure cookie path", () => {
+    expect(
+      shouldUseSecureAuthCookie({
+        cookies: {
+          getAll: () => [],
+        },
+        headers: {
+          get: () => null,
+        },
+        nextUrl: {
+          protocol: "http:",
+        },
+      }),
+    ).toBe(false);
   });
 });

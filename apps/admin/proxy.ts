@@ -7,6 +7,7 @@ import {
   buildLoginRedirectPath,
   isAllowedAdminEmail,
   isPrivateAppPath,
+  shouldUseSecureAuthCookie,
 } from "@/lib/auth-access";
 
 /**
@@ -19,6 +20,7 @@ export async function proxy(request: NextRequest) {
 
   const { pathname, search } = request.nextUrl;
   const token = await getToken({
+    secureCookie: shouldUseSecureAuthCookie(request),
     req: request,
     secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   });
