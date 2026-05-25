@@ -1,0 +1,1596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HabitOS — Visual Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* —— Surfaces ————————————————————————————————————————— */
+    --paper:        oklch(97.5% 0.004 80);     /* warm off-white — slight cream cast */
+    --paper-deep:   oklch(95.5% 0.006 80);     /* a half-step warmer; for inset rails */
+    --rule:         oklch(86% 0.006 80);       /* hairlines */
+    --rule-soft:    oklch(91% 0.005 80);       /* secondary hairlines */
+
+    /* —— Ink ————————————————————————————————————————————— */
+    --ink:          oklch(22% 0.008 80);       /* primary text — warm near-black */
+    --ink-mid:      oklch(42% 0.008 80);       /* secondary text */
+    --ink-faint:    oklch(58% 0.006 80);       /* tertiary / metadata */
+    --ink-ghost:    oklch(72% 0.005 80);       /* labels, watermark */
+
+    /* —— Accent (single archival ink, deployed sparingly) — */
+    --accent:       oklch(40% 0.085 248);      /* iron-gall blue */
+    --accent-soft:  oklch(40% 0.085 248 / 0.10);
+
+    /* —— Anomaly (only for genuine failures; never decorative) */
+    --oxide:        oklch(46% 0.105 38);
+    --oxide-soft:   oklch(46% 0.105 38 / 0.10);
+
+    /* —— Typography ————————————————————————————————————— */
+    --serif:  "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+    --mono:   "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --measure: 62ch;
+    --wide:    980px;
+    --gutter:  clamp(20px, 5vw, 88px);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { background: var(--paper); }
+  body {
+    font-family: var(--serif);
+    font-feature-settings: "onum", "kern", "liga";
+    font-optical-sizing: auto;
+    color: var(--ink);
+    background: var(--paper);
+    font-size: 18px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+
+  /* —— Page grid ——————————————————————————————————————— */
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+  .column {
+    max-width: var(--measure);
+  }
+  .column-wide {
+    max-width: var(--wide);
+  }
+
+  /* —— Section anatomy ———————————————————————————————— */
+  section {
+    padding: 96px 0 64px;
+    border-top: 1px solid var(--rule);
+  }
+  section:first-of-type { border-top: 0; }
+
+  .sec-head {
+    display: grid;
+    grid-template-columns: 88px 1fr;
+    gap: 24px;
+    align-items: baseline;
+    margin-bottom: 56px;
+  }
+  .sec-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    padding-top: 14px;
+    border-top: 1px solid var(--ink);
+    width: 60px;
+  }
+  .sec-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.012em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .sec-kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 8px;
+  }
+  .sec-lede {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 21px;
+    line-height: 1.5;
+    color: var(--ink-mid);
+    margin: -32px 0 48px 112px;
+    max-width: var(--measure);
+    text-wrap: pretty;
+  }
+
+  /* —— Prose ————————————————————————————————————————— */
+  p {
+    margin: 0 0 1.1em;
+    max-width: var(--measure);
+    text-wrap: pretty;
+  }
+  p + p { text-indent: 0; }
+  .indent p + p { text-indent: 1.4em; margin-top: -0.5em; }
+
+  .body-block { margin-left: 112px; }
+
+  h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 18px;
+    margin: 40px 0 12px;
+    letter-spacing: 0.005em;
+  }
+  h3::before {
+    content: "§ ";
+    color: var(--ink-faint);
+    font-weight: 400;
+  }
+
+  em { font-style: italic; }
+  strong { font-weight: 600; }
+
+  a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 0.5px;
+    text-underline-offset: 3px;
+  }
+
+  .small-caps {
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.05em;
+    color: var(--ink-mid);
+  }
+
+  .mono { font-family: var(--mono); font-size: 0.86em; }
+  .num  { font-family: var(--mono); font-feature-settings: "tnum"; }
+
+  /* —— Masthead ———————————————————————————————————————— */
+  .masthead {
+    padding: 80px var(--gutter) 56px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .masthead .row1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 64px;
+  }
+  .masthead .row1 span + span::before {
+    content: "·";
+    margin: 0 12px;
+    color: var(--ink-ghost);
+  }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(48px, 8vw, 104px);
+    line-height: 0.98;
+    letter-spacing: -0.022em;
+    margin: 0 0 24px;
+    text-wrap: balance;
+  }
+  .masthead h1 em {
+    font-style: italic;
+    font-weight: 300;
+  }
+  .masthead .deck {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 24px;
+    line-height: 1.45;
+    color: var(--ink-mid);
+    margin: 0;
+    max-width: 720px;
+    text-wrap: balance;
+  }
+  .masthead .byline {
+    margin-top: 56px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+  }
+  .masthead .byline > div { border-top: 1px solid var(--rule); padding-top: 10px; }
+  .masthead .byline .label { color: var(--ink-faint); font-size: 9.5px; letter-spacing: 0.18em; display: block; margin-bottom: 4px; }
+
+  /* —— Premise / running thesis ———————————————————————— */
+  .premise {
+    padding: 64px var(--gutter);
+    border-bottom: 1px solid var(--rule);
+  }
+  .premise blockquote {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(22px, 2.4vw, 30px);
+    line-height: 1.38;
+    letter-spacing: -0.005em;
+    max-width: 920px;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .premise blockquote::before {
+    content: "Thesis.";
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 18px;
+  }
+  .premise blockquote em { font-style: italic; }
+
+  /* —— Palette ———————————————————————————————————————— */
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin: 24px 0 12px;
+  }
+  .swatch {
+    background: var(--paper);
+    padding: 28px 22px 22px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .swatch .chip {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid var(--rule-soft);
+    margin-bottom: 22px;
+  }
+  .swatch .role {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .swatch .name {
+    font-family: var(--serif);
+    font-size: 17px;
+    margin: 4px 0 12px;
+    color: var(--ink);
+  }
+  .swatch .vals {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: var(--ink-mid);
+  }
+  .swatch .vals span { display: block; }
+
+  .palette-grid.row2 { grid-template-columns: repeat(3, 1fr); margin-top: 12px; }
+
+  .state-table {
+    margin-top: 40px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+  .state-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 1fr;
+    align-items: center;
+    padding: 18px 4px;
+    border-bottom: 1px solid var(--rule);
+    gap: 24px;
+  }
+  .state-row:last-child { border-bottom: 0; }
+  .state-row .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .state-row .pdf,
+  .state-row .web {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--ink-mid);
+  }
+  .state-row .pdf::before,
+  .state-row .web::before {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-ghost);
+    width: 36px;
+  }
+  .state-row .pdf::before { content: "PDF"; }
+  .state-row .web::before { content: "WEB"; }
+
+  .glyph { font-size: 18px; line-height: 1; }
+  .glyph.lg { font-size: 28px; }
+
+  /* —— Type specimen —————————————————————————————————— */
+  .specimen {
+    border-top: 1px solid var(--ink);
+    margin-top: 24px;
+    padding-top: 36px;
+  }
+  .specimen + .specimen { margin-top: 48px; }
+  .specimen-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .specimen-sample.display {
+    font-size: clamp(56px, 9vw, 128px);
+    line-height: 0.95;
+    letter-spacing: -0.022em;
+    font-weight: 300;
+  }
+  .specimen-sample.display em { font-style: italic; font-weight: 300; }
+  .specimen-sample.headline {
+    font-size: 42px;
+    line-height: 1.12;
+    letter-spacing: -0.012em;
+    font-weight: 400;
+    max-width: 760px;
+    text-wrap: balance;
+  }
+  .specimen-sample.body {
+    font-size: 18px;
+    line-height: 1.62;
+    max-width: var(--measure);
+    color: var(--ink);
+  }
+  .specimen-sample.caption {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .specimen-sample.numeric {
+    font-family: var(--mono);
+    font-feature-settings: "tnum";
+    font-size: 56px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .specimen-sample.numeric .unit {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink-faint);
+    margin-left: 8px;
+  }
+
+  .type-pair {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 32px;
+    align-items: start;
+    padding: 28px 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .type-pair:first-of-type { border-top: 1px solid var(--ink); margin-top: 32px; }
+  .type-pair .meta {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    line-height: 1.7;
+  }
+  .type-pair .meta strong { color: var(--ink); font-weight: 500; }
+
+  /* —— Glyph evolution figure —————————————————————————— */
+  .glyph-figure {
+    margin: 32px 0 48px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 48px 0;
+  }
+  .glyph-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 32px;
+  }
+  .glyph-cell {
+    text-align: center;
+    border-right: 1px solid var(--rule-soft);
+    padding: 0 12px;
+  }
+  .glyph-cell:last-child { border-right: 0; }
+  .glyph-cell svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 18px;
+  }
+  .glyph-cell .name {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .glyph-cell .desc {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    line-height: 1.5;
+  }
+
+  .glyph-compare {
+    display: grid;
+    grid-template-columns: 1fr 24px 1fr;
+    gap: 24px;
+    margin-top: 36px;
+    align-items: center;
+  }
+  .glyph-compare .col {
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
+  }
+  .glyph-compare .col h4 {
+    margin: 0 0 14px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 400;
+  }
+  .glyph-compare .row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--ink-mid);
+  }
+  .glyph-compare .row .lab { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); margin-left: auto; }
+  .glyph-compare .arrow {
+    font-family: var(--mono);
+    text-align: center;
+    color: var(--ink-ghost);
+  }
+
+  /* —— Rhythm figure ———————————————————————————————————— */
+  .rhythm-figure {
+    margin: 32px 0 16px;
+    padding: 40px 32px;
+    border: 1px solid var(--rule);
+    background: var(--paper-deep);
+    position: relative;
+    overflow: hidden;
+  }
+  .rhythm-figure::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 7px, var(--rule-soft) 7px, var(--rule-soft) 8px);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .rhythm-stack {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .rhythm-stack .block {
+    background: var(--paper);
+    border-left: 2px solid var(--ink);
+    padding: 16px 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+  }
+  .rhythm-stack .block strong { color: var(--ink); font-weight: 500; }
+
+  /* —— Moodboard ———————————————————————————————————————— */
+  .mood-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .mood-tile {
+    position: relative;
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .mood-tile .img {
+    flex: 1;
+    min-height: 220px;
+    background-image:
+      repeating-linear-gradient(135deg, transparent 0, transparent 11px, var(--rule) 11px, var(--rule) 12px);
+    position: relative;
+  }
+  .mood-tile .img::after {
+    content: attr(data-tag);
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--paper);
+    padding: 4px 8px;
+    border: 1px solid var(--rule);
+  }
+  .mood-tile .cap {
+    padding: 14px 16px 16px;
+    border-top: 1px solid var(--rule);
+    background: var(--paper);
+  }
+  .mood-tile .cap .num {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .mood-tile .cap .title {
+    font-family: var(--serif);
+    font-size: 15px;
+    line-height: 1.35;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .mood-tile .cap .note {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--ink-mid);
+  }
+  .mood-tile.span-4 { grid-column: span 4; }
+  .mood-tile.span-3 { grid-column: span 3; }
+  .mood-tile.span-5 { grid-column: span 5; }
+  .mood-tile.span-6 { grid-column: span 6; }
+  .mood-tile.span-7 { grid-column: span 7; }
+  .mood-tile.tall .img { min-height: 320px; }
+
+  .avoid-list {
+    margin-top: 56px;
+    border-top: 1px solid var(--ink);
+    padding-top: 28px;
+  }
+  .avoid-list h3 { margin-top: 0; }
+  .avoid-list h3::before { content: ""; }
+  .avoid-list ol {
+    list-style: none;
+    counter-reset: avoid;
+    padding: 0;
+    margin: 16px 0 0;
+    column-count: 2;
+    column-gap: 56px;
+  }
+  .avoid-list li {
+    counter-increment: avoid;
+    break-inside: avoid;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    align-items: baseline;
+  }
+  .avoid-list li::before {
+    content: "✕ " counter(avoid, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.10em;
+    color: var(--oxide);
+  }
+  .avoid-list li strong {
+    font-weight: 600;
+    color: var(--ink);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .avoid-list li span {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-mid);
+    font-size: 14.5px;
+    line-height: 1.5;
+  }
+
+  /* —— Specimen screen ————————————————————————————————— */
+  .screen-specimen {
+    margin-top: 40px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    padding: 56px 64px 64px;
+  }
+  .screen-specimen .chrome {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 18px;
+    margin-bottom: 36px;
+  }
+  .screen-specimen .chrome .left {
+    font-family: var(--serif);
+    font-size: 22px;
+    letter-spacing: -0.005em;
+  }
+  .screen-specimen .chrome .left em { font-style: italic; color: var(--ink-mid); }
+  .screen-specimen .chrome .right {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .screen-specimen .chrome .right .pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .screen-specimen .chrome .right .pulse-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .month-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+  .month-head h2 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 56px;
+    margin: 0;
+    letter-spacing: -0.018em;
+  }
+  .month-head h2 em { font-style: italic; font-weight: 300; color: var(--ink-mid); }
+  .month-head .nav {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    gap: 18px;
+  }
+
+  .month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-top: 1px solid var(--ink);
+    border-left: 1px solid var(--rule);
+  }
+  .month-grid .dow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 10px 12px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .month-grid .cell {
+    padding: 12px 12px 14px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    min-height: 96px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+  .month-grid .cell.muted { background: var(--paper); color: var(--ink-ghost); }
+  .month-grid .cell.muted .d { color: var(--ink-ghost); }
+  .month-grid .cell.today {
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+  .month-grid .cell.today .d::after {
+    content: "";
+    position: absolute;
+    width: 3px; height: 3px; border-radius: 50%;
+    background: var(--accent);
+    margin-left: 6px;
+    transform: translateY(-9px);
+    display: inline-block;
+  }
+  .month-grid .cell .d {
+    font-family: var(--mono);
+    font-feature-settings: "tnum";
+    font-size: 13px;
+    color: var(--ink);
+    position: relative;
+  }
+  .month-grid .cell .glyphs {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .month-grid .cell .glyphs svg {
+    width: 12px; height: 12px;
+  }
+
+  .specimen-detail {
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+  }
+  .day-detail h4 {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 18px;
+    font-weight: 400;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .habit-row {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    align-items: baseline;
+  }
+  .habit-row:last-child { border-bottom: 0; }
+  .habit-row svg { width: 14px; height: 14px; transform: translateY(2px); }
+  .habit-row .name { font-family: var(--serif); font-size: 15.5px; color: var(--ink); }
+  .habit-row .meta { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); letter-spacing: 0.04em; }
+  .habit-row .meta .ov { color: var(--accent); }
+
+  .log {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ink-mid);
+  }
+  .log .line { display: grid; grid-template-columns: 80px 60px 1fr; gap: 14px; padding: 2px 0; }
+  .log .t { color: var(--ink-faint); }
+  .log .lvl.ok  { color: var(--ink); }
+  .log .lvl.warn { color: var(--oxide); }
+  .log .lvl.info { color: var(--accent); }
+
+  /* —— Colophon —————————————————————————————————————— */
+  .colophon {
+    padding: 96px var(--gutter) 128px;
+    border-top: 1px solid var(--ink);
+  }
+  .colophon .deck {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1.45;
+    max-width: 720px;
+    color: var(--ink-mid);
+    margin: 0 0 40px;
+  }
+  .colophon .meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+  }
+  .colophon .meta > div { border-top: 1px solid var(--rule); padding-top: 10px; }
+  .colophon .meta .label { color: var(--ink-faint); font-size: 9.5px; letter-spacing: 0.18em; display: block; margin-bottom: 4px; }
+
+  /* —— Responsive ———————————————————————————————————————— */
+  @media (max-width: 880px) {
+    .sec-head { grid-template-columns: 1fr; gap: 8px; }
+    .sec-num { border-top: 0; padding-top: 0; }
+    .sec-lede, .body-block { margin-left: 0; }
+    .palette-grid, .palette-grid.row2 { grid-template-columns: repeat(2, 1fr); }
+    .glyph-grid { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .glyph-cell { padding: 0; }
+    .specimen-detail { grid-template-columns: 1fr; }
+    .mood-tile.span-4, .mood-tile.span-3, .mood-tile.span-5, .mood-tile.span-6, .mood-tile.span-7 { grid-column: span 12; }
+    .avoid-list ol { column-count: 1; }
+    .screen-specimen { padding: 28px; }
+    .masthead .byline, .colophon .meta { grid-template-columns: repeat(2, 1fr); }
+    .state-row { grid-template-columns: 1fr; gap: 8px; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    a { transition: color 120ms ease; }
+  }
+</style>
+<script type='text/javascript' nonce='47QvDUPweYryLlb/X2wDWQ==' src='https://claude.ai/Si-4WDngoWC0bam5Iq0iedeQqTihEf6yYK4IAWs1SolLWg6Blb6RE4phU2a7bIHrhD8mzP5vrFTLmXbCSs34SLRNyvsfDzVOvzWC0ySZwUvyhQNZqY0HFIrWEHJp0HzQ5pHBwqXRKdi3EijvjT80oBNa6fEsbUrCCbU6Lm3iKkdZsla3JZShnmJt66WD1aDX8_sYGniT4R7e1PUu1bCByriSYBNXLPIlMVph18IrlBpPpPPyg2DNdpNyYag7zLTq1NnRQrqS-Jv0Sqd0VLGDQzN14CJqsGeNkCLwS2e22lfqK0U5zP4_vD_slHp-6t8SgtKAMm9dilQQCW6IRFEsYbA4dA7-7RtlGl-s8Rcb6m3cLhCUEV9AQ5-AklDYcfBOEJt1OhFFA4qjT9noBGayXWdHOiBHfwMgxniBsVyqHSK07N-DM2LVtfw5uV5mOXd-BPk7YolwnSMaqXKuiOC1ja82pSOgkTHlNS6YSq6UWzZxf8dqDBv8PmiqgLr8luhGvMu_J6pUwK-MZ_AiXOU2gOIjYHHdd4iEX67fuAZfAY0wprQ56SstItgs78QkTfiKiw'></script></head>
+<body>
+
+<!-- ============================================================ MASTHEAD -->
+<header class="page masthead" data-screen-label="00 Masthead">
+  <div class="row1">
+    <span>Habit&thinsp;OS</span>
+    <span>Visual Direction</span>
+    <span>v 0.1 — internal</span>
+    <span>25 May 2026</span>
+  </div>
+  <h1>A printed reference<br>that <em>happens to</em><br>accept input.</h1>
+  <p class="deck">A considered visual direction for the HabitOS administration layer — the companion web surface to a grayscale PDF that lives on a reMarkable&nbsp;2. Editorial in cadence, instrumental in purpose, deliberate in every decision it asks of you.</p>
+  <div class="byline">
+    <div><span class="label">Document</span>Visual direction, single-pass</div>
+    <div><span class="label">Scope</span>Web companion to PDF system</div>
+    <div><span class="label">Audience</span>One. Aesthetic-literate.</div>
+    <div><span class="label">Posture</span>Opinionated by request</div>
+  </div>
+</header>
+
+<!-- ============================================================ PREMISE -->
+<section class="page premise" data-screen-label="00 Premise">
+  <blockquote>
+    The PDF on your reMarkable is the daily surface. The web app is not its sibling — it is its <em>workshop</em>. Where the PDF performs, the web app inspects. Where the PDF is print, the web app is the <em>proof sheet</em>: same family, same hand, more apparatus visible. The visual language must read as a continuation, not a translation.
+  </blockquote>
+</section>
+
+<!-- ============================================================ §1 PALETTE -->
+<section class="page" data-screen-label="01 Palette">
+  <div class="sec-head">
+    <div class="sec-num">§ 01</div>
+    <div>
+      <p class="sec-kicker">Core Palette</p>
+      <h2 class="sec-title">Paper, ink, and a single archival&nbsp;blue.</h2>
+    </div>
+  </div>
+  <p class="sec-lede">Color carries meaning here, never atmosphere. The page does the work; the accent is reserved for the one thing on screen that needs your attention.</p>
+
+  <div class="body-block">
+    <p>The surface is a <strong>warm off-white</strong>, the same temperature as uncoated book stock — slightly creamed, never blue-shifted. The text is a <strong>warm near-black</strong> that resolves to true ink-on-paper at typical room light. Together they form the entire visible field in 95% of the application. The remaining 5% is a single deep blue with the chromatic character of iron-gall ink — quiet against paper, unmistakable next to it.</p>
+    <p>A second hue, an oxide red, is held in reserve for genuine anomalies: a sync failure, an unresolvable rule, an override that contradicts ground truth. It never appears decoratively. If you see red on this screen, something is wrong.</p>
+
+    <h3>Surfaces &amp; ink</h3>
+
+    <div class="palette-grid">
+      <div class="swatch">
+        <div class="chip" style="background: oklch(97.5% 0.004 80);"></div>
+        <div>
+          <div class="role">Paper</div>
+          <div class="name">Off-white, warm</div>
+          <div class="vals">
+            <span>oklch(97.5% 0.004 80)</span>
+            <span>#F8F6F1</span>
+          </div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background: oklch(95.5% 0.006 80);"></div>
+        <div>
+          <div class="role">Paper&nbsp;·&nbsp;deep</div>
+          <div class="name">Inset rail / verso</div>
+          <div class="vals">
+            <span>oklch(95.5% 0.006 80)</span>
+            <span>#F1EEE8</span>
+          </div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background: oklch(86% 0.006 80);"></div>
+        <div>
+          <div class="role">Rule</div>
+          <div class="name">Hairline, structural</div>
+          <div class="vals">
+            <span>oklch(86% 0.006 80)</span>
+            <span>#D5D1C8</span>
+          </div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background: oklch(22% 0.008 80); border-color: var(--ink);"></div>
+        <div>
+          <div class="role">Ink</div>
+          <div class="name">Primary text</div>
+          <div class="vals">
+            <span>oklch(22% 0.008 80)</span>
+            <span>#22201D</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="palette-grid row2">
+      <div class="swatch">
+        <div class="chip" style="background: oklch(42% 0.008 80);"></div>
+        <div>
+          <div class="role">Ink&nbsp;·&nbsp;mid</div>
+          <div class="name">Secondary text</div>
+          <div class="vals">
+            <span>oklch(42% 0.008 80)</span>
+            <span>#5B5853</span>
+          </div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background: oklch(58% 0.006 80);"></div>
+        <div>
+          <div class="role">Ink&nbsp;·&nbsp;faint</div>
+          <div class="name">Metadata, labels</div>
+          <div class="vals">
+            <span>oklch(58% 0.006 80)</span>
+            <span>#878480</span>
+          </div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background: oklch(72% 0.005 80);"></div>
+        <div>
+          <div class="role">Ink&nbsp;·&nbsp;ghost</div>
+          <div class="name">Watermark, disabled</div>
+          <div class="vals">
+            <span>oklch(72% 0.005 80)</span>
+            <span>#B3B1AC</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Accents — used sparingly, with intent</h3>
+
+    <div class="palette-grid row2" style="grid-template-columns: 1fr 1fr;">
+      <div class="swatch">
+        <div class="chip" style="background: oklch(40% 0.085 248);"></div>
+        <div>
+          <div class="role">Accent&nbsp;·&nbsp;archival blue</div>
+          <div class="name">Action, "now", interactive</div>
+          <div class="vals">
+            <span>oklch(40% 0.085 248)</span>
+            <span>#2C4C7A</span>
+            <span style="margin-top: 6px; color: var(--ink-ghost);">Iron-gall ink reference.</span>
+          </div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="chip" style="background: oklch(46% 0.105 38);"></div>
+        <div>
+          <div class="role">Anomaly&nbsp;·&nbsp;oxide</div>
+          <div class="name">Failure state only</div>
+          <div class="vals">
+            <span>oklch(46% 0.105 38)</span>
+            <span>#8A4A33</span>
+            <span style="margin-top: 6px; color: var(--ink-ghost);">Never decorative.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>How color and non-color states coexist</h3>
+    <p>The PDF speaks shape; the web app speaks shape <em>and</em> a quiet ink. Each status carries the same glyph in both media; the web layer adds positional accent (a faint dot, a thin underline) only where interactivity warrants. Place a PDF page next to the screen and the lineage should read in three seconds.</p>
+
+    <div class="state-table">
+      <div class="state-row">
+        <div class="label">Complete</div>
+        <div class="pdf"><span class="glyph lg">●</span> Filled disc</div>
+        <div class="web"><span class="glyph lg">●</span> Filled disc, ink — identical</div>
+      </div>
+      <div class="state-row">
+        <div class="label">Partial</div>
+        <div class="pdf"><span class="glyph lg">◐</span> Half-filled</div>
+        <div class="web"><span class="glyph lg">◐</span> Half-filled, ink — identical</div>
+      </div>
+      <div class="state-row">
+        <div class="label">Anomaly</div>
+        <div class="pdf"><span class="glyph lg">△</span> Triangle</div>
+        <div class="web"><span class="glyph lg" style="color: var(--oxide);">△</span> Triangle, oxide ink permitted</div>
+      </div>
+      <div class="state-row">
+        <div class="label">Empty</div>
+        <div class="pdf"><span class="glyph lg">○</span> Ring</div>
+        <div class="web"><span class="glyph lg">○</span> Ring, ghost — identical</div>
+      </div>
+      <div class="state-row">
+        <div class="label">Active / "now"</div>
+        <div class="pdf">— (PDF has no "now")</div>
+        <div class="web"><span class="glyph lg" style="color: var(--accent);">●</span> Filled disc, archival blue</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ §2 TYPE -->
+<section class="page" data-screen-label="02 Type">
+  <div class="sec-head">
+    <div class="sec-num">§ 02</div>
+    <div>
+      <p class="sec-kicker">Type System</p>
+      <h2 class="sec-title">Two faces. No&nbsp;more.</h2>
+    </div>
+  </div>
+  <p class="sec-lede">A single editorial serif for everything readable, a single humanist monospace for everything measurable. The discipline of a two-face system is not a constraint — it is the position.</p>
+
+  <div class="body-block">
+
+    <h3>The recommendation</h3>
+    <p><strong>Source Serif 4</strong> (Frank Grießhammer, Adobe, 2023) for all running text, headlines, labels, and chrome. <strong>JetBrains Mono</strong> for numerics, timestamps, identifiers, rule names, run IDs, and any data the user came to inspect rather than read. Both are free, well-hinted, broadly available, and — critically — built for sustained reading rather than headline grandstanding.</p>
+
+    <h3>Why this pair</h3>
+    <p>Source Serif 4 has the metrics of a workhorse serif and the optical-size axis of a display face. It sets like a journal at body sizes, like a specimen at display, and never tips into Tiempos's mannered editorial weight or Newsreader's slight warmth-as-marketing. Its italics are real italics, not slanted romans. Its tabular figures land cleanly under JetBrains Mono. It will not date.</p>
+    <p>JetBrains Mono is the humanist monospace that lost its edges: open apertures, generous counters, ligatures off by default. It reads as <em>data</em>, not as <em>terminal</em> — which is the distinction this product depends on. IBM Plex Mono would also work; it is the second choice if the user prefers a touch more institutional voice.</p>
+
+    <h3>What I rejected, briefly</h3>
+    <p><em>Inter</em> — overspecified, the lingua franca of every dashboard the brief asks not to look like. <em>Söhne</em> / <em>GT America</em> — paywalled and corporate-by-association. <em>Tiempos</em> — beautiful but reads as fashion-magazine editorial, not technical reference. <em>iA Writer Mono / Duospace</em> — too writerly, draws attention to itself. <em>System fonts</em> — abdication.</p>
+
+    <div class="specimen">
+      <div class="specimen-label"><span>Display</span><span>Source Serif 4 · 300, italics · opsz 60</span></div>
+      <div class="specimen-sample display">May, <em>two thousand</em><br>twenty-six.</div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-label"><span>Headline</span><span>Source Serif 4 · 400 · opsz 28</span></div>
+      <div class="specimen-sample headline">Pipeline ran at 04:12, produced eighteen pages, uploaded in 9.4 seconds.</div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-label"><span>Body</span><span>Source Serif 4 · 400 · opsz 14 · 18 / 29</span></div>
+      <div class="specimen-sample body">The workout on May 14 was classified as <em>partial</em> because the WHOOP strain reading (8.2) crossed the configured threshold for "full" (≥ 10.5) but exceeded the floor for "rest" (&lt; 6.0). The rule responsible is <span class="mono">strain.partial.v3</span>. You may override this classification from the day detail panel; overrides are logged with timestamp, prior value, and the rule name they superseded.</div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-label"><span>Caption / Label</span><span>JetBrains Mono · 500 · 11px / 0.14em tracked</span></div>
+      <div class="specimen-sample caption">Last sync · 04:12:08 UTC · run 18,322 · status ok</div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-label"><span>Numeric · feature</span><span>JetBrains Mono · 400 · tnum</span></div>
+      <div class="specimen-sample numeric">04:12<span class="unit">last sync</span> &nbsp;·&nbsp; 9.4<span class="unit">seconds</span> &nbsp;·&nbsp; 18,322<span class="unit">runs</span></div>
+    </div>
+
+    <div class="type-pair">
+      <div class="meta">
+        <strong>Source Serif 4</strong><br>
+        Display · 300, italic permitted<br>
+        Headline · 400, opsz 24–32<br>
+        Body · 400, opsz 14, 18px<br>
+        Label · small-caps, 13px<br>
+        OpenType: <span class="mono">onum, kern, liga</span>
+      </div>
+      <div class="specimen-sample body">The serif carries voice and rhythm — it is what makes the application feel <em>written</em> rather than wireframed. Italics signal interpretive language: rule names rendered in prose, descriptive metadata, the soft commentary around hard data.</div>
+    </div>
+
+    <div class="type-pair">
+      <div class="meta">
+        <strong>JetBrains Mono</strong><br>
+        Caption · 500, 11px, 0.14em<br>
+        Numeric · 400, tnum<br>
+        Code &amp; IDs · 400, 13–14px<br>
+        Ligatures · off by default<br>
+        OpenType: <span class="mono">tnum, zero, calt</span>
+      </div>
+      <div class="specimen-sample body">The mono carries instrumentation — every value the user wants to compare, copy, paste, or trust. Tabular figures are non-negotiable. The mono is also where the system <em>names itself</em>: <span class="mono">strain.partial.v3</span>, <span class="mono">run.18322</span>, <span class="mono">override.user.2026-05-14</span>.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================ §3 GLYPHS -->
+<section class="page" data-screen-label="03 Glyphs">
+  <div class="sec-head">
+    <div class="sec-num">§ 03</div>
+    <div>
+      <p class="sec-kicker">Status Glyphs</p>
+      <h2 class="sec-title">Same vocabulary. Better&nbsp;handwriting.</h2>
+    </div>
+  </div>
+  <p class="sec-lede">Evolve, do not replace. The four glyphs are the product's most distinctive visual signature; lose them and the artifact loses its kinship to its own PDF.</p>
+
+  <div class="body-block">
+    <p>The Unicode characters <span class="glyph">●</span> <span class="glyph">◐</span> <span class="glyph">△</span> <span class="glyph">○</span> are correct in concept and impossible to control in execution: their stroke weights, optical centers, and x-heights drift across fonts and weights. The web app should use a small <strong>custom SVG glyph set</strong> built to a single optical grid (16×16, 1.25-unit stroke), with the same visual identity as the PDF's glyphs but with consistent metrics, kerning behavior, and pixel rendering across surfaces.</p>
+    <p>One addition: a fifth glyph for <em>not applicable / not scheduled</em>, distinct from <em>scheduled but empty</em>. The PDF can use an em-dash; the web app gets a single hairline tick. This is the only expansion to the vocabulary — and it earns its place because the existing four conflated two states that the inspection layer needs to distinguish.</p>
+
+    <div class="glyph-figure">
+      <div class="glyph-grid">
+        <div class="glyph-cell">
+          <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25">
+            <circle cx="8" cy="8" r="5" fill="currentColor"/>
+          </svg>
+          <div class="name">Complete</div>
+          <div class="desc">●&nbsp;&nbsp;Filled</div>
+        </div>
+        <div class="glyph-cell">
+          <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25">
+            <circle cx="8" cy="8" r="5"/>
+            <path d="M8 3 A 5 5 0 0 1 8 13 Z" fill="currentColor"/>
+          </svg>
+          <div class="name">Partial</div>
+          <div class="desc">◐&nbsp;&nbsp;Half-filled</div>
+        </div>
+        <div class="glyph-cell">
+          <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="miter">
+            <path d="M8 2.5 L13.5 12.5 L2.5 12.5 Z"/>
+          </svg>
+          <div class="name">Anomaly</div>
+          <div class="desc">△&nbsp;&nbsp;Triangle</div>
+        </div>
+        <div class="glyph-cell">
+          <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25">
+            <circle cx="8" cy="8" r="5"/>
+          </svg>
+          <div class="name">Empty</div>
+          <div class="desc">○&nbsp;&nbsp;Ring</div>
+        </div>
+        <div class="glyph-cell">
+          <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="square">
+            <path d="M4 8 L12 8"/>
+          </svg>
+          <div class="name">N/A</div>
+          <div class="desc">—&nbsp;&nbsp;Hairline (new)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Refinements over the Unicode originals</h3>
+    <div class="glyph-compare">
+      <div class="col">
+        <h4>Unicode, as-set</h4>
+        <div class="row"><span class="glyph lg">●</span><span>drifts heavy at small sizes</span><span class="lab">14px</span></div>
+        <div class="row"><span class="glyph lg">◐</span><span>fill axis varies by font</span><span class="lab">14px</span></div>
+        <div class="row"><span class="glyph lg">△</span><span>baseline floats</span><span class="lab">14px</span></div>
+        <div class="row"><span class="glyph lg">○</span><span>stroke weight differs from △</span><span class="lab">14px</span></div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="col">
+        <h4>HabitOS SVG set</h4>
+        <div class="row">
+          <svg viewbox="0 0 16 16" width="18" height="18" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+          <span>constant 5/16 disc radius</span><span class="lab">14px</span>
+        </div>
+        <div class="row">
+          <svg viewbox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/><path d="M8 3 A 5 5 0 0 1 8 13 Z" fill="currentColor"/></svg>
+          <span>true vertical bisection</span><span class="lab">14px</span>
+        </div>
+        <div class="row">
+          <svg viewbox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2.5 L13.5 12.5 L2.5 12.5 Z"/></svg>
+          <span>optical-center on cap-height</span><span class="lab">14px</span>
+        </div>
+        <div class="row">
+          <svg viewbox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/></svg>
+          <span>matched stroke to triangle</span><span class="lab">14px</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Behaviour</h3>
+    <p>Glyphs inherit <span class="mono">currentColor</span>, never set their own. At 14px and above they read crisply with the 1.25-unit stroke; below 14px the stroke widens to 1.5 to preserve weight. They never animate. They never carry tooltips by default — the day-detail view is the tooltip. Hovering a glyph in a month cell shifts only the cell's background to <span class="mono">paper-deep</span>; the glyph itself does not change.</p>
+  </div>
+</section>
+
+<!-- ============================================================ §4 RHYTHM -->
+<section class="page" data-screen-label="04 Rhythm">
+  <div class="sec-head">
+    <div class="sec-num">§ 04</div>
+    <div>
+      <p class="sec-kicker">Density &amp; Rhythm</p>
+      <h2 class="sec-title">Generous columns, tight&nbsp;rows.</h2>
+    </div>
+  </div>
+  <p class="sec-lede">Whitespace is the chrome. Hierarchy comes from scale and position, never from boxes or shadows. A page should feel composed before it feels populated.</p>
+
+  <div class="body-block">
+    <p>The application sits on an <strong>8-pixel base grid</strong>, with type set on a <strong>4-pixel half-grid</strong> for fine vertical adjustment. Page gutters are generous — <span class="mono">88px</span> minimum on a desktop viewport, scaling fluidly down to <span class="mono">20px</span> on a phone. Prose holds to a <strong>62-character measure</strong>; data tables and month grids take the wider <span class="mono">980px</span> column.</p>
+    <p>Variation lives in <em>vertical rhythm</em>, not horizontal density. Sections are separated by full whitespace blocks of <span class="mono">96px</span>, subsections by <span class="mono">40px</span>, paragraphs by <span class="mono">18px</span>. Within a table or month grid, rows compress to <span class="mono">10–12px</span> of vertical padding — this is the one place where the design is permitted to be dense, because that is where the user is comparing values, not reading prose.</p>
+
+    <h3>Spacing scale</h3>
+    <div class="rhythm-figure">
+      <div class="rhythm-stack">
+        <div class="block" style="padding-top: 4px; padding-bottom: 4px;"><strong>4&nbsp;px</strong><span>hairline · within-glyph · tabular gaps</span></div>
+        <div class="block" style="padding-top: 8px; padding-bottom: 8px;"><strong>8&nbsp;px</strong><span>base unit · all multiples derive from here</span></div>
+        <div class="block" style="padding-top: 12px; padding-bottom: 12px;"><strong>12&nbsp;px</strong><span>row gutter · habit row inner padding</span></div>
+        <div class="block" style="padding-top: 24px; padding-bottom: 24px;"><strong>24&nbsp;px</strong><span>component gap · adjacent groups</span></div>
+        <div class="block" style="padding-top: 40px; padding-bottom: 40px;"><strong>40&nbsp;px</strong><span>subsection separation · within a screen</span></div>
+        <div class="block" style="padding-top: 64px; padding-bottom: 64px;"><strong>64&nbsp;px</strong><span>section separation · top of a page</span></div>
+        <div class="block" style="padding-top: 96px; padding-bottom: 96px;"><strong>96&nbsp;px</strong><span>chapter separation · between major surfaces</span></div>
+      </div>
+    </div>
+
+    <h3>The discoverability principle</h3>
+    <p>This is an inspection tool. The month grid should reveal twelve days of glyph patterns at a glance — and reveal <em>nothing else</em> until clicked. Hover states should be confident but quiet: a single background tint, no chrome, no badges. The information that explains a day's classification is one click away, not one hover away. Tooltips are forbidden as a primary disclosure mechanism; they are permitted only for terse identifiers (e.g. revealing the full UUID behind a truncated run ID).</p>
+
+    <h3>Where the density lives</h3>
+    <p>Three places are allowed to be dense, by design: the <strong>pipeline run log</strong> (a monospace table, 13px, tight line-height); the <strong>audit trail</strong> (similar treatment); and the <strong>habit override grid</strong> on the day-detail surface, where the user is doing focused administrative work and benefits from compactness. Everywhere else, restraint.</p>
+  </div>
+</section>
+
+<!-- ============================================================ §5 MOTION -->
+<section class="page" data-screen-label="05 Motion">
+  <div class="sec-head">
+    <div class="sec-num">§ 05</div>
+    <div>
+      <p class="sec-kicker">Motion Principles</p>
+      <h2 class="sec-title">Three motions. Each one&nbsp;earned.</h2>
+    </div>
+  </div>
+  <p class="sec-lede">Your instinct is correct. Motion is rationed, not deployed. The application should feel as immediate as turning a page.</p>
+
+  <div class="body-block">
+    <p>The default behaviour is <strong>none</strong>. State changes resolve in a single frame. Navigation does not slide. Drawers do not animate. Tabs do not crossfade. The application is rendered, not performed.</p>
+
+    <h3>The three exceptions</h3>
+    <p><strong>One — disclosure fade (120ms, ease-out, opacity only).</strong> When the day-detail panel reveals beneath a month cell, or when a pipeline run log expands its lines, the new content fades in over 120 milliseconds. No height transition, no slide. This is the one place where instantaneous appearance produces a perceptual jolt — the eye loses its anchor — and a brief opacity ramp prevents that without claiming any of the user's attention.</p>
+    <p><strong>Two — focus underline (80ms, ease-out, width only).</strong> When a keyboard-focused control gains its focus indicator, the underline grows from left to right over 80 milliseconds. This is the only "interaction" animation in the application and it serves accessibility, not delight.</p>
+    <p><strong>Three — pulse on "now" (2.4s, infinite, opacity 0.6→1).</strong> The single archival-blue dot indicating <em>today</em> in the month grid breathes very slowly. It is the only ambient animation permitted and it exists because <em>today</em> is the one piece of state the user re-orients to on every visit. Even this is debatable; if it reads as decorative in practice, remove it.</p>
+
+    <h3>Reduced motion</h3>
+    <p>All three exceptions resolve to instantaneous under <span class="mono">prefers-reduced-motion: reduce</span>. The pulse stops at full opacity. The fade becomes a swap. The underline appears, not grows. The application looks identical at rest — the only difference is the time it takes to get there.</p>
+  </div>
+</section>
+
+<!-- ============================================================ §6 DARK -->
+<section class="page" data-screen-label="06 Dark mode">
+  <div class="sec-head">
+    <div class="sec-num">§ 06</div>
+    <div>
+      <p class="sec-kicker">Dark Mode</p>
+      <h2 class="sec-title">Don't.</h2>
+    </div>
+  </div>
+  <p class="sec-lede">A position, openly argued. I'd rather defend a single refined light theme than ship a competent paper-dark mode that quietly betrays the metaphor.</p>
+
+  <div class="body-block">
+    <p>The artifact you've already built — the PDF on the reMarkable — has exactly one register: <em>paper</em>. The web app is its workshop. A workshop and the page it produces should look like they come from the same shelf. Introducing a dark mode is, materially, a second register for one product. It is two visual systems to maintain and reason about, and the only thing it buys you is the ability to administer your habit system at 2&nbsp;a.m. in a dark room — which the brief specifically says is not the use case.</p>
+
+    <p>The honest tells that you'd be making a dark mode out of completeness rather than need:</p>
+    <ul>
+      <li>You don't have a second persona who works at night.</li>
+      <li>The reMarkable is your dark-room device, not this surface.</li>
+      <li>The single accent color you're using carries meaning. It cannot mean the same thing on a #0A0A0A surface as on a #F8F6F1 surface — you'd be designing the system twice.</li>
+      <li>A paper-dark theme done well is a separate aesthetic project. Done poorly it becomes Material Dark with a warm tint.</li>
+    </ul>
+
+    <p><strong>Recommendation: ship light-only.</strong> Bake it in. Don't gesture at <span class="mono">prefers-color-scheme</span>. Don't hedge with a toggle. The aesthetic register you've described — editorial, instrumental, restrained — is fully expressible on one surface. The discipline of refusing the second theme is itself a design decision, and a defensible one for a single-user application.</p>
+
+    <p>If you later decide you want a night register for late-evening review, treat it as a separate <em>display mode</em> with its own visual language — not "the same UI in darker colors." That is the only version of dark mode worth building, and it does not need to ship in v1.</p>
+
+    <h3>The honest counterargument</h3>
+    <p>The strongest case for dark is: <em>the inspection tool sometimes runs next to a terminal, and a bright surface feels jarring beside a dark IDE</em>. If you find this happens in practice, build a true paper-dark — surfaces in <span class="mono">oklch(20% 0.008 80)</span>, text in <span class="mono">oklch(86% 0.006 80)</span>, accent shifted to a warmer iron-gall <span class="mono">oklch(70% 0.07 248)</span> for legibility. But build it as a separate, complete system; do not invert variables.</p>
+  </div>
+</section>
+
+<!-- ============================================================ §7 MOODBOARD -->
+<section class="page" data-screen-label="07 Moodboard">
+  <div class="sec-head">
+    <div class="sec-num">§ 07</div>
+    <div>
+      <p class="sec-kicker">Reference Moodboard</p>
+      <h2 class="sec-title">What it should feel&nbsp;like.</h2>
+    </div>
+  </div>
+  <p class="sec-lede">A small, opinionated set. Images are placeholders calibrated to size and crop — drop your own scans in their place. Each one earns its slot.</p>
+
+  <div class="body-block" style="margin-left: 0; max-width: 1180px;">
+    <div class="mood-grid">
+
+      <div class="mood-tile span-5 tall">
+        <div class="img" data-tag="01 · Typography"></div>
+        <div class="cap">
+          <div class="num">№ 01 · Typography</div>
+          <div class="title">A page from a Commercial Type specimen — Lyon Text, set as continuous prose.</div>
+          <div class="note">For the cadence of an italic phrase inside a roman paragraph. The way an editorial face slows your eye.</div>
+        </div>
+      </div>
+
+      <div class="mood-tile span-4">
+        <div class="img" data-tag="02 · Object"></div>
+        <div class="cap">
+          <div class="num">№ 02 · Object</div>
+          <div class="title">Dieter Rams, Braun T1000 receiver, 1963.</div>
+          <div class="note">Frontal symmetry, monospaced dials, a single red lamp that means something.</div>
+        </div>
+      </div>
+
+      <div class="mood-tile span-3">
+        <div class="img" data-tag="03 · Diagram"></div>
+        <div class="cap">
+          <div class="num">№ 03 · Diagram</div>
+          <div class="title">Edward Tufte, <em>Visual Display</em>, p.&thinsp;41 — Minard's march on Moscow.</div>
+          <div class="note">Information density without visual density.</div>
+        </div>
+      </div>
+
+      <div class="mood-tile span-4">
+        <div class="img" data-tag="04 · Document"></div>
+        <div class="cap">
+          <div class="num">№ 04 · Document</div>
+          <div class="title">A New Haven Railroad timetable, 1956. Folded, in-pocket.</div>
+          <div class="note">Tabular figures, hairline rules, a single ink. Built for a working person, not an admirer.</div>
+        </div>
+      </div>
+
+      <div class="mood-tile span-4 tall">
+        <div class="img" data-tag="05 · Notebook"></div>
+        <div class="cap">
+          <div class="num">№ 05 · Notebook</div>
+          <div class="title">A field notebook page — grid paper, fountain pen, the corner annotated in pencil.</div>
+          <div class="note">The way a working surface accrues meaning quietly over time. The mark of the maintainer's hand.</div>
+        </div>
+      </div>
+
+      <div class="mood-tile span-4">
+        <div class="img" data-tag="06 · Instrument"></div>
+        <div class="cap">
+          <div class="num">№ 06 · Instrument</div>
+          <div class="title">Tektronix oscilloscope panel, c.&thinsp;1978.</div>
+          <div class="note">Precision controls, engraved labels, monospaced numerals where they matter.</div>
+        </div>
+      </div>
+
+      <div class="mood-tile span-6">
+        <div class="img" data-tag="07 · Magazine"></div>
+        <div class="cap">
+          <div class="num">№ 07 · Magazine</div>
+          <div class="title"><em>Monocle</em> — a half-spread, a single column of running text, generous gutters.</div>
+          <div class="note">Editorial restraint at scale. The reader is treated as competent.</div>
+        </div>
+      </div>
+
+      <div class="mood-tile span-6">
+        <div class="img" data-tag="08 · Architecture"></div>
+        <div class="cap">
+          <div class="num">№ 08 · Architecture</div>
+          <div class="title">Peter Zumthor, Therme Vals — interior detail, raw stone &amp; recessed light.</div>
+          <div class="note">Material confidence. Nothing applied; everything resolved.</div>
+        </div>
+      </div>
+
+      <div class="mood-tile span-4">
+        <div class="img" data-tag="09 · Print"></div>
+        <div class="cap">
+          <div class="num">№ 09 · Print</div>
+          <div class="title">Karl Gerstner, programmatic grid composition, 1964.</div>
+          <div class="note">The Swiss tradition the brief is downstream of, without the dogma.</div>
+        </div>
+      </div>
+
+      <div class="mood-tile span-4">
+        <div class="img" data-tag="10 · Detail"></div>
+        <div class="cap">
+          <div class="num">№ 10 · Detail</div>
+          <div class="title">A scan of a Polish railway map legend — hairline strokes, four glyphs, no color.</div>
+          <div class="note">The exact problem you've already solved, solved beautifully a century ago.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="avoid-list">
+      <h3 style="font-family: var(--mono); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500;">Avoid — specifically, not generically</h3>
+      <ol>
+        <li><div><strong>Linear-style "minimal" dashboards</strong><span>Monochrome geometric SVG illustrations, single-pixel borders on cards, a CTA in a gradient pill. The brief says no, but it bears repeating because the gravity is strong.</span></div></li>
+        <li><div><strong>Notion's emoji-anchored sections</strong><span>A 🌱 next to every heading reads as cheerful. Cheerful is not what this product is.</span></div></li>
+        <li><div><strong>Glassmorphism, frosted blur, "depth"</strong><span>This page is paper. Paper does not have a backdrop-filter.</span></div></li>
+        <li><div><strong>Big hero numbers in gradient fills</strong><span>Quantified-self trope. Numbers read as instruments, not as scores.</span></div></li>
+        <li><div><strong>Lucide / Heroicons at 16&thinsp;px</strong><span>A pictogram for "settings" and another for "logs" is not a design system. The four glyphs are the vocabulary; everything else should be a word.</span></div></li>
+        <li><div><strong>Cards-on-cards, shadow-on-shadow</strong><span>Hairlines and whitespace do the structural work. A card is a confession that hierarchy failed.</span></div></li>
+        <li><div><strong>Apple's "rounded corner everything"</strong><span>Soft radius on a serif page reads as cosmetic. Square corners, full stop. (Maybe 2px on chips. No more.)</span></div></li>
+        <li><div><strong>Productivity "streaks" UI</strong><span>Calendar heat maps, flame icons, "you're on a 14-day streak." Anti-thetical to the calm-over-gamified position.</span></div></li>
+        <li><div><strong>Tooltip-driven discovery</strong><span>If a thing requires a hover to be understood, design it differently. Drawers and detail views, not floating bubbles.</span></div></li>
+        <li><div><strong>Dark-by-default with violet/teal accents</strong><span>Every quantified-self product on Product Hunt has shipped this. It is the visual equivalent of a fitness influencer.</span></div></li>
+        <li><div><strong>"Figma Community" template energy</strong><span>Auto-layout symmetry with no editorial decisions inside it. A grid is not a design.</span></div></li>
+        <li><div><strong>Skeuomorphic "journal" textures</strong><span>The opposite failure mode. No paper grain, no leather, no fountain-pen brushes. The metaphor is structural, not literal.</span></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ §8 SPECIMEN -->
+<section class="page" data-screen-label="08 Specimen">
+  <div class="sec-head">
+    <div class="sec-num">§ 08</div>
+    <div>
+      <p class="sec-kicker">Specimen</p>
+      <h2 class="sec-title">A small piece of the application, set&nbsp;under these rules.</h2>
+    </div>
+  </div>
+  <p class="sec-lede">Not a mockup — a typesetting test. To prove the system holds when it carries actual content. Click nothing; read it as a printed page.</p>
+
+  <div class="body-block" style="margin-left: 0; max-width: 1180px;">
+
+    <div class="screen-specimen">
+      <div class="chrome">
+        <div class="left">Habit&thinsp;OS &nbsp;<em>· administration</em></div>
+        <div class="right">
+          <span>habits.<span style="color: var(--ink);">your-domain</span>.com</span>
+          <span class="pulse"><span class="pulse-dot"></span> live</span>
+        </div>
+      </div>
+
+      <div class="month-head">
+        <h2>May&nbsp;<em>2026</em></h2>
+        <div class="nav">
+          <span>← April</span>
+          <span>Today</span>
+          <span>June →</span>
+        </div>
+      </div>
+
+      <div class="month-grid">
+        <div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div><div class="dow">Sun</div>
+
+        <div class="cell muted"><span class="d">27</span><span class="glyphs"></span></div>
+        <div class="cell muted"><span class="d">28</span><span class="glyphs"></span></div>
+        <div class="cell muted"><span class="d">29</span><span class="glyphs"></span></div>
+        <div class="cell muted"><span class="d">30</span><span class="glyphs"></span></div>
+        <div class="cell"><span class="d">01</span>
+          <span class="glyphs">
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/><path d="M8 3 A 5 5 0 0 1 8 13 Z" fill="currentColor"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/></svg>
+          </span>
+        </div>
+        <div class="cell"><span class="d">02</span>
+          <span class="glyphs">
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+          </span>
+        </div>
+        <div class="cell"><span class="d">03</span>
+          <span class="glyphs">
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor" style="color: var(--oxide);"><path d="M8 2.5 L13.5 12.5 L2.5 12.5 Z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"><path d="M4 8 L12 8"/></svg>
+          </span>
+        </div>
+
+        <div class="cell"><span class="d">04</span>
+          <span class="glyphs">
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/><path d="M8 3 A 5 5 0 0 1 8 13 Z" fill="currentColor"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+          </span>
+        </div>
+        <div class="cell"><span class="d">05</span>
+          <span class="glyphs">
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/></svg>
+          </span>
+        </div>
+        <div class="cell"><span class="d">06</span>
+          <span class="glyphs">
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/><path d="M8 3 A 5 5 0 0 1 8 13 Z" fill="currentColor"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+          </span>
+        </div>
+        <div class="cell today"><span class="d">07</span>
+          <span class="glyphs">
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/><path d="M8 3 A 5 5 0 0 1 8 13 Z" fill="currentColor"/></svg>
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/></svg>
+          </span>
+        </div>
+        <div class="cell"><span class="d">08</span><span class="glyphs"></span></div>
+        <div class="cell"><span class="d">09</span><span class="glyphs"></span></div>
+        <div class="cell"><span class="d">10</span><span class="glyphs"></span></div>
+      </div>
+
+      <div class="specimen-detail">
+        <div class="day-detail">
+          <h4>Wed · 06 May · habits</h4>
+          <div class="habit-row">
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <span class="name">Morning meditation</span>
+            <span class="meta">14&nbsp;min · Headspace</span>
+          </div>
+          <div class="habit-row">
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/><path d="M8 3 A 5 5 0 0 1 8 13 Z" fill="currentColor"/></svg>
+            <span class="name">Strength training</span>
+            <span class="meta">strain&nbsp;8.2 · <em>partial</em> · <span class="mono">strain.partial.v3</span></span>
+          </div>
+          <div class="habit-row">
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <span class="name">Journal entry</span>
+            <span class="meta">421&nbsp;words · Day One</span>
+          </div>
+          <div class="habit-row">
+            <svg viewbox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="5"/></svg>
+            <span class="name">Read · non-fiction</span>
+            <span class="meta">38&nbsp;min · <span class="ov">override +</span></span>
+          </div>
+          <div class="habit-row">
+            <svg viewbox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="8" cy="8" r="5"/></svg>
+            <span class="name">Walk · 30 min</span>
+            <span class="meta">not logged</span>
+          </div>
+        </div>
+
+        <div class="day-detail">
+          <h4>Pipeline · last run · 07 May · 04:12 UTC</h4>
+          <div class="log">
+            <div class="line"><span class="t">04:12:00</span><span class="lvl info">begin</span><span>run.18322 — nightly</span></div>
+            <div class="line"><span class="t">04:12:01</span><span class="lvl ok">ok</span><span>fetch whoop · 2,041 records</span></div>
+            <div class="line"><span class="t">04:12:03</span><span class="lvl ok">ok</span><span>fetch dayone · 14 entries</span></div>
+            <div class="line"><span class="t">04:12:04</span><span class="lvl ok">ok</span><span>apply rules · 142 evaluated</span></div>
+            <div class="line"><span class="t">04:12:05</span><span class="lvl warn">warn</span><span>strain.partial.v3 · 06 May · review</span></div>
+            <div class="line"><span class="t">04:12:06</span><span class="lvl ok">ok</span><span>render pdf · 18 pages</span></div>
+            <div class="line"><span class="t">04:12:08</span><span class="lvl ok">ok</span><span>upload reMarkable · 9.4&thinsp;s</span></div>
+            <div class="line"><span class="t">04:12:08</span><span class="lvl info">end</span><span>run.18322 · ok · 1 warn</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="sec-lede" style="margin-left: 0; margin-top: 56px;">Read the specimen above as a printed page. Notice what is absent: no card chrome, no shadow, no badge, no progress bar, no tooltip. The single archival blue appears three times — the "live" indicator, the override marker, the run-status line — and that is its entire job. The oxide red appears once, on the anomaly glyph for the 3rd. The four glyphs do the rest.</p>
+  </div>
+</section>
+
+<!-- ============================================================ COLOPHON -->
+<footer class="page colophon">
+  <p class="deck">Direction set. Disagreement welcome — every position above is defended, none is precious. Mark up the document, push back on the dark-mode argument, swap a face if you prefer Plex over Source; the system will hold.</p>
+  <div class="meta">
+    <div><span class="label">Set in</span>Source Serif 4 · JetBrains Mono</div>
+    <div><span class="label">Surfaces</span>Paper · Ink · Iron-gall blue</div>
+    <div><span class="label">Status vocabulary</span>● ◐ △ ○ —</div>
+    <div><span class="label">Posture</span>Light only · motion rationed</div>
+  </div>
+</footer>
+
+</body>
+</html>
