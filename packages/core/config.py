@@ -37,11 +37,18 @@ class RecoveryRule(_Strict):
     checked_min_score: int = 67
 
 
+class JournalingRule(_Strict):
+    # MVP: any entry that day counts as "checked." Raise this later if the user
+    # decides a single thought doesn't count.
+    checked_min_entries: int = 1
+
+
 class HabitRuleConfig(_Strict):
     workout: WorkoutRule = WorkoutRule()
     meditation: MeditationRule = MeditationRule()
     sleep: SleepRule = SleepRule()
     recovery: RecoveryRule = RecoveryRule()
+    journaling: JournalingRule = JournalingRule()
 
 
 DEFAULT_RULES = HabitRuleConfig()

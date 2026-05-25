@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 HabitStatus = Literal["checked", "partial", "warning", "missed", "manual"]
 HabitKind = Literal["auto", "manual"]
 EventSource = Literal[
-    "whoop", "muse", "apple_health", "manual", "calendar", "github", "remarkable"
+    "whoop", "muse", "apple_health", "manual", "calendar", "github", "remarkable", "day_one"
 ]
 EventType = Literal[
     "workout", "sleep", "recovery", "meditation", "deep_work", "journal", "manual"
@@ -186,6 +186,7 @@ class AutomationRun(_Strict):
     window: dict[str, Any]
     months: dict[str, Any]
     whoop_summary: dict[str, Any] = Field(default_factory=dict)
+    dayone_summary: dict[str, Any] = Field(default_factory=dict)
     habit_recompute_summary: list[dict[str, Any]] = Field(default_factory=list)
     render_summary: dict[str, Any] = Field(default_factory=dict)
     remarkable_summary: dict[str, Any] = Field(default_factory=dict)

@@ -11,10 +11,16 @@ from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
-from packages.core.config import DEFAULT_RULES, HabitRuleConfig, SleepRule
+from packages.core.config import (
+    DEFAULT_RULES,
+    HabitRuleConfig,
+    JournalingRule,
+    SleepRule,
+)
 from packages.core.models import Habit, HabitOverride, SourceEvent
 from packages.core.rules import (
     evaluate_day,
+    evaluate_journaling,
     evaluate_meditation,
     evaluate_sleep,
     evaluate_workout,
@@ -220,3 +226,74 @@ def test_recovery_custom_threshold():
     entry = evaluate_recovery(DAY, [_recovery_event(77)], cfg)
     assert entry is not None
     assert entry.status == "warning"
+
+
+# ---------- journaling ----------
+
+
+def _journal_event(*, day=DAY, entry_count=1, source="day_one", source_event_id=None):
+    start = datetime(day.year, day.month, day.day, 9, 0, tzinfo=timezone.utc)
+    sid = source_event_id or f"dayone:{day.isoformat()}"
+    return SourceEvent(
+        id=f"day_one:{sid}",
+        source=source,
+        source_event_id=sid,
+        event_type="journal",
+        start_time_utc=start,
+        end_time_utc=start + timedelta(hours=1),
+        local_date=day,
+        title=f"{entry_count} journal entries",
+        metrics={"entry_count": entry_count, "journal_names": ["Personal"], "journal_ids": ["j1"]},
+    )
+
+
+def test_journaling_no_events_returns_none():
+    assert evaluate_journaling(DAY, []) is None
+
+
+def test_journaling_ignores_non_journal_events():
+    assert evaluate_journaling(DAY, [_event("workout", 30)]) is None
+
+
+def test_journaling_single_entry_is_checked():
+    entry = evaluate_journaling(DAY, [_journal_event(entry_count=1)])
+    assert entry is not None
+    assert entry.habit_key == "journaling"
+    assert entry.status == "checked"
+    assert entry.source == "day_one"
+    assert entry.summary == "1 entry"
+    assert entry.description == ""
+
+
+def test_journaling_multiple_entries_is_checked_with_plural_summary():
+    entry = evaluate_journaling(DAY, [_journal_event(entry_count=3)])
+    assert entry is not None
+    assert entry.status == "checked"
+    assert entry.summary == "3 entries"
+
+
+def test_journaling_threshold_can_be_raised():
+    cfg = HabitRuleConfig(journaling=JournalingRule(checked_min_entries=2))
+    assert evaluate_journaling(DAY, [_journal_event(entry_count=1)], cfg) is None
+    entry = evaluate_journaling(DAY, [_journal_event(entry_count=2)], cfg)
+    assert entry is not None
+    assert entry.status == "checked"
+
+
+def test_journaling_manual_override_wins_over_day_one_data():
+    habit = Habit(
+        key="journaling",
+        label="Journaling",
+        short="J",
+        kind="auto",
+        sources=["day_one", "manual"],
+        event_types=["journal", "manual"],
+    )
+    override = HabitOverride(
+        date=DAY, habit_key="journaling", status="missed", summary="not today"
+    )
+    entry = evaluate_day(DAY, habit, [_journal_event(entry_count=5)], override)
+    assert entry is not None
+    assert entry.status == "missed"
+    assert entry.manually_overridden is True
+    assert entry.source == "manual"

@@ -1,4 +1,5 @@
 from apps.api.services.automation import AutomationService
+from apps.api.services.dayone_sync import DayOneSyncService
 from apps.api.services.event_ingestion import EventIngestionService
 from apps.api.services.habit_catalog import HabitCatalogService
 from apps.api.services.habit_evaluation import HabitEvaluationService
@@ -12,6 +13,7 @@ from apps.api.services.whoop_sync import WhoopSyncService
 
 __all__ = [
     "AutomationService",
+    "DayOneSyncService",
     "EventIngestionService",
     "HabitCatalogService",
     "HabitEvaluationService",

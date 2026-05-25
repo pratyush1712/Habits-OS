@@ -29,6 +29,7 @@ from packages.remarkable_sync import (
 
 from apps.api.services import (
     AutomationService,
+    DayOneSyncService,
     EventIngestionService,
     HabitCatalogService,
     HabitEvaluationService,
@@ -140,6 +141,18 @@ def get_whoop_sync_service(
     )
 
 
+def get_dayone_sync_service(
+    request: Request,
+    events_repo: SourceEventsRepo = Depends(get_events_repo),
+    evaluation: HabitEvaluationService = Depends(get_evaluation),
+) -> DayOneSyncService:
+    return DayOneSyncService(
+        request.app.state.settings.dayone,
+        events_repo,
+        evaluation,
+    )
+
+
 def build_remarkable_adapter_from_state(state) -> RemarkableSyncAdapter:
     settings = state.settings.remarkable
     if settings.adapter == "rmapi":
@@ -213,6 +226,7 @@ def build_automation_service_from_state(state) -> AutomationService:
     adapter = build_remarkable_adapter_from_state(state)
     lifecycle = RemarkableLifecycleService(adapter=adapter, output_dir=output_dir)
     whoop = WhoopSyncService(settings.whoop, accounts_repo, events_repo, evaluation)
+    dayone = DayOneSyncService(settings.dayone, events_repo, evaluation)
     return AutomationService(
         settings=settings,
         whoop=whoop,
@@ -220,6 +234,7 @@ def build_automation_service_from_state(state) -> AutomationService:
         render=render,
         lifecycle=lifecycle,
         runs_repo=runs_repo,
+        dayone=dayone,
     )
 
 

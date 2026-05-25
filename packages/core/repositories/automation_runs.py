@@ -32,6 +32,7 @@ class AutomationRunsRepo:
         *,
         started_at: datetime | None = None,
         whoop_summary: dict[str, Any] | None = None,
+        dayone_summary: dict[str, Any] | None = None,
         habit_recompute_summary: list[dict[str, Any]] | None = None,
         render_summary: dict[str, Any] | None = None,
         remarkable_summary: dict[str, Any] | None = None,
@@ -41,6 +42,8 @@ class AutomationRunsRepo:
             update["started_at"] = started_at
         if whoop_summary is not None:
             update["whoop_summary"] = whoop_summary
+        if dayone_summary is not None:
+            update["dayone_summary"] = dayone_summary
         if habit_recompute_summary is not None:
             update["habit_recompute_summary"] = habit_recompute_summary
         if render_summary is not None:
@@ -59,20 +62,22 @@ class AutomationRunsRepo:
         habit_recompute_summary: list[dict[str, Any]],
         render_summary: dict[str, Any],
         remarkable_summary: dict[str, Any],
+        dayone_summary: dict[str, Any] | None = None,
     ) -> bool:
+        update: dict[str, Any] = {
+            "status": "completed",
+            "finished_at": finished_at,
+            "whoop_summary": whoop_summary,
+            "habit_recompute_summary": habit_recompute_summary,
+            "render_summary": render_summary,
+            "remarkable_summary": remarkable_summary,
+            "error": None,
+        }
+        if dayone_summary is not None:
+            update["dayone_summary"] = dayone_summary
         result = await self.coll.update_one(
             {"_id": ObjectId(run_id)},
-            {
-                "$set": {
-                    "status": "completed",
-                    "finished_at": finished_at,
-                    "whoop_summary": whoop_summary,
-                    "habit_recompute_summary": habit_recompute_summary,
-                    "render_summary": render_summary,
-                    "remarkable_summary": remarkable_summary,
-                    "error": None,
-                }
-            },
+            {"$set": update},
         )
         return result.modified_count > 0
 
@@ -83,6 +88,7 @@ class AutomationRunsRepo:
         finished_at: datetime,
         error: str,
         whoop_summary: dict[str, Any] | None = None,
+        dayone_summary: dict[str, Any] | None = None,
         habit_recompute_summary: list[dict[str, Any]] | None = None,
         render_summary: dict[str, Any] | None = None,
         remarkable_summary: dict[str, Any] | None = None,
@@ -94,6 +100,8 @@ class AutomationRunsRepo:
         }
         if whoop_summary is not None:
             update["whoop_summary"] = whoop_summary
+        if dayone_summary is not None:
+            update["dayone_summary"] = dayone_summary
         if habit_recompute_summary is not None:
             update["habit_recompute_summary"] = habit_recompute_summary
         if render_summary is not None:

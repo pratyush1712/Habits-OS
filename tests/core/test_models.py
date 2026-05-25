@@ -106,6 +106,54 @@ def test_automation_run_round_trip():
     assert reloaded.months["affected"] == ["2026-05", "2026-06"]
 
 
+def test_source_event_accepts_day_one_source_literal():
+    e = SourceEvent(
+        id="day_one:dayone:2026-05-01",
+        source="day_one",
+        source_event_id="dayone:2026-05-01",
+        event_type="journal",
+        start_time_utc=datetime(2026, 5, 1, 9, 30, tzinfo=timezone.utc),
+        end_time_utc=datetime(2026, 5, 1, 22, 0, tzinfo=timezone.utc),
+        local_date=date(2026, 5, 1),
+        metrics={"entry_count": 2},
+    )
+    assert e.source == "day_one"
+    assert e.event_type == "journal"
+
+
+def test_automation_run_dayone_summary_defaults_and_round_trips():
+    run = AutomationRun(
+        run_type="nightly",
+        status="running",
+        dry_run=True,
+        timezone="UTC",
+        date="2026-06-01",
+        window={"start": "2026-05-30", "end": "2026-06-01", "reconcile_days": 2},
+        months={"current": "2026-06", "previous": "2026-05", "affected": ["2026-05", "2026-06"]},
+        whoop_summary={},
+        dayone_summary={"inserted": 1, "updated": 0, "skipped_reason": None},
+        habit_recompute_summary=[],
+        render_summary={},
+        remarkable_summary={},
+    )
+    assert run.dayone_summary["inserted"] == 1
+    reloaded = AutomationRun.model_validate_json(run.model_dump_json())
+    assert reloaded.dayone_summary["skipped_reason"] is None
+
+
+def test_automation_run_dayone_summary_optional_defaults_to_empty():
+    run = AutomationRun(
+        run_type="nightly",
+        status="running",
+        dry_run=True,
+        timezone="UTC",
+        date="2026-06-01",
+        window={"start": "2026-05-30", "end": "2026-06-01", "reconcile_days": 2},
+        months={"current": "2026-06", "previous": "2026-05", "affected": ["2026-05", "2026-06"]},
+    )
+    assert run.dayone_summary == {}
+
+
 def test_automation_run_rejects_invalid_date_string():
     with pytest.raises(ValidationError):
         AutomationRun(

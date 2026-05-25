@@ -10,6 +10,7 @@ from packages.core.models import AutomationRun, RenderJob
 from packages.core.repositories import AutomationRunsRepo
 from packages.remarkable_sync import SyncResult
 
+from apps.api.services.dayone_sync import DayOneSyncService, summary_to_status_dict
 from apps.api.services.habit_evaluation import HabitEvaluationService
 from apps.api.services.remarkable_lifecycle import RemarkableLifecycleService
 from apps.api.services.render import RenderService
@@ -17,7 +18,14 @@ from apps.api.services.whoop_sync import WhoopSyncService
 
 
 class AutomationService:
-    """Run the nightly WHOOP → recompute → render → reMarkable flow."""
+    """Run the nightly WHOOP → Day One → recompute → render → reMarkable flow.
+
+    Day One participation is optional: when ``DAYONE_DB_PATH`` is unset the
+    service simply records ``skipped_reason="missing_db_path"`` in
+    ``dayone_summary`` and continues. Until a third automated integration
+    lands we keep both connectors as named constructor arguments rather
+    than introducing the deferred ``IntegrationRegistry``.
+    """
 
     def __init__(
         self,
@@ -28,6 +36,7 @@ class AutomationService:
         render: RenderService,
         lifecycle: RemarkableLifecycleService,
         runs_repo: AutomationRunsRepo,
+        dayone: DayOneSyncService | None = None,
     ) -> None:
         self.settings = settings
         self.whoop = whoop
@@ -35,6 +44,7 @@ class AutomationService:
         self.render = render
         self.lifecycle = lifecycle
         self.runs_repo = runs_repo
+        self.dayone = dayone
 
     async def status(self, scheduler=None) -> dict:
         latest = await self.runs_repo.latest()
@@ -89,6 +99,7 @@ class AutomationService:
             },
             "rollover": {"detected": previous_month is not None},
             "whoop": {},
+            "dayone": {},
             "habits": [],
             "render": {},
             "remarkable": {},
@@ -118,8 +129,24 @@ class AutomationService:
                 end=end,
                 recompute=False,
             )
+
+            # Day One is optional. Missing DAYONE_DB_PATH ⇒ skipped, not failed.
+            # New months touched by Day One get folded into the recompute set
+            # so the journaling habit reflects the latest entries.
+            recompute_months: set[str] = set(affected_months)
+            if self.dayone is not None:
+                dayone_summary = await self.dayone.sync_range(
+                    start=start, end=end, recompute=False
+                )
+                summary["dayone"] = summary_to_status_dict(dayone_summary)
+                recompute_months.update(dayone_summary.affected_months)
+            else:
+                summary["dayone"] = {"skipped_reason": "not_wired"}
+
+            ordered_recompute_months = sorted(recompute_months)
+            summary["months"]["affected"] = ordered_recompute_months
             summary["habits"] = [
-                await self.habits.recompute(month) for month in affected_months
+                await self.habits.recompute(month) for month in ordered_recompute_months
             ]
 
             current_job = await self.render.render(current_month, triggered_by="schedule")
@@ -156,6 +183,7 @@ class AutomationService:
                 run_id,
                 finished_at=_now_utc(),
                 whoop_summary=summary["whoop"],
+                dayone_summary=summary["dayone"],
                 habit_recompute_summary=summary["habits"],
                 render_summary=summary["render"],
                 remarkable_summary=summary["remarkable"],
@@ -170,6 +198,7 @@ class AutomationService:
                 finished_at=_now_utc(),
                 error=summary["error"],
                 whoop_summary=summary["whoop"],
+                dayone_summary=summary["dayone"],
                 habit_recompute_summary=summary["habits"],
                 render_summary=summary["render"],
                 remarkable_summary=summary["remarkable"],

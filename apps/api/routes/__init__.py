@@ -1,5 +1,6 @@
 from apps.api.routes import (
     automation,
+    dayone,
     events,
     habit_entries,
     habits,
@@ -23,5 +24,6 @@ ROUTERS = [
     render.router,
     remarkable_sync.router,
     whoop.router,
+    dayone.router,
     pipeline.router,
 ]

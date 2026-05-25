@@ -14,6 +14,8 @@ from typing import Literal
 
 from dotenv import find_dotenv, load_dotenv
 
+from packages.connectors.dayone.config import DayOneSettings, load_dayone_settings
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SAMPLE_EVENTS = REPO_ROOT / "data" / "sample_events.json"
@@ -61,6 +63,7 @@ class Settings:
     remarkable_dry_run: bool
     whoop: WhoopSettings
     remarkable: RemarkableSettings
+    dayone: DayOneSettings
 
 
 def load_settings() -> Settings:
@@ -106,6 +109,7 @@ def load_settings() -> Settings:
             ),
             machine_root=os.getenv("HABITOS_REMARKABLE_MACHINE_ROOT", "HabitOS"),
         ),
+        dayone=load_dayone_settings(),
         whoop=WhoopSettings(
             client_id=os.getenv("WHOOP_CLIENT_ID", ""),
             client_secret=os.getenv("WHOOP_CLIENT_SECRET", ""),

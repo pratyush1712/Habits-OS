@@ -20,10 +20,14 @@ The nightly pipeline runs this sequence:
 3. Compute a rolling WHOOP reconciliation window:
    `today - HABITOS_RECONCILE_DAYS` through `today`.
 4. Sync WHOOP for that range using `HABITOS_DEFAULT_WHOOP_EXTERNAL_USER_ID`.
-5. Recompute every month touched by the window.
-6. Always render the current month PDF.
-7. If auto-upload is enabled, prepare/upload the current month to reMarkable.
-8. If the day is the first of the month, also render/finalize the previous
+5. If `DAYONE_DB_PATH` is set, sync Day One for the same range (metadata-only
+   by default). Missing path / unreadable DB / unsupported schema all return
+   a skipped `IntegrationSyncSummary`; nightly automation does not fail.
+6. Recompute every month touched by the union of WHOOP and Day One affected
+   months.
+7. Always render the current month PDF.
+8. If auto-upload is enabled, prepare/upload the current month to reMarkable.
+9. If the day is the first of the month, also render/finalize the previous
    month and prepare its archive target.
 
 The job is local-first: no Celery, Redis, or separate worker infrastructure.
@@ -40,6 +44,14 @@ HABITOS_RECONCILE_DAYS=14
 HABITOS_DEFAULT_WHOOP_EXTERNAL_USER_ID=
 HABITOS_AUTO_UPLOAD_REMARKABLE=false
 HABITOS_REMARKABLE_DRY_RUN=true
+
+# Day One (optional; leave DAYONE_DB_PATH empty to disable)
+DAYONE_SYNC_MODE=sqlite
+DAYONE_DB_PATH=
+DAYONE_INCLUDE_TEXT=false
+DAYONE_LOOKBACK_DAYS=3
+DAYONE_JOURNAL_FILTER=
+DAYONE_TIMEZONE=UTC
 ```
 
 Notes:
@@ -47,6 +59,12 @@ Notes:
 - `HABITOS_SCHEDULER_ENABLED=false` keeps the scheduler off by default.
 - `HABITOS_TIMEZONE` controls both local date resolution and scheduler timezone.
 - `HABITOS_REMARKABLE_DRY_RUN=true` is the safest default for manual adapters.
+- `DAYONE_DB_PATH` empty ⇒ Day One sync is skipped cleanly each night and
+  `dayone_summary.skipped_reason` is recorded as `"missing_db_path"`. The
+  rest of the pipeline runs unchanged.
+- `DAYONE_INCLUDE_TEXT=false` is the default and the recommended value. Even
+  with `true`, raw entry text is never persisted in `source_events.raw_payload`;
+  only a derived word count joins `metrics.total_word_count`.
 
 ## Manual automation runs
 
@@ -147,6 +165,9 @@ collection with:
 - start and finish timestamps
 - reconcile window and affected months
 - WHOOP summary
+- Day One summary (counts, inserted/updated, affected months,
+  `skipped_reason`, warnings — journal names, tags, and entry UUIDs are
+  intentionally not exposed here)
 - habit recompute summary
 - render summary
 - reMarkable summary

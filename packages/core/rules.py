@@ -168,11 +168,39 @@ def evaluate_recovery(
     )
 
 
+def evaluate_journaling(
+    day: date,
+    events: list[SourceEvent],
+    config: HabitRuleConfig = DEFAULT_RULES,
+) -> HabitEntry | None:
+    journal_events = [e for e in events if e.event_type == "journal"]
+    if not journal_events:
+        return None
+    entry_count = sum(int(e.metrics.get("entry_count", 1)) for e in journal_events)
+    rule = config.journaling
+    if entry_count < rule.checked_min_entries:
+        return None
+    return HabitEntry(
+        date=day,
+        habit_key="journaling",
+        status="checked",
+        source=journal_events[0].source,
+        summary=_journal_summary(entry_count),
+        description="",
+        linked_source_event_ids=[e.id for e in journal_events],
+        explanation=(
+            f"{entry_count} journal entr{'y' if entry_count == 1 else 'ies'} "
+            f"(checked >= {rule.checked_min_entries})"
+        ),
+    )
+
+
 EVALUATORS: dict[str, Callable[[date, list[SourceEvent], HabitRuleConfig], HabitEntry | None]] = {
     "workout": evaluate_workout,
     "meditation": evaluate_meditation,
     "sleep": evaluate_sleep,
     "recovery": evaluate_recovery,
+    "journaling": evaluate_journaling,
 }
 
 
@@ -288,6 +316,11 @@ def _meditation_summary(events: list[SourceEvent]) -> str:
         return f"{_fmt_min(e.duration_minutes or 0.0)} {title}"
     total = sum((e.duration_minutes or 0.0) for e in events)
     return f"{_fmt_min(total)} total · {len(events)} sessions"
+
+
+def _journal_summary(entry_count: int) -> str:
+    noun = "entry" if entry_count == 1 else "entries"
+    return f"{entry_count} {noun}"
 
 
 def _sleep_summary(total_minutes: float, main: SourceEvent) -> str:
