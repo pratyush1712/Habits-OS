@@ -280,8 +280,8 @@ class RmapiRemarkableSyncAdapter:
 
         # Current: only replace when the user opts in.
         use_force = False
-        if target_kind == "current" and target_exists:
-            if not self.config.replace_existing_current:
+        if target_kind == "current":
+            if target_exists and not self.config.replace_existing_current:
                 return _result(
                     request,
                     action=action,
@@ -296,8 +296,8 @@ class RmapiRemarkableSyncAdapter:
                         "Note: --force removes existing annotations from the document.",
                     ],
                 )
-            use_force = True
-
+            use_force = self.config.replace_existing_current
+        
         # Execute the put.
         put_argv = ["put"]
         if use_force:
