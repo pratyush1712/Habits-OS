@@ -24,3 +24,15 @@ test:
 clean:
 	rm -rf .venv .pytest_cache *.egg-info
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +
+
+service-restart:
+	./scripts/restart_service.sh
+
+service-update:
+	./scripts/update_service.sh
+
+service-logs:
+	tail -f ~/Library/Logs/HabitOS/api.out.log ~/Library/Logs/HabitOS/api.err.log
+
+service-status:
+	launchctl print gui/$$(id -u)/com.pratyush.habitos.api
