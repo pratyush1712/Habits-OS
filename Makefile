@@ -1,7 +1,10 @@
 PY := .venv/bin/python
 PIP := .venv/bin/pip
+API := http://127.0.0.1:8083
+MONTH ?= $(shell date +%Y-%m)
 
-.PHONY: setup test render-sample evaluate-sample run-api clean
+.PHONY: setup test render-sample evaluate-sample run-api clean \
+        remarkable-status sync-remarkable-dry sync-remarkable
 
 setup:
 	python3 -m venv .venv
@@ -36,6 +39,17 @@ service-logs:
 
 service-status:
 	launchctl print gui/$$(id -u)/com.pratyush.habitos.api
+
+remarkable-status:
+	curl -s "$(API)/remarkable/status" | $(PY) -m json.tool
+
+sync-remarkable-dry:
+	@echo "Dry-run sync for $(MONTH) — no files will be uploaded"
+	curl -s -X POST "$(API)/remarkable/sync?month=$(MONTH)&dry_run=true" | $(PY) -m json.tool
+
+sync-remarkable:
+	@echo "Syncing $(MONTH) to reMarkable…"
+	curl -s -X POST "$(API)/remarkable/sync?month=$(MONTH)&dry_run=false" | $(PY) -m json.tool
 
 run-admin:
 	pnpm --dir apps/admin dev
