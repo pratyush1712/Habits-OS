@@ -22,6 +22,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from packages.core.models import HabitEntry, MonthHabitState
 from packages.renderer.links import (
     MONTH_ANCHOR,
+    TALLY_ANCHOR,
     day_anchor,
     week_anchor,
     week_review_anchor,
@@ -176,6 +177,37 @@ def _build_weeks(
     return weeks
 
 
+_TALLY_FILLED_STATUSES = {"checked", "partial", "manual"}
+
+
+def _build_tally(
+    year: int,
+    month: int,
+    days_by_date: dict[str, dict],
+    habits,
+) -> list[dict]:
+    """For each habit, build per-day fill data for the tally board page."""
+    days_in_month = calendar.monthrange(year, month)[1]
+    rows: list[dict] = []
+    for h in habits:
+        days = []
+        filled_count = 0
+        for day_num in range(1, days_in_month + 1):
+            iso = date(year, month, day_num).isoformat()
+            entry = days_by_date.get(iso, {}).get("by_habit", {}).get(h.key)
+            is_filled = bool(entry and entry.status in _TALLY_FILLED_STATUSES)
+            if is_filled:
+                filled_count += 1
+            days.append({"day": day_num, "iso": iso, "filled": is_filled})
+        rows.append({
+            "habit": h,
+            "days": days,
+            "filled_count": filled_count,
+            "total_days": days_in_month,
+        })
+    return rows
+
+
 def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
     """Render a MonthHabitState (or a JSON path that loads into one) to PDF."""
     if isinstance(state_or_path, MonthHabitState):
@@ -190,6 +222,7 @@ def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
     rows = _build_calendar_rows(year, month, today)
     days_by_date = _build_days(rows, state.entries)
     weeks = _build_weeks(rows, days_by_date, state.habits)
+    tally_rows = _build_tally(year, month, days_by_date, state.habits)
 
     # Attach week info to each day for the day-page nav.
     week_lookup = {cell.iso: w for w in weeks for cell in w["dates"]}
@@ -220,6 +253,8 @@ def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
         weekday_headers=WEEKDAY_HEADERS,
         status_glyph=STATUS_GLYPH,
         month_anchor=MONTH_ANCHOR,
+        tally_anchor=TALLY_ANCHOR,
+        tally_rows=tally_rows,
     )
 
     out_dir = Path(out_dir)

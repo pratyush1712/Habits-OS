@@ -482,6 +482,77 @@ h3 {
   margin-left: 0.5mm;
 }
 
+/* ---------- Tally board page ---------- */
+
+.tally-board {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border-top: 0.75pt solid #111;
+}
+.tally-row {
+  display: grid;
+  grid-template-columns: 38mm 1fr;
+  align-items: center;
+  gap: 3mm;
+  padding: 2.4mm 0;
+  border-bottom: 0.5pt solid #bbb;
+  min-height: 14mm;
+}
+.tally-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6mm;
+  padding-right: 2mm;
+}
+.tally-habit {
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10pt;
+  font-weight: 700;
+  letter-spacing: 0.6pt;
+  text-transform: uppercase;
+  color: #111;
+  line-height: 1.1;
+}
+.tally-count {
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-size: 11pt;
+  color: #333;
+  line-height: 1;
+}
+.tally-count-denom {
+  color: #888;
+  font-size: 9pt;
+}
+.tally-days {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 1mm 0.8mm;
+  align-items: center;
+  justify-items: center;
+}
+.tally-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.4mm;
+  height: 5.4mm;
+  border: 0.6pt solid #111;
+  border-radius: 50%;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 7.5pt;
+  font-weight: 500;
+  color: #111;
+  background: #ffffff;
+  line-height: 1;
+}
+.tally-day.filled {
+  background: rgba(17, 17, 17, 0.55);
+  color: #ffffff;
+  border-color: #111;
+  font-weight: 700;
+}
+
 /* ---------- Footer ---------- */
 
 .page-footer {

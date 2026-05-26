@@ -4,6 +4,7 @@ from __future__ import annotations
 
 
 MONTH_ANCHOR = "month"
+TALLY_ANCHOR = "tally"
 
 
 def day_anchor(iso_date: str) -> str:
