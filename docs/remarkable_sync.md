@@ -22,10 +22,10 @@ machine-owned artifacts only.
 
 HabitOS supports two adapters. Switch with `HABITOS_REMARKABLE_ADAPTER`:
 
-| Value | Behavior |
-|---|---|
-| `manual` (default) | Returns upload instructions only. Never mutates device or cloud state. |
-| `rmapi` | Performs automated reMarkable Cloud sync by shelling out to the ddvk/rmapi CLI. |
+| Value              | Behavior                                                                        |
+| ------------------ | ------------------------------------------------------------------------------- |
+| `manual` (default) | Returns upload instructions only. Never mutates device or cloud state.          |
+| `rmapi`            | Performs automated reMarkable Cloud sync by shelling out to the ddvk/rmapi CLI. |
 
 The selected adapter is used by `RemarkableSyncService` (the
 `/remarkable/*` routes) **and** by `RemarkableLifecycleService` (the
@@ -177,15 +177,15 @@ below).
 
 ### Required env vars
 
-| Variable | Purpose | Default |
-|---|---|---|
-| `HABITOS_REMARKABLE_ADAPTER` | `manual` or `rmapi` | `manual` |
-| `HABITOS_RMAPI_BINARY` | Binary name or absolute path | `rmapi` |
-| `HABITOS_RMAPI_CONFIG_PATH` | Path to dedicated rmapi config file | _(empty → rmapi default `~/.rmapi`)_ |
-| `HABITOS_RMAPI_TIMEOUT_SECONDS` | Per-command timeout | `60` |
-| `HABITOS_RMAPI_TRACE` | Forward `RMAPI_TRACE=1` to rmapi | `false` |
-| `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT` | Allow `put --force` on the current month | `false` |
-| `HABITOS_REMARKABLE_MACHINE_ROOT` | Top-level folder HabitOS may write to | `HabitOS` |
+| Variable                                 | Purpose                                  | Default                              |
+| ---------------------------------------- | ---------------------------------------- | ------------------------------------ |
+| `HABITOS_REMARKABLE_ADAPTER`             | `manual` or `rmapi`                      | `manual`                             |
+| `HABITOS_RMAPI_BINARY`                   | Binary name or absolute path             | `rmapi`                              |
+| `HABITOS_RMAPI_CONFIG_PATH`              | Path to dedicated rmapi config file      | _(empty → rmapi default `~/.rmapi`)_ |
+| `HABITOS_RMAPI_TIMEOUT_SECONDS`          | Per-command timeout                      | `60`                                 |
+| `HABITOS_RMAPI_TRACE`                    | Forward `RMAPI_TRACE=1` to rmapi         | `false`                              |
+| `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT` | Allow `put --force` on the current month | `false`                              |
+| `HABITOS_REMARKABLE_MACHINE_ROOT`        | Top-level folder HabitOS may write to    | `HabitOS`                            |
 
 Typical local setup:
 
@@ -235,7 +235,7 @@ The adapter is intentionally narrow:
 ### Status diagnostics
 
 ```bash
-curl http://127.0.0.1:8000/remarkable/status
+curl http://127.0.0.1:8083/remarkable/status
 ```
 
 When `HABITOS_REMARKABLE_ADAPTER=rmapi` the payload includes an `rmapi`
@@ -256,8 +256,8 @@ block:
     "trace": false,
     "replace_existing_current": false,
     "machine_root": "HabitOS",
-    "timeout_seconds": 60
-  }
+    "timeout_seconds": 60,
+  },
 }
 ```
 

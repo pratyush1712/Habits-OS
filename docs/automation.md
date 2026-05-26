@@ -71,25 +71,25 @@ Notes:
 Inspect automation state:
 
 ```bash
-curl "http://localhost:8000/automation/status"
+curl "http://localhost:8083/automation/status"
 ```
 
 Trigger the nightly pipeline manually:
 
 ```bash
-curl -X POST "http://localhost:8000/automation/nightly-run?dry_run=true"
+curl -X POST "http://localhost:8083/automation/nightly-run?dry_run=true"
 ```
 
 Force a month rollover manually:
 
 ```bash
-curl -X POST "http://localhost:8000/automation/month-rollover?from_month=2026-05&to_month=2026-06&dry_run=true"
+curl -X POST "http://localhost:8083/automation/month-rollover?from_month=2026-05&to_month=2026-06&dry_run=true"
 ```
 
 Inspect current/archive reMarkable targets for a month:
 
 ```bash
-curl "http://localhost:8000/remarkable/paths?month=2026-06"
+curl "http://localhost:8083/remarkable/paths?month=2026-06"
 ```
 
 ## Monthly rollover

@@ -16,7 +16,7 @@ evaluate-sample:
 	$(PY) -m packages.core.evaluate data/sample_events.json
 
 run-api:
-	.venv/bin/uvicorn apps.api.main:app --reload --host 127.0.0.1 --port 8000
+	$(PY) -m uvicorn apps.api.main:app --reload --host 127.0.0.1 --port 8083
 
 test:
 	$(PY) -m pytest -q

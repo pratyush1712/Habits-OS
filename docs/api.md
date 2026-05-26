@@ -8,17 +8,17 @@ Run locally:
 ```bash
 make run-api
 # or
-uvicorn apps.api.main:app --reload --host localhost --port 8000
+uvicorn apps.api.main:app --reload --host localhost --port 8083
 ```
 
-Base URL: `http://localhost:8000`
+Base URL: `http://localhost:8083`
 
 ## Happy-path workflow
 
 Set your values once:
 
 ```bash
-BASE="http://localhost:8000"
+BASE="http://localhost:8083"
 MONTH="2026-05"
 START="2026-05-01"
 END="2026-05-31"
@@ -285,10 +285,10 @@ Reads the Day One SQLite DB for an inclusive local date range, normalizes
 entries into `source_events` (metadata-only by default; raw text is never
 persisted), and optionally recomputes affected months.
 
-| Param        | Required | Default | Description                               |
-| ------------ | -------: | ------: | ----------------------------------------- |
-| `start`      |      yes |         | Inclusive `YYYY-MM-DD` start date         |
-| `end`        |      yes |         | Inclusive `YYYY-MM-DD` end date           |
+| Param       | Required | Default | Description                               |
+| ----------- | -------: | ------: | ----------------------------------------- |
+| `start`     |      yes |         | Inclusive `YYYY-MM-DD` start date         |
+| `end`       |      yes |         | Inclusive `YYYY-MM-DD` end date           |
 | `recompute` |       no |  `true` | Recompute months touched by synced events |
 
 ```bash

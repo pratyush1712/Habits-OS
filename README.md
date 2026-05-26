@@ -96,10 +96,10 @@ Collection design and index rationale: see [docs/persistence.md](docs/persistenc
 ## Running the API
 
 ```bash
-make run-api      # uvicorn apps.api.main:app --reload on 127.0.0.1:8000
+make run-api      # uvicorn apps.api.main:app --reload on 127.0.0.1:8083
 ```
 
-Browse interactive docs at <http://127.0.0.1:8000/docs>, or use the curl
+Browse interactive docs at <http://127.0.0.1:8083/docs>, or use the curl
 recipes in [docs/api.md](docs/api.md).
 
 ### Routes
@@ -211,7 +211,7 @@ The default sync path is still manual-first and safe. Ask for the upload
 instructions for the latest completed render job:
 
 ```bash
-curl "http://127.0.0.1:8000/remarkable/instructions?month=2026-05"
+curl "http://127.0.0.1:8083/remarkable/instructions?month=2026-05"
 ```
 
 The target naming convention is machine-owned:

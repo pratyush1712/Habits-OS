@@ -115,7 +115,7 @@ def load_settings() -> Settings:
             client_secret=os.getenv("WHOOP_CLIENT_SECRET", ""),
             redirect_uri=os.getenv(
                 "WHOOP_REDIRECT_URI",
-                "http://localhost:8000/whoop/oauth/callback",
+                "http://localhost:8083/whoop/oauth/callback",
             ),
             scopes=whoop_scopes,
             api_base_url=os.getenv(
