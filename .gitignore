@@ -22,3 +22,5 @@ build/
 # HabitOS generated artifacts — keep the dir, ignore contents
 data/generated/*
 !data/generated/.gitkeep
+
+.pnpm-store
