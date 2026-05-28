@@ -13,13 +13,10 @@ from packages.remarkable_sync import (
 def test_current_month_target_naming():
     target = build_current_month_target("2026-05")
 
-    assert target.folder_path == ("HabitOS", "00 Current")
-    assert target.document_name == "00 Current Month - 2026-05 Habit Dashboard"
-    assert target.filename == "00 Current Month - 2026-05 Habit Dashboard.pdf"
-    assert (
-        target.display_path
-        == "HabitOS/00 Current/00 Current Month - 2026-05 Habit Dashboard.pdf"
-    )
+    assert target.folder_path == ()
+    assert target.document_name == "01. Habit Tracker"
+    assert target.filename == "01. Habit Tracker.pdf"
+    assert target.display_path == "01. Habit Tracker.pdf"
 
 
 def test_archive_month_target_naming():
@@ -49,10 +46,7 @@ async def test_manual_upload_returns_manual_required_instructions(tmp_path):
     assert result.action == "upload"
     assert result.status == "manual_required"
     assert result.device_mutated is False
-    assert (
-        result.target_path
-        == "HabitOS/00 Current/00 Current Month - 2026-05 Habit Dashboard.pdf"
-    )
+    assert result.target_path == "01. Habit Tracker.pdf"
     assert result.local_pdf_path == pdf
     assert any("http://10.11.99.1" in step for step in result.instructions)
     assert any("Do not replace unrelated handwritten notebooks" in step for step in result.instructions)

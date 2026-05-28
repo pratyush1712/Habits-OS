@@ -46,10 +46,7 @@ async def test_service_syncs_latest_completed_render_path(tmp_path):
     assert result.status == "manual_required"
     assert result.device_mutated is False
     assert result.local_pdf_path == pdf
-    assert (
-        result.target_path
-        == "HabitOS/00 Current/00 Current Month - 2026-05 Habit Dashboard.pdf"
-    )
+    assert result.target_path == "01. Habit Tracker.pdf"
 
 
 @pytest.mark.asyncio

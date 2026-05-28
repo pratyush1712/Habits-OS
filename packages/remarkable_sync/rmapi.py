@@ -3,7 +3,8 @@
 This adapter shells out to the ``rmapi`` binary
 (https://github.com/ddvk/rmapi). It is intentionally conservative:
 
-- Only machine-owned paths under ``HabitOS/`` are accepted.
+- Only machine-owned paths under ``HabitOS/`` (archives) or the fixed home-screen
+  document name are accepted.
 - Archive paths are treated as frozen once written.
 - The current-month dashboard is only replaced when the user opts in via
   ``HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true``.
@@ -29,6 +30,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from packages.remarkable_sync.base import (
+    CURRENT_DOCUMENT_NAME,
     MACHINE_ROOT_FOLDER,
     RemarkableDocument,
     SyncAction,
@@ -218,7 +220,10 @@ class RmapiRemarkableSyncAdapter:
             )
 
         # Target must be machine-owned and shaped like current or archive.
-        target_kind = self._classify_target(request.folder_path)
+        target_kind = self._classify_target(
+            request.folder_path,
+            request.document_name,
+        )
         if target_kind is None:
             return _result(
                 request,
@@ -226,20 +231,30 @@ class RmapiRemarkableSyncAdapter:
                 status="unsupported",
                 message=(
                     "Refusing to upload outside machine-owned HabitOS targets. "
-                    f"folder_path={request.folder_path!r}"
+                    f"folder_path={request.folder_path!r}, "
+                    f"document_name={request.document_name!r}"
                 ),
                 device_mutated=False,
                 instructions=[
-                    f"Only paths under '{self.config.machine_root}/' are allowed.",
+                    f"Current month must be '{CURRENT_DOCUMENT_NAME}' on the device home screen.",
+                    f"Archives must live under '{self.config.machine_root}/YYYY/Archive/'.",
                 ],
             )
 
-        target_remote = "/" + "/".join((*request.folder_path, f"{request.document_name}.pdf"))
-        folder_remote = "/" + "/".join(request.folder_path)
+        target_remote = self._remote_document_path(
+            request.folder_path,
+            request.document_name,
+        )
+        folder_remote = self._remote_folder_path(request.folder_path)
 
         # Dry-run: describe what would have happened without spawning anything.
         if request.dry_run:
-            planned = self._planned_argv(pdf_path, folder_remote, target_kind)
+            planned = self._planned_argv(
+                pdf_path,
+                folder_remote,
+                request.folder_path,
+                target_kind,
+            )
             return _result(
                 request,
                 action=action,
@@ -249,13 +264,14 @@ class RmapiRemarkableSyncAdapter:
                 instructions=["planned: " + shlex.join(cmd) for cmd in planned],
             )
 
-        # Ensure folder chain exists.
-        try:
-            await self._ensure_folder_chain(request.folder_path)
-        except FileNotFoundError:
-            return _binary_missing_result(request, action, self.config.binary)
-        except asyncio.TimeoutError:
-            return _timeout_result(request, action, "rmapi mkdir/stat timed out")
+        # Ensure folder chain exists (home-screen uploads skip this).
+        if request.folder_path:
+            try:
+                await self._ensure_folder_chain(request.folder_path)
+            except FileNotFoundError:
+                return _binary_missing_result(request, action, self.config.binary)
+            except asyncio.TimeoutError:
+                return _timeout_result(request, action, "rmapi mkdir/stat timed out")
 
         # Existence check on the target document.
         try:
@@ -357,13 +373,16 @@ class RmapiRemarkableSyncAdapter:
     # ------------------------------------------------------------------ utils
 
     def _classify_target(
-        self, folder_path: tuple[str, ...]
+        self,
+        folder_path: tuple[str, ...],
+        document_name: str,
     ) -> str | None:
+        if folder_path == () and document_name == CURRENT_DOCUMENT_NAME:
+            return "current"
+
         root = self.config.machine_root
         if len(folder_path) < 2 or folder_path[0] != root:
             return None
-        if folder_path == (root, "00 Current"):
-            return "current"
         if (
             len(folder_path) == 3
             and folder_path[2] == "Archive"
@@ -373,17 +392,36 @@ class RmapiRemarkableSyncAdapter:
             return "archive"
         return None
 
+    @staticmethod
+    def _remote_folder_path(folder_path: tuple[str, ...]) -> str:
+        if not folder_path:
+            return "/"
+        return "/" + "/".join(folder_path)
+
+    @staticmethod
+    def _remote_document_path(
+        folder_path: tuple[str, ...],
+        document_name: str,
+    ) -> str:
+        return "/" + "/".join((*folder_path, f"{document_name}.pdf"))
+
     def _planned_argv(
         self,
         pdf_path: Path,
         folder_remote: str,
+        folder_path: tuple[str, ...],
         target_kind: str,
     ) -> list[list[str]]:
         argv: list[list[str]] = []
-        for depth in range(1, folder_remote.count("/") + 1):
-            argv.append(
-                [self.config.binary, "mkdir", "/".join(folder_remote.split("/")[: depth + 1]) or "/"]
-            )
+        if folder_path:
+            for depth in range(1, folder_remote.count("/") + 1):
+                argv.append(
+                    [
+                        self.config.binary,
+                        "mkdir",
+                        "/".join(folder_remote.split("/")[: depth + 1]) or "/",
+                    ]
+                )
         put_cmd = [self.config.binary, "put"]
         if target_kind == "current" and self.config.replace_existing_current:
             put_cmd.append("--force")

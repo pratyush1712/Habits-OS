@@ -9,8 +9,8 @@ machine-owned artifacts only.
 - Do not directly edit reMarkable notebook internals in v1.
 - Do not overwrite human-owned handwritten notebooks.
 - Keep generated dashboards under machine-owned paths only:
-  - current month:
-    `HabitOS / 00 Current / 00 Current Month - YYYY-MM Habit Dashboard.pdf`
+  - current month (device home screen):
+    `01. Habit Tracker.pdf`
   - archived month:
     `HabitOS / YYYY / Archive / YYYY-MM Habit Dashboard.pdf`
 - Manual upload is the default and safest sync path.
@@ -46,9 +46,8 @@ Typical flow:
    - On the reMarkable 2, enable Settings → Storage → USB web interface.
    - Connect over USB.
    - Open `http://10.11.99.1/`.
-   - Upload the current month PDF as
-     `00 Current Month - YYYY-MM Habit Dashboard.pdf` under
-     `HabitOS / 00 Current`.
+   - Upload the current month PDF to the device home screen as
+     `01. Habit Tracker.pdf`.
 
 The sync service reads `RenderJobsRepo.latest_for_month(month)` and uses only the
 stored `output_path`. It does not call or modify the PDF renderer.
@@ -57,8 +56,8 @@ stored `output_path`. It does not call or modify the PDF renderer.
 
 HabitOS keeps the current month easy to find while still organizing old months.
 
-- Current month:
-  `HabitOS / 00 Current / 00 Current Month - YYYY-MM Habit Dashboard.pdf`
+- Current month (home screen):
+  `01. Habit Tracker.pdf`
 - Archived month:
   `HabitOS / YYYY / Archive / YYYY-MM Habit Dashboard.pdf`
 
@@ -67,7 +66,7 @@ Monthly rollover behavior:
 1. Render/finalize the previous month.
 2. Prepare/archive the previous month under the year archive path.
 3. Render the new current month.
-4. Keep the new month visible under the fixed `00 Current` path.
+4. Keep the new month visible on the home screen as `01. Habit Tracker`.
 
 Archived months are treated as frozen after they leave the reconcile window.
 If the previous month is still inside the rolling WHOOP reconcile window,
@@ -213,7 +212,7 @@ nightly automation summaries under `automation_runs.remarkable_summary`.
 
 The adapter is intentionally narrow:
 
-- Folder allowlist: only `HabitOS/00 Current/...` and
+- Path allowlist: only the home-screen document `01. Habit Tracker` and
   `HabitOS/<YYYY>/Archive/...` are accepted. Anything else returns
   `status="unsupported"` and the adapter does not spawn rmapi.
 - Archive paths are frozen. If the archive document already exists the

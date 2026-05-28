@@ -4,7 +4,7 @@ API := http://127.0.0.1:8083
 MONTH ?= $(shell date +%Y-%m)
 
 .PHONY: setup test render-sample evaluate-sample run-api clean \
-        remarkable-status sync-remarkable-dry sync-remarkable
+        remarkable-status sync-remarkable-dry sync-remarkable nightly-run render-month
 
 setup:
 	python3 -m venv .venv
@@ -50,6 +50,12 @@ sync-remarkable-dry:
 sync-remarkable:
 	@echo "Syncing $(MONTH) to reMarkable…"
 	curl -s -X POST "$(API)/remarkable/sync?month=$(MONTH)&dry_run=false" | $(PY) -m json.tool
+
+nightly-run:
+	curl -s -X POST "$(API)/automation/nightly-run?dry_run=false" | $(PY) -m json.tool
+
+render-month:
+	curl -s -X POST "$(API)/render/month?month=$(MONTH)" | $(PY) -m json.tool
 
 run-admin:
 	pnpm --dir apps/admin dev

@@ -78,7 +78,7 @@ class _Lifecycle:
             adapter="manual",
             action="upload",
             dry_run=dry_run,
-            target_path=f"HabitOS/00 Current/00 Current Month - {month} Habit Dashboard.pdf",
+            target_path="01. Habit Tracker.pdf",
             status="manual_required",
             message="manual",
             local_pdf_path=pdf_path,

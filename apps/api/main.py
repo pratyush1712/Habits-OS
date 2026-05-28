@@ -41,11 +41,14 @@ async def lifespan(app: FastAPI):
     app.state.output_dir = settings.output_dir
     app.state.sample_events_path = settings.sample_events_path
     app.state.whoop_oauth_states = set()
+    async def run_nightly_job() -> None:
+        await build_automation_service_from_state(app.state).run_nightly_pipeline(
+            triggered_by="nightly",
+        )
+
     app.state.scheduler = build_scheduler(
         settings=settings,
-        run_job=lambda: build_automation_service_from_state(app.state).run_nightly_pipeline(
-            triggered_by="nightly"
-        ),
+        run_job=run_nightly_job,
     )
 
     try:

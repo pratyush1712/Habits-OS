@@ -39,8 +39,8 @@ class RemarkableSyncService:
             "machine_owned_root": "HabitOS",
             "latest_render_job": latest.model_dump(mode="json") if latest else None,
             "safety": (
-                "Uploads target only generated HabitOS PDFs under "
-                "HabitOS/00 Current or HabitOS/YYYY/Archive."
+                "Uploads target only generated HabitOS PDFs on the device home screen "
+                "as '01. Habit Tracker' or under HabitOS/YYYY/Archive."
             ),
         }
         if isinstance(self.adapter, RmapiRemarkableSyncAdapter):

@@ -143,6 +143,25 @@ async def test_rejects_path_outside_machine_root(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_rejects_wrong_home_screen_document_name(tmp_path):
+    pdf = _make_pdf(tmp_path)
+    request = SyncRequest(
+        local_pdf_path=pdf,
+        document_name="Random Notebook",
+        folder_path=(),
+        dry_run=False,
+    )
+    runner = FakeRunner()
+    adapter = RmapiRemarkableSyncAdapter(_make_config(), runner=runner)
+
+    result = await adapter.upload_pdf(request)
+
+    assert result.status == "unsupported"
+    assert result.device_mutated is False
+    assert runner.calls == []
+
+
+@pytest.mark.asyncio
 async def test_rejects_path_with_wrong_machine_root(tmp_path):
     pdf = _make_pdf(tmp_path)
     request = SyncRequest(
@@ -219,7 +238,7 @@ async def test_diagnostics_reports_config_readability(tmp_path):
 @pytest.mark.asyncio
 async def test_ensures_folder_chain_creates_missing_segments(tmp_path):
     pdf = _make_pdf(tmp_path)
-    target = build_current_month_target("2026-05")
+    target = build_archive_month_target("2026-05")
     request = SyncRequest(
         local_pdf_path=pdf,
         document_name=target.document_name,
@@ -231,8 +250,10 @@ async def test_ensures_folder_chain_creates_missing_segments(tmp_path):
     responses = {
         ("stat", "/HabitOS"): _fail("missing"),
         ("mkdir", "/HabitOS"): _ok(),
-        ("stat", "/HabitOS/00 Current"): _fail("missing"),
-        ("mkdir", "/HabitOS/00 Current"): _ok(),
+        ("stat", "/HabitOS/2026"): _fail("missing"),
+        ("mkdir", "/HabitOS/2026"): _ok(),
+        ("stat", "/HabitOS/2026/Archive"): _fail("missing"),
+        ("mkdir", "/HabitOS/2026/Archive"): _ok(),
         ("stat", target_remote): _fail("missing"),  # doc absent
     }
     runner = FakeRunner(responses=responses, default=_ok())
@@ -242,7 +263,32 @@ async def test_ensures_folder_chain_creates_missing_segments(tmp_path):
 
     cmds = [tuple(call.argv[1:]) for call in runner.calls]
     assert ("mkdir", "/HabitOS") in cmds
-    assert ("mkdir", "/HabitOS/00 Current") in cmds
+    assert ("mkdir", "/HabitOS/2026/Archive") in cmds
+    assert result.status == "uploaded"
+    assert result.device_mutated is True
+
+
+@pytest.mark.asyncio
+async def test_home_screen_current_upload_skips_mkdir(tmp_path):
+    pdf = _make_pdf(tmp_path)
+    target = build_current_month_target("2026-05")
+    request = SyncRequest(
+        local_pdf_path=pdf,
+        document_name=target.document_name,
+        folder_path=target.folder_path,
+        dry_run=False,
+    )
+    target_remote = "/01. Habit Tracker.pdf"
+    responses = {
+        ("stat", target_remote): _fail("missing"),
+    }
+    runner = FakeRunner(responses=responses, default=_ok())
+    adapter = RmapiRemarkableSyncAdapter(_make_config(), runner=runner)
+
+    result = await adapter.upload_pdf(request)
+
+    cmds = [tuple(call.argv[1:]) for call in runner.calls]
+    assert not any(cmd[0] == "mkdir" for cmd in cmds)
     assert result.status == "uploaded"
     assert result.device_mutated is True
 
@@ -250,7 +296,7 @@ async def test_ensures_folder_chain_creates_missing_segments(tmp_path):
 @pytest.mark.asyncio
 async def test_skips_mkdir_when_folder_exists(tmp_path):
     pdf = _make_pdf(tmp_path)
-    target = build_current_month_target("2026-05")
+    target = build_archive_month_target("2026-05")
     request = SyncRequest(
         local_pdf_path=pdf,
         document_name=target.document_name,
@@ -260,7 +306,8 @@ async def test_skips_mkdir_when_folder_exists(tmp_path):
     target_remote = "/" + "/".join((*target.folder_path, f"{target.document_name}.pdf"))
     responses = {
         ("stat", "/HabitOS"): _ok(),
-        ("stat", "/HabitOS/00 Current"): _ok(),
+        ("stat", "/HabitOS/2026"): _ok(),
+        ("stat", "/HabitOS/2026/Archive"): _ok(),
         ("stat", target_remote): _fail("missing"),
     }
     runner = FakeRunner(responses=responses, default=_ok())
@@ -269,7 +316,7 @@ async def test_skips_mkdir_when_folder_exists(tmp_path):
     await adapter.upload_pdf(request)
     cmds = [tuple(call.argv[1:]) for call in runner.calls]
     assert ("mkdir", "/HabitOS") not in cmds
-    assert ("mkdir", "/HabitOS/00 Current") not in cmds
+    assert ("mkdir", "/HabitOS/2026/Archive") not in cmds
 
 
 # ------------------------------------------------------------- upload paths
@@ -285,11 +332,9 @@ async def test_upload_when_target_absent_uses_plain_put(tmp_path):
         folder_path=target.folder_path,
         dry_run=False,
     )
-    target_remote = "/" + "/".join((*target.folder_path, f"{target.document_name}.pdf"))
+    target_remote = "/01. Habit Tracker.pdf"
     runner = FakeRunner(
         responses={
-            ("stat", "/HabitOS"): _ok(),
-            ("stat", "/HabitOS/00 Current"): _ok(),
             ("stat", target_remote): _fail("missing"),
         },
         default=_ok(),
@@ -302,7 +347,7 @@ async def test_upload_when_target_absent_uses_plain_put(tmp_path):
     assert len(put_calls) == 1
     assert "--force" not in put_calls[0].argv
     assert str(pdf) in put_calls[0].argv
-    assert "/HabitOS/00 Current" in put_calls[0].argv
+    assert put_calls[0].argv[-1] == "/"
     assert result.status == "uploaded"
     assert result.device_mutated is True
 
@@ -317,11 +362,9 @@ async def test_upload_current_target_present_no_replace_refuses(tmp_path):
         folder_path=target.folder_path,
         dry_run=False,
     )
-    target_remote = "/" + "/".join((*target.folder_path, f"{target.document_name}.pdf"))
+    target_remote = "/01. Habit Tracker.pdf"
     runner = FakeRunner(
         responses={
-            ("stat", "/HabitOS"): _ok(),
-            ("stat", "/HabitOS/00 Current"): _ok(),
             ("stat", target_remote): _ok(),  # exists
         },
         default=_ok(),
@@ -347,11 +390,9 @@ async def test_upload_current_target_present_with_replace_uses_force(tmp_path):
         folder_path=target.folder_path,
         dry_run=False,
     )
-    target_remote = "/" + "/".join((*target.folder_path, f"{target.document_name}.pdf"))
+    target_remote = "/01. Habit Tracker.pdf"
     runner = FakeRunner(
         responses={
-            ("stat", "/HabitOS"): _ok(),
-            ("stat", "/HabitOS/00 Current"): _ok(),
             ("stat", target_remote): _ok(),  # exists
         },
         default=_ok(),
@@ -365,6 +406,7 @@ async def test_upload_current_target_present_with_replace_uses_force(tmp_path):
     put = [c for c in runner.calls if c.argv[1:2] == ["put"]]
     assert len(put) == 1
     assert "--force" in put[0].argv
+    assert put[0].argv[-1] == "/"
     assert result.status == "updated"
     assert result.device_mutated is True
 
@@ -413,11 +455,9 @@ async def test_put_failure_records_failed_status(tmp_path):
         folder_path=target.folder_path,
         dry_run=False,
     )
-    target_remote = "/" + "/".join((*target.folder_path, f"{target.document_name}.pdf"))
+    target_remote = "/01. Habit Tracker.pdf"
     runner = FakeRunner(
         responses={
-            ("stat", "/HabitOS"): _ok(),
-            ("stat", "/HabitOS/00 Current"): _ok(),
             ("stat", target_remote): _fail("missing"),
             ("put",): _fail("network down"),
         },

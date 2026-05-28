@@ -217,7 +217,7 @@ curl "http://127.0.0.1:8083/remarkable/instructions?month=2026-05"
 The target naming convention is machine-owned:
 
 ```text
-HabitOS/00 Current/00 Current Month - YYYY-MM Habit Dashboard.pdf       # current
+01. Habit Tracker.pdf                                                   # current (home screen)
 HabitOS/YYYY/Archive/YYYY-MM Habit Dashboard.pdf                        # archived
 ```
 

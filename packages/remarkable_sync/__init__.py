@@ -1,6 +1,7 @@
 """reMarkable sync adapters for generated HabitOS PDFs."""
 
 from packages.remarkable_sync.base import (
+    CURRENT_DOCUMENT_NAME,
     MACHINE_ROOT_FOLDER,
     RemarkableDocument,
     RemarkableSyncAdapter,
@@ -20,6 +21,7 @@ from packages.remarkable_sync.rmapi import (
 )
 
 __all__ = [
+    "CURRENT_DOCUMENT_NAME",
     "MACHINE_ROOT_FOLDER",
     "AsyncioSubprocessRunner",
     "CompletedRun",

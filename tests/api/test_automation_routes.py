@@ -33,13 +33,13 @@ class _AutomationService:
 
 class _LifecycleService:
     def get_current_document_name(self, month: str) -> str:
-        return f"00 Current Month - {month} Habit Dashboard"
+        return "01. Habit Tracker"
 
     def get_archive_document_name(self, month: str) -> str:
         return f"{month} Habit Dashboard"
 
     def get_current_target_path(self, month: str) -> str:
-        return f"HabitOS/00 Current/00 Current Month - {month} Habit Dashboard.pdf"
+        return "01. Habit Tracker.pdf"
 
     def get_archive_target_path(self, month: str) -> str:
         return f"HabitOS/{month[:4]}/Archive/{month} Habit Dashboard.pdf"
@@ -79,8 +79,8 @@ async def test_automation_routes_pass_through_queries() -> None:
         assert paths.json() == {
             "month": "2026-06",
             "current": {
-                "name": "00 Current Month - 2026-06 Habit Dashboard",
-                "path": "HabitOS/00 Current/00 Current Month - 2026-06 Habit Dashboard.pdf",
+                "name": "01. Habit Tracker",
+                "path": "01. Habit Tracker.pdf",
             },
             "archive": {
                 "name": "2026-06 Habit Dashboard",

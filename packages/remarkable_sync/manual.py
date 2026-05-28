@@ -47,6 +47,14 @@ def _manual_result(request: SyncRequest, *, action: SyncAction) -> SyncResult:
             instructions=["Render the month to a PDF file, then run sync again."],
         )
 
+    folder_instruction = (
+        f"Upload the PDF to the reMarkable home screen as: {request.document_name}.pdf"
+        if not request.folder_path
+        else (
+            f"Use or create the machine-owned folder path: "
+            f"{' / '.join(request.folder_path)}."
+        )
+    )
     return SyncResult(
         adapter=ManualRemarkableSyncAdapter.name,
         action=action,
@@ -64,8 +72,7 @@ def _manual_result(request: SyncRequest, *, action: SyncAction) -> SyncResult:
             "On the reMarkable 2, open Settings → Storage and enable USB web interface.",
             "Connect the tablet to this computer with USB.",
             "Open http://10.11.99.1/ in a browser.",
-            f"Use or create the machine-owned folder path: {' / '.join(request.folder_path)}.",
-            f"Upload the PDF as: {request.document_name}.pdf",
+            folder_instruction,
             f"Expected target path: {request.target_path}",
             "Do not replace unrelated handwritten notebooks or user-owned documents.",
         ],

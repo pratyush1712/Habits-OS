@@ -12,6 +12,7 @@ from typing import Literal, Protocol
 
 
 MACHINE_ROOT_FOLDER = "HabitOS"
+CURRENT_DOCUMENT_NAME = "01. Habit Tracker"
 SyncAction = Literal["upload", "update", "list"]
 SyncStatus = Literal[
     "not_configured",
@@ -93,18 +94,14 @@ def build_machine_owned_target(month: str) -> MachineOwnedTarget:
 
 
 def build_current_month_target(month: str) -> MachineOwnedTarget:
-    """Build the machine-owned current dashboard target.
-
-    The folder prefix is intentionally fixed so adapters can distinguish
-    generated HabitOS artifacts from human-owned notebooks.
-    """
+    """Build the machine-owned current dashboard target on the device home screen."""
 
     year, month_num = _parse_month(month)
     month_str = f"{year:04d}-{month_num:02d}"
     return MachineOwnedTarget(
         month=month_str,
-        folder_path=(MACHINE_ROOT_FOLDER, "00 Current"),
-        document_name=f"00 Current Month - {month_str} Habit Dashboard",
+        folder_path=(),
+        document_name=CURRENT_DOCUMENT_NAME,
     )
 
 
