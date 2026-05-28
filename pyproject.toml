@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
     "jinja2>=3.1",
     "playwright>=1.42",
+    "pypdf>=4.0",
     "pydantic>=2.6",
     "pymongo[srv]>=4.9",
     "fastapi>=0.110",

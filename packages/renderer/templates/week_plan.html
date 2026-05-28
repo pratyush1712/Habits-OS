@@ -11,18 +11,11 @@
   </header>
 
   <h2 class="section-heading">Days this week</h2>
-  <ul class="week-days">
+  <ul class="week-days week-days-plan">
     {% for cell in week.dates %}
-      {% set day = days_by_date[cell.iso] %}
       <li>
         <a href="#day-{{ cell.iso }}">
           <span class="date">{{ cell.weekday_short }} {{ cell.day }}</span>
-          <span class="status-strip">
-            {% for h in habits %}
-              {% set entry = day.by_habit.get(h.key) %}
-              {% if entry %}{{ status_glyph[entry.status] }}{% else %}·{% endif %}
-            {% endfor %}
-          </span>
         </a>
       </li>
     {% endfor %}

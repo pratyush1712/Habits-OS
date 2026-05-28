@@ -168,6 +168,7 @@ def build_remarkable_adapter_from_state(state) -> RemarkableSyncAdapter:
                 timeout_seconds=settings.rmapi_timeout_seconds,
                 trace=settings.rmapi_trace,
                 replace_existing_current=settings.rmapi_replace_existing_current,
+                preserve_annotations=settings.rmapi_preserve_annotations,
                 machine_root=settings.machine_root,
             )
         )

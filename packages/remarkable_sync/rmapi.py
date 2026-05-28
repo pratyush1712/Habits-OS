@@ -24,11 +24,19 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 import shlex
+import shutil
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
 
+from packages.remarkable_sync.rmdoc import (
+    MalformedBundle,
+    PageCountMismatch,
+    swap_base_pdf,
+)
 from packages.remarkable_sync.base import (
     CURRENT_DOCUMENT_NAME,
     MACHINE_ROOT_FOLDER,
@@ -37,6 +45,8 @@ from packages.remarkable_sync.base import (
     SyncRequest,
     SyncResult,
 )
+
+_LS_LINE_RE = re.compile(r"^\[([fd])\]\t(.+)$")
 
 
 @dataclass(frozen=True)
@@ -48,6 +58,7 @@ class RmapiConfig:
     timeout_seconds: int = 60
     trace: bool = False
     replace_existing_current: bool = False
+    preserve_annotations: bool = True
     machine_root: str = MACHINE_ROOT_FOLDER
 
 
@@ -74,6 +85,7 @@ class SubprocessRunner(Protocol):
         *,
         env: dict[str, str],
         timeout: float,
+        cwd: str | None = None,
     ) -> CompletedRun: ...
 
 
@@ -86,10 +98,12 @@ class AsyncioSubprocessRunner:
         *,
         env: dict[str, str],
         timeout: float,
+        cwd: str | None = None,
     ) -> CompletedRun:
         process = await asyncio.create_subprocess_exec(
             *argv,
             env=env,
+            cwd=cwd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -167,6 +181,7 @@ class RmapiRemarkableSyncAdapter:
             ),
             "trace": self.config.trace,
             "replace_existing_current": self.config.replace_existing_current,
+            "preserve_annotations": self.config.preserve_annotations,
             "machine_root": self.config.machine_root,
             "timeout_seconds": self.config.timeout_seconds,
         }
@@ -241,39 +256,40 @@ class RmapiRemarkableSyncAdapter:
                 ],
             )
 
-        target_remote = self._remote_document_path(
-            request.folder_path,
-            request.document_name,
-        )
         folder_remote = self._remote_folder_path(request.folder_path)
 
         # Dry-run: describe what would have happened without spawning anything.
         if request.dry_run:
-            planned = self._planned_argv(
-                pdf_path,
-                folder_remote,
-                request.folder_path,
-                target_kind,
-            )
             return _result(
                 request,
                 action=action,
                 status="planned",
                 message="Dry run; no rmapi commands were executed.",
                 device_mutated=False,
-                instructions=["planned: " + shlex.join(cmd) for cmd in planned],
+                instructions=self._planned_steps(request, target_kind, folder_remote),
             )
 
-        # Ensure folder chain exists (home-screen uploads skip this).
-        if request.folder_path:
-            try:
-                await self._ensure_folder_chain(request.folder_path)
-            except FileNotFoundError:
-                return _binary_missing_result(request, action, self.config.binary)
-            except asyncio.TimeoutError:
-                return _timeout_result(request, action, "rmapi mkdir/stat timed out")
+        if target_kind == "current":
+            return await self._upload_current(request, action=action)
+        return await self._upload_archive(
+            request, action=action, folder_remote=folder_remote
+        )
 
-        # Existence check on the target document.
+    # ------------------------------------------------------------ archive flow
+
+    async def _upload_archive(
+        self, request: SyncRequest, *, action: SyncAction, folder_remote: str
+    ) -> SyncResult:
+        target_remote = self._remote_document_path(
+            request.folder_path, request.document_name
+        )
+        try:
+            await self._ensure_folder_chain(request.folder_path)
+        except FileNotFoundError:
+            return _binary_missing_result(request, action, self.config.binary)
+        except asyncio.TimeoutError:
+            return _timeout_result(request, action, "rmapi mkdir/stat timed out")
+
         try:
             target_exists = await self._exists(target_remote)
         except FileNotFoundError:
@@ -281,8 +297,7 @@ class RmapiRemarkableSyncAdapter:
         except asyncio.TimeoutError:
             return _timeout_result(request, action, "rmapi stat timed out")
 
-        # Archive: frozen if present.
-        if target_kind == "archive" and target_exists:
+        if target_exists:
             return _result(
                 request,
                 action=action,
@@ -294,38 +309,12 @@ class RmapiRemarkableSyncAdapter:
                 device_mutated=False,
             )
 
-        # Current: only replace when the user opts in.
-        use_force = False
-        if target_kind == "current":
-            if target_exists and not self.config.replace_existing_current:
-                return _result(
-                    request,
-                    action=action,
-                    status="unsupported",
-                    message=(
-                        "Current-month target already exists and "
-                        "HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=false."
-                    ),
-                    device_mutated=False,
-                    instructions=[
-                        "Set HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true to enable replacement.",
-                        "Note: --force removes existing annotations from the document.",
-                    ],
-                )
-            use_force = self.config.replace_existing_current
-        
-        # Execute the put.
-        put_argv = ["put"]
-        if use_force:
-            put_argv.append("--force")
-        put_argv.extend([str(pdf_path), folder_remote])
         try:
-            run = await self._run(put_argv)
+            run = await self._run(["put", str(request.local_pdf_path), folder_remote])
         except FileNotFoundError:
             return _binary_missing_result(request, action, self.config.binary)
         except asyncio.TimeoutError:
             return _timeout_result(request, action, "rmapi put timed out")
-
         if run.returncode != 0:
             return _result(
                 request,
@@ -338,15 +327,287 @@ class RmapiRemarkableSyncAdapter:
         return _result(
             request,
             action=action,
-            status="updated" if use_force else "uploaded",
-            message=(
-                "rmapi upload succeeded with --force (existing document replaced)."
-                if use_force
-                else "rmapi upload succeeded."
-            ),
+            status="uploaded",
+            message="rmapi upload succeeded.",
             device_mutated=True,
             instructions=_run_diagnostics(run),
         )
+
+    # ------------------------------------------------------------ current flow
+
+    async def _upload_current(
+        self, request: SyncRequest, *, action: SyncAction
+    ) -> SyncResult:
+        try:
+            existing = await self._resolve_current_doc_name()
+        except FileNotFoundError:
+            return _binary_missing_result(request, action, self.config.binary)
+        except asyncio.TimeoutError:
+            return _timeout_result(request, action, "rmapi ls timed out")
+        except _LsFailed as e:
+            return _result(
+                request,
+                action=action,
+                status="failed",
+                message=f"rmapi ls / failed with exit code {e.run.returncode}.",
+                device_mutated=False,
+                instructions=_run_diagnostics(e.run),
+            )
+        except _AmbiguousCurrentDoc as e:
+            return _result(
+                request,
+                action=action,
+                status="unsupported",
+                message=(
+                    "Multiple home-screen documents match the current-month "
+                    f"name '{CURRENT_DOCUMENT_NAME}'; refusing to guess which to update."
+                ),
+                device_mutated=False,
+                instructions=[
+                    f"candidates: {', '.join(e.candidates)}",
+                    "Rename or remove the extras so exactly one matches.",
+                ],
+            )
+
+        if existing is None:
+            return await self._put_named(
+                request,
+                action,
+                doc_name=CURRENT_DOCUMENT_NAME,
+                force=False,
+                status_ok="uploaded",
+                message="rmapi upload succeeded (new current-month document created).",
+            )
+
+        if self.config.replace_existing_current:
+            return await self._put_named(
+                request,
+                action,
+                doc_name=existing,
+                force=True,
+                status_ok="updated",
+                message=(
+                    "rmapi upload succeeded with --force "
+                    "(existing document replaced; annotations dropped)."
+                ),
+            )
+
+        if self.config.preserve_annotations:
+            return await self._merge_current(request, action=action, doc_name=existing)
+
+        return _result(
+            request,
+            action=action,
+            status="unsupported",
+            message=(
+                f"Current-month document '{existing}' exists and both "
+                "HABITOS_RMAPI_PRESERVE_ANNOTATIONS and "
+                "HABITOS_RMAPI_REPLACE_EXISTING_CURRENT are false."
+            ),
+            device_mutated=False,
+            instructions=[
+                "Enable HABITOS_RMAPI_PRESERVE_ANNOTATIONS=true to refresh data while keeping ink.",
+                "Or HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true to replace (drops ink).",
+            ],
+        )
+
+    async def _put_named(
+        self,
+        request: SyncRequest,
+        action: SyncAction,
+        *,
+        doc_name: str,
+        force: bool,
+        status_ok: str,
+        message: str,
+    ) -> SyncResult:
+        """Put the rendered PDF under an explicit document name on the home screen.
+
+        rmapi derives the cloud document name from the uploaded file's stem, so
+        we stage the PDF under ``<doc_name>.pdf`` before putting it.
+        """
+
+        tmp = Path(tempfile.mkdtemp(prefix="habitos-rmapi-"))
+        try:
+            staged = tmp / f"{doc_name}.pdf"
+            shutil.copyfile(request.local_pdf_path, staged)
+            argv = ["put"]
+            if force:
+                argv.append("--force")
+            argv.extend([str(staged), "/"])
+            try:
+                run = await self._run(argv)
+            except FileNotFoundError:
+                return _binary_missing_result(request, action, self.config.binary)
+            except asyncio.TimeoutError:
+                return _timeout_result(request, action, "rmapi put timed out")
+            if run.returncode != 0:
+                return _result(
+                    request,
+                    action=action,
+                    status="failed",
+                    message=f"rmapi put failed with exit code {run.returncode}.",
+                    device_mutated=False,
+                    instructions=_run_diagnostics(run),
+                )
+            return _result(
+                request,
+                action=action,
+                status=status_ok,
+                message=message,
+                device_mutated=True,
+                instructions=_run_diagnostics(run),
+            )
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    async def _merge_current(
+        self, request: SyncRequest, *, action: SyncAction, doc_name: str
+    ) -> SyncResult:
+        """Refresh the current-month data layer while keeping annotations.
+
+        Downloads the existing ``.rmdoc``, swaps only its base PDF for the freshly
+        rendered one (keeping ``.content`` page UUIDs and every ``.rm`` ink blob),
+        and re-uploads. Aborts without mutating the device if the rendered PDF's
+        page count differs from what is on the device.
+        """
+
+        tmp = Path(tempfile.mkdtemp(prefix="habitos-rmapi-"))
+        dl = tmp / "dl"
+        up = tmp / "up"
+        dl.mkdir()
+        up.mkdir()
+        try:
+            try:
+                run = await self._run(["get", f"/{doc_name}"], cwd=str(dl))
+            except FileNotFoundError:
+                return _binary_missing_result(request, action, self.config.binary)
+            except asyncio.TimeoutError:
+                return _timeout_result(request, action, "rmapi get timed out")
+            if run.returncode != 0:
+                return _result(
+                    request,
+                    action=action,
+                    status="failed",
+                    message=f"rmapi get failed with exit code {run.returncode}.",
+                    device_mutated=False,
+                    instructions=_run_diagnostics(run),
+                )
+
+            downloaded = dl / f"{doc_name}.rmdoc"
+            if not downloaded.is_file():
+                found = list(dl.glob("*.rmdoc"))
+                if not found:
+                    return _result(
+                        request,
+                        action=action,
+                        status="failed",
+                        message="rmapi get did not produce an .rmdoc bundle.",
+                        device_mutated=False,
+                        instructions=_run_diagnostics(run),
+                    )
+                downloaded = found[0]
+
+            merged = up / f"{doc_name}.rmdoc"
+            try:
+                info = swap_base_pdf(downloaded, request.local_pdf_path, merged)
+            except PageCountMismatch as e:
+                return _result(
+                    request,
+                    action=action,
+                    status="unsupported",
+                    message=str(e),
+                    device_mutated=False,
+                    instructions=[
+                        "The current-month layout changed page count vs the device.",
+                        "Re-render a page-stable PDF, or set "
+                        "HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true to reset (drops ink).",
+                    ],
+                )
+            except (MalformedBundle, KeyError) as e:
+                return _result(
+                    request,
+                    action=action,
+                    status="failed",
+                    message=f"Could not rewrite reMarkable bundle: {e}",
+                    device_mutated=False,
+                )
+
+            try:
+                run = await self._run(["put", "--force", str(merged), "/"])
+            except FileNotFoundError:
+                return _binary_missing_result(request, action, self.config.binary)
+            except asyncio.TimeoutError:
+                return _timeout_result(request, action, "rmapi put timed out")
+            if run.returncode != 0:
+                return _result(
+                    request,
+                    action=action,
+                    status="failed",
+                    message=f"rmapi merge put failed with exit code {run.returncode}.",
+                    device_mutated=False,
+                    instructions=_run_diagnostics(run),
+                )
+            return _result(
+                request,
+                action=action,
+                status="updated",
+                message=(
+                    f"Refreshed '{doc_name}' data while preserving annotations "
+                    f"({info.rm_file_count} ink file(s) kept across {info.page_count} pages)."
+                ),
+                device_mutated=True,
+                instructions=_run_diagnostics(run),
+            )
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    async def _resolve_current_doc_name(self) -> str | None:
+        """Return the home-screen document to treat as the current month, or None.
+
+        Parses ``rmapi ls /`` and matches files named exactly
+        ``CURRENT_DOCUMENT_NAME`` or prefixed by it (e.g. the month-labelled
+        ``"01. Habit Tracker | May 2026"``). Raises on an ls failure or when more
+        than one candidate is ambiguous, so we never overwrite the wrong document.
+        """
+
+        run = await self._run(["ls", "/"])
+        if run.returncode != 0:
+            raise _LsFailed(run)
+        files = _parse_ls_files(run.stdout)
+        candidates = [
+            name
+            for name in files
+            if name == CURRENT_DOCUMENT_NAME
+            or name.startswith(CURRENT_DOCUMENT_NAME + " ")
+        ]
+        if not candidates:
+            return None
+        if CURRENT_DOCUMENT_NAME in candidates:
+            return CURRENT_DOCUMENT_NAME
+        if len(candidates) == 1:
+            return candidates[0]
+        raise _AmbiguousCurrentDoc(candidates)
+
+    def _planned_steps(
+        self, request: SyncRequest, target_kind: str, folder_remote: str
+    ) -> list[str]:
+        if target_kind == "current":
+            return [
+                "planned: rmapi ls /  (resolve the current-month document)",
+                "planned (if absent): rmapi put "
+                f"'<tmp>/{CURRENT_DOCUMENT_NAME}.pdf' /",
+                "planned (if present, preserve on): rmapi get '/<doc>' "
+                "→ swap base PDF, keep .content + .rm → rmapi put --force "
+                "'<tmp>/<doc>.rmdoc' /",
+                "planned (if present, replace on): rmapi put --force "
+                "'<tmp>/<doc>.pdf' /  (drops annotations)",
+            ]
+        steps: list[str] = []
+        for depth in range(1, len(request.folder_path) + 1):
+            steps.append("planned: rmapi mkdir /" + "/".join(request.folder_path[:depth]))
+        steps.append(f"planned: rmapi put '{request.local_pdf_path}' {folder_remote}")
+        return steps
 
     # ------------------------------------------------------------ folder mgmt
 
@@ -405,35 +666,12 @@ class RmapiRemarkableSyncAdapter:
     ) -> str:
         return "/" + "/".join((*folder_path, f"{document_name}.pdf"))
 
-    def _planned_argv(
-        self,
-        pdf_path: Path,
-        folder_remote: str,
-        folder_path: tuple[str, ...],
-        target_kind: str,
-    ) -> list[list[str]]:
-        argv: list[list[str]] = []
-        if folder_path:
-            for depth in range(1, folder_remote.count("/") + 1):
-                argv.append(
-                    [
-                        self.config.binary,
-                        "mkdir",
-                        "/".join(folder_remote.split("/")[: depth + 1]) or "/",
-                    ]
-                )
-        put_cmd = [self.config.binary, "put"]
-        if target_kind == "current" and self.config.replace_existing_current:
-            put_cmd.append("--force")
-        put_cmd.extend([str(pdf_path), folder_remote])
-        argv.append(put_cmd)
-        return argv
-
-    async def _run(self, args: list[str]) -> CompletedRun:
+    async def _run(self, args: list[str], *, cwd: str | None = None) -> CompletedRun:
         return await self.runner.run(
             [self.config.binary, *args],
             env=self._build_env(),
             timeout=float(self.config.timeout_seconds),
+            cwd=cwd,
         )
 
     def _build_env(self) -> dict[str, str]:
@@ -446,6 +684,33 @@ class RmapiRemarkableSyncAdapter:
 
 
 # --------------------------------------------------------------------- helpers
+
+
+class _AmbiguousCurrentDoc(Exception):
+    """More than one home-screen document matched the current-month name."""
+
+    def __init__(self, candidates: list[str]) -> None:
+        self.candidates = candidates
+        super().__init__(", ".join(candidates))
+
+
+class _LsFailed(Exception):
+    """``rmapi ls /`` returned a non-zero exit code."""
+
+    def __init__(self, run: CompletedRun) -> None:
+        self.run = run
+        super().__init__(f"ls failed with exit {run.returncode}")
+
+
+def _parse_ls_files(stdout: str) -> list[str]:
+    """Extract file (``[f]``) names from ``rmapi ls`` text output."""
+
+    names: list[str] = []
+    for line in stdout.splitlines():
+        match = _LS_LINE_RE.match(line)
+        if match and match.group(1) == "f":
+            names.append(match.group(2))
+    return names
 
 
 def _resolve_binary(binary: str) -> str | None:

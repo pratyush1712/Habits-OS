@@ -44,6 +44,7 @@ class RemarkableSettings:
     rmapi_timeout_seconds: int
     rmapi_trace: bool
     rmapi_replace_existing_current: bool
+    rmapi_preserve_annotations: bool
     machine_root: str
 
 
@@ -106,6 +107,9 @@ def load_settings() -> Settings:
             rmapi_trace=_env_bool("HABITOS_RMAPI_TRACE", default=False),
             rmapi_replace_existing_current=_env_bool(
                 "HABITOS_RMAPI_REPLACE_EXISTING_CURRENT", default=False
+            ),
+            rmapi_preserve_annotations=_env_bool(
+                "HABITOS_RMAPI_PRESERVE_ANNOTATIONS", default=True
             ),
             machine_root=os.getenv("HABITOS_REMARKABLE_MACHINE_ROOT", "HabitOS"),
         ),

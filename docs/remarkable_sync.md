@@ -183,7 +183,8 @@ below).
 | `HABITOS_RMAPI_CONFIG_PATH`              | Path to dedicated rmapi config file      | _(empty → rmapi default `~/.rmapi`)_ |
 | `HABITOS_RMAPI_TIMEOUT_SECONDS`          | Per-command timeout                      | `60`                                 |
 | `HABITOS_RMAPI_TRACE`                    | Forward `RMAPI_TRACE=1` to rmapi         | `false`                              |
-| `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT` | Allow `put --force` on the current month | `false`                              |
+| `HABITOS_RMAPI_PRESERVE_ANNOTATIONS`     | Refresh current month while keeping ink  | `true`                               |
+| `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT` | Replace current month, dropping ink      | `false`                              |
 | `HABITOS_REMARKABLE_MACHINE_ROOT`        | Top-level folder HabitOS may write to    | `HabitOS`                            |
 
 Typical local setup:
@@ -208,6 +209,68 @@ HABITOS_REMARKABLE_DRY_RUN=true   # flip to false once the dry-run plan looks ri
 Both behaviors are visible in `/remarkable/upload?dry_run=...` and in
 nightly automation summaries under `automation_runs.remarkable_summary`.
 
+### Updating the current month without losing annotations
+
+By default (`HABITOS_RMAPI_PRESERVE_ANNOTATIONS=true`) HabitOS refreshes the
+current-month dashboard **in place, keeping your handwriting**. This is the
+recommended day-to-day mode and what the nightly job uses.
+
+A reMarkable document is not just a PDF — it is a bundle (`.rmdoc`) containing
+the base PDF, a `.content` file listing one page UUID per page, and one `.rm`
+ink file per annotated page, anchored to those UUIDs. `rmapi put` (with or
+without `--force`) always *recreates* the document from a bare PDF, which throws
+the ink away. So instead of a plain re-upload, the merge flow does:
+
+1. `rmapi ls /` to resolve the current-month document (see naming below).
+2. `rmapi get` the existing `.rmdoc` bundle.
+3. Swap **only** the base PDF blob for the freshly rendered one, leaving
+   `.content` (the page UUIDs) and every `.rm` ink file byte-for-byte unchanged.
+4. `rmapi put --force` the rebuilt bundle, which now carries both the new data
+   layer and the original ink.
+
+**Hard requirement: the layout must be page-stable.** Annotations are positioned
+per page, so the rendered PDF must have the **same page count and page order** as
+what is already on the device. HabitOS enforces this: if the rendered page count
+differs from the device bundle's `pageCount`, the sync **aborts with
+`status="unsupported"` and does not upload anything** — protecting your ink
+rather than risking misplacement. The renderer is page-stable for a given month
+(page count is pure calendar math, independent of how much data exists or the
+current date), so normal daily refreshes pass this check. Changing the templates
+in a way that adds/removes pages will trip it; do template changes before a month
+accumulates annotations, or reset that month (below).
+
+What this means in practice:
+
+- Past day pages: data is frozen, your annotations stay.
+- Future day pages: no ink yet; their data simply updates.
+- Current day / week-review page: data updates daily; any ink you add stays
+  anchored as long as the layout doesn't reflow.
+- The week **plan** page is intentionally data-free (pure planning space); the
+  week's per-day data lives on the week **review** page.
+
+#### Current-month document naming
+
+`rmapi` addresses documents by their visible name, not a path with a `.pdf`
+extension. The merge resolves the target by parsing `rmapi ls /` and matching a
+home-screen document named exactly `01. Habit Tracker` **or** prefixed by it
+(e.g. `01. Habit Tracker | May 2026`). If none matches, a new document named
+`01. Habit Tracker` is created. If more than one matches ambiguously, the sync
+refuses (`status="unsupported"`) rather than guess which document holds your ink
+— rename or remove the extras so exactly one matches.
+
+#### Resetting a month (dropping ink on purpose)
+
+Set `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true` to force a clean replace of the
+current month, discarding annotations. This takes precedence over
+`HABITOS_RMAPI_PRESERVE_ANNOTATIONS`. Use it when you deliberately change the
+layout/page count, or want a fresh page.
+
+#### One-time end-to-end validation
+
+The bundle round-trip is verified, but to confirm real ink survival on your own
+device the first time: make a single pen stroke on the current dashboard, run a
+real sync, and confirm the stroke is still there afterwards.
+
 ### Safety model
 
 The adapter is intentionally narrow:
@@ -217,15 +280,18 @@ The adapter is intentionally narrow:
   `status="unsupported"` and the adapter does not spawn rmapi.
 - Archive paths are frozen. If the archive document already exists the
   adapter refuses to overwrite, regardless of `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT`.
-- Current-month replace is gated. If the current dashboard already
-  exists and `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=false` (default),
-  the adapter refuses to overwrite. Set it to `true` to enable
-  `put --force` for the current month only.
-- `--force` removes annotations. Machine-owned dashboards aren't meant
-  to be annotated, but if you write on one in handwriting, enabling
-  replace will lose those marks. This is documented and gated.
-- Commands the adapter never runs: `rm`, `mv`, `geta`, `mput`, `mget`,
-  `find`, `--content-only`.
+- Current-month default is non-destructive. When the dashboard already
+  exists, the adapter refreshes it via the annotation-preserving merge
+  (see above) instead of overwriting it.
+- Destructive replace is gated. `put --force` on the current month only
+  happens when `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true`, and it
+  drops annotations by design.
+- Page-count guard. The merge aborts (`status="unsupported"`, no upload)
+  if the rendered PDF's page count differs from the device document, so
+  a layout change can never silently misplace ink.
+- Commands the adapter never runs against arbitrary paths: `rm`, `mv`,
+  `geta`, `mput`, `mget`, `find`. (`get` and `put --force` are used only
+  on the resolved machine-owned current-month document during a merge.)
 - The binary path is validated. A missing binary surfaces as
   `status="not_configured"` with a clear diagnostic, not a stack trace.
 - Subprocess timeouts are recorded as `status="failed"` — they do not
@@ -254,6 +320,7 @@ block:
     "ls_returncode": 0,
     "trace": false,
     "replace_existing_current": false,
+    "preserve_annotations": true,
     "machine_root": "HabitOS",
     "timeout_seconds": 60,
   },
@@ -275,9 +342,16 @@ interactive auth.
   your first real run that the plan in `/remarkable/upload?dry_run=true`
   matches what you expect before flipping `HABITOS_REMARKABLE_DRY_RUN`
   to `false`.
-- `--content-only` (preserves annotations) is not yet used. Future work
-  may switch the current-month path to `--content-only` once we are
-  confident about the layout-change boundary.
+- Annotation preservation is done by rewriting the `.rmdoc` bundle (swap
+  the base PDF, keep `.content` + `.rm`), not by rmapi's `--content-only`
+  flag. In the pinned ddvk build, `put --content-only` is documented as
+  "recreates document" — identical to `--force` — so it does **not**
+  preserve ink and is not used.
+- Annotation preservation depends on a page-stable layout. If you change
+  the renderer's page count/order while a month already has ink, the
+  merge will refuse; reset that month with
+  `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true` (dropping ink) or finish
+  the month first.
 
 ### Falling back to manual
 
@@ -297,9 +371,18 @@ them.
 - **`status="failed"` with timeout message** — Increase
   `HABITOS_RMAPI_TIMEOUT_SECONDS` or check network connectivity to the
   reMarkable Cloud.
-- **`status="unsupported"` on the current month** — The dashboard
-  already exists on the device. Either enable
-  `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true` (knowing it removes
-  annotations) or delete the document on-device manually.
+- **`status="unsupported"` on the current month, "page count" message** —
+  The rendered PDF has a different page count than the document on the
+  device, so the annotation-preserving merge refused (nothing was
+  uploaded). This happens after a layout/template change. Finish the
+  month, or reset it with `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true`
+  (drops ink), then sync again.
+- **`status="unsupported"` on the current month, "Multiple ... match"** —
+  More than one home-screen document matches `01. Habit Tracker`. Rename
+  or remove the extras so exactly one matches, then sync again.
+- **`status="unsupported"` on the current month, "both ... false"** —
+  The document exists but both `HABITOS_RMAPI_PRESERVE_ANNOTATIONS` and
+  `HABITOS_RMAPI_REPLACE_EXISTING_CURRENT` are false. Enable preserve
+  (keeps ink) or replace (drops ink).
 - **`status="unsupported"` on an archive month** — Archives are frozen
   by design. Delete on-device if a re-archive is truly intended.
