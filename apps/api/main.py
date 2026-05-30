@@ -20,7 +20,7 @@ from packages.core.repositories import HabitsRepo
 from apps.api.config import load_settings
 from apps.api.deps import build_automation_service_from_state
 from apps.api.routes import ROUTERS
-from apps.api.scheduler import build_scheduler
+from apps.api.scheduler import build_scheduler, maybe_schedule_catchup
 from apps.api.services import HabitCatalogService
 
 
@@ -49,6 +49,13 @@ async def lifespan(app: FastAPI):
     app.state.scheduler = build_scheduler(
         settings=settings,
         run_job=run_nightly_job,
+    )
+
+    from packages.core.repositories import AutomationRunsRepo
+    maybe_schedule_catchup(
+        settings=settings,
+        run_job=run_nightly_job,
+        runs_repo=AutomationRunsRepo(db),
     )
 
     try:
