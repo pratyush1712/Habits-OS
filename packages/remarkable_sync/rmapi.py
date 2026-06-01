@@ -23,6 +23,7 @@ code paste from https://my.remarkable.com/device/desktop/connect).
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import re
 import shlex
@@ -31,6 +32,8 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
+
+logger = logging.getLogger(__name__)
 
 from packages.remarkable_sync.rmdoc import (
     MalformedBundle,
@@ -740,17 +743,22 @@ class RmapiRemarkableSyncAdapter:
             try:
                 info = swap_base_pdf(downloaded, request.local_pdf_path, merged)
             except PageCountMismatch as e:
-                return _result(
+                # Page count changed (e.g. month has fewer days than the previous
+                # one).  Annotations would be misaligned regardless, so fall back
+                # to a force-replace rather than blocking the upload entirely.
+                logger.info(
+                    "Page count changed (%s); falling back to force-replace.", e
+                )
+                return await self._put_named(
                     request,
-                    action=action,
-                    status="unsupported",
-                    message=str(e),
-                    device_mutated=False,
-                    instructions=[
-                        "The current-month layout changed page count vs the device.",
-                        "Re-render a page-stable PDF, or set "
-                        "HABITOS_RMAPI_REPLACE_EXISTING_CURRENT=true to reset (drops ink).",
-                    ],
+                    action,
+                    doc_name=doc_name,
+                    force=True,
+                    status_ok="updated",
+                    message=(
+                        "Page count changed (month length differs); "
+                        "replaced document with fresh PDF (annotations dropped)."
+                    ),
                 )
             except (MalformedBundle, KeyError) as e:
                 return _result(
