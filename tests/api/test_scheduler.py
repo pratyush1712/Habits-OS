@@ -19,13 +19,24 @@ class _Scheduler:
         self.jobs: list[dict] = []
         self.started = False
 
-    def add_job(self, func, trigger, *, id: str, replace_existing: bool) -> None:
+    def add_job(
+        self,
+        func,
+        trigger,
+        *,
+        id: str,
+        replace_existing: bool,
+        misfire_grace_time: int | None = None,
+        coalesce: bool = False,
+    ) -> None:
         self.jobs.append(
             {
                 "func": func,
                 "trigger": trigger,
                 "id": id,
                 "replace_existing": replace_existing,
+                "misfire_grace_time": misfire_grace_time,
+                "coalesce": coalesce,
             }
         )
 
@@ -55,3 +66,6 @@ def test_build_scheduler_registers_nightly_job_when_enabled():
     assert scheduler.timezone == "America/New_York"
     assert scheduler.jobs[0]["id"] == "habitos-nightly"
     assert scheduler.jobs[0]["replace_existing"] is True
+    # Missed nightly runs (e.g. machine asleep at 3 AM) still fire within an hour.
+    assert scheduler.jobs[0]["misfire_grace_time"] == 3600
+    assert scheduler.jobs[0]["coalesce"] is True

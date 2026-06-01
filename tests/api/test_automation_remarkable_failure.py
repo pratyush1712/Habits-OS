@@ -66,7 +66,9 @@ class _Render:
 class _ExplodingLifecycle:
     """Lifecycle that raises on every upload, simulating rmapi failure."""
 
-    async def prepare_current_month_upload(self, month, pdf_path: Path, dry_run: bool):
+    async def prepare_current_month_upload(
+        self, month, pdf_path: Path, dry_run: bool, reset: bool = False
+    ):
         raise RuntimeError("rmapi cloud unreachable")
 
     async def prepare_archive_previous_month(self, month: str, dry_run: bool):

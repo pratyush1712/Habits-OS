@@ -55,10 +55,6 @@ export default async function DashboardPage({
 
   const status = statusResult ? asRecord(statusResult) : null;
   const automation = automationResult ? asRecord(automationResult) : null;
-  const automation =
-    automationResult.status === "fulfilled"
-      ? asRecord(automationResult.value)
-      : null;
   const statusMongo = asRecord(status ? status["mongo"] : null);
   const integrations = asRecord(status ? status["integrations"] : null);
   const whoopIntegration = asRecord(integrations ? integrations["whoop"] : null);
@@ -220,11 +216,7 @@ export default async function DashboardPage({
             title="API status"
           />
           <JsonPanel
-            data={
-              automationResult.status === "fulfilled"
-                ? automationResult.value
-                : automationResult.reason
-            }
+            data={automationResult || "Failed to load"}
             title="Automation status"
           />
           <JsonPanel

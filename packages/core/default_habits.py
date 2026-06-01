@@ -8,9 +8,17 @@ from packages.core.models import Habit
 def default_habits() -> list[Habit]:
     """Return the built-in habit definitions in stable display order.
 
-    Sleep, recovery, and deep work are computed but not tracked as habits.
-    Sleep and recovery are displayed as metrics on day subtitles and the tally page.
-    Deep work has no evaluator and is removed entirely.
+    Three habits are deliberate, user-controlled actions and render as cards in
+    the grid and tally: ``workout``, ``meditation``, ``journaling``.
+
+    ``sleep`` and ``recovery`` are ``metric_only``: they are still computed and
+    stored from WHOOP data (so the numbers stay visible next to each day's date
+    and on the tally), but they are not checkboxes — they reflect the body's
+    state, not something the user decides to "do". ``deep_work`` was removed
+    entirely: there is no signal to evaluate it and the concept is too broad.
+
+    Re-running the seed-defaults flow reconciles an existing catalog to this
+    list, archiving any habit that no longer appears here (e.g. ``deep_work``).
     """
     return [
         Habit(
@@ -45,5 +53,29 @@ def default_habits() -> list[Habit]:
             description="Journal entries detected from Day One, with manual overrides honored.",
             event_types=["journal", "manual"],
             sources=["day_one", "manual"],
+        ),
+        Habit(
+            key="sleep",
+            label="Sleep",
+            short="Z",
+            kind="auto",
+            enabled=True,
+            metric_only=True,
+            sort_order=50,
+            description="Sleep duration/efficiency from WHOOP, shown as a metric (not a habit).",
+            event_types=["sleep"],
+            sources=["whoop"],
+        ),
+        Habit(
+            key="recovery",
+            label="Recovery",
+            short="R",
+            kind="auto",
+            enabled=True,
+            metric_only=True,
+            sort_order=60,
+            description="Recovery score from WHOOP, shown as a metric (not a habit).",
+            event_types=["recovery"],
+            sources=["whoop"],
         ),
     ]

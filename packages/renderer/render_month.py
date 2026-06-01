@@ -85,6 +85,7 @@ def _build_calendar_rows(year: int, month: int, today: date) -> list[list[Calend
 def _build_days(
     rows: list[list[CalendarCell]],
     entries: list[HabitEntry],
+    metric_habits,
 ) -> dict[str, dict]:
     """Index entries by ISO date and stash per-habit lookup."""
     entries_by_date: dict[str, list[HabitEntry]] = {}
@@ -97,12 +98,12 @@ def _build_days(
             if not cell:
                 continue
             day_entries = entries_by_date.get(cell.iso, [])
-            day_metrics = _extract_metrics(day_entries)
+            by_habit = {e.habit_key: e for e in day_entries}
             days_by_date[cell.iso] = {
                 "date": cell.iso,
                 "entries": day_entries,
-                "by_habit": {e.habit_key: e for e in day_entries},
-                "metrics": day_metrics,
+                "by_habit": by_habit,
+                "metrics": _format_metrics(by_habit, metric_habits),
             }
 
     ordered = sorted(days_by_date)
@@ -142,18 +143,19 @@ def _for_render(entry: HabitEntry) -> HabitEntry:
     )
 
 
-def _extract_metrics(entries: list[HabitEntry]) -> str:
-    """Extract sleep and recovery metrics from entries and format for display.
+def _format_metrics(by_habit: dict, metric_habits) -> str:
+    """Format one day's metric-only habits for the page subtitle.
 
-    Returns a bullet-separated string like "Sleep 7h42m · Recovery 78%".
+    Driven by the catalog's ``metric_only`` habits (e.g. sleep, recovery) rather
+    than hard-coded keys, so adding a new metric habit needs no renderer change.
+    Produces a bullet-separated line like "Sleep 7h42m · 89% · Recovery 78".
     """
-    metrics = []
-    for entry in entries:
-        if entry.habit_key == "sleep" and entry.summary:
-            metrics.append(f"Sleep {entry.summary}")
-        elif entry.habit_key == "recovery" and entry.summary:
-            metrics.append(f"Recovery {entry.summary}")
-    return " · ".join(metrics) if metrics else ""
+    parts = []
+    for h in metric_habits:
+        entry = by_habit.get(h.key)
+        if entry and entry.summary:
+            parts.append(f"{h.label} {entry.summary}")
+    return " · ".join(parts)
 
 
 def _build_weeks(
@@ -228,30 +230,30 @@ def _build_monthly_metrics(
     year: int,
     month: int,
     days_by_date: dict[str, dict],
+    metric_habits,
 ) -> str:
-    """Calculate and format average sleep/recovery metrics for the month."""
-    days_in_month = calendar.monthrange(year, month)[1]
-    sleep_summaries = []
-    recovery_summaries = []
+    """Summarize metric-only coverage for the month, for the tally subtitle.
 
+    Reports how many days carry each metric (e.g. "Sleep logged 30/31 ·
+    Recovery logged 29/31"). Coverage avoids fragile parsing of free-text
+    summaries while still giving an honest at-a-glance picture.
+    """
+    days_in_month = calendar.monthrange(year, month)[1]
+    counts: dict[str, int] = {h.key: 0 for h in metric_habits}
     for day_num in range(1, days_in_month + 1):
         iso = date(year, month, day_num).isoformat()
-        entries = days_by_date.get(iso, {}).get("entries", [])
-        for entry in entries:
-            if entry.habit_key == "sleep" and entry.summary:
-                sleep_summaries.append(entry.summary)
-            elif entry.habit_key == "recovery" and entry.summary:
-                recovery_summaries.append(entry.summary)
+        by_habit = days_by_date.get(iso, {}).get("by_habit", {})
+        for h in metric_habits:
+            entry = by_habit.get(h.key)
+            if entry and entry.summary:
+                counts[h.key] += 1
 
-    metrics = []
-    if sleep_summaries:
-        # Just show the count of nights with sleep data for simplicity
-        metrics.append(f"Sleep {len(sleep_summaries)} nights")
-    if recovery_summaries:
-        # Show count of recovery days
-        metrics.append(f"Recovery {len(recovery_summaries)} days")
-
-    return " · ".join(metrics) if metrics else ""
+    parts = [
+        f"{h.label} logged {counts[h.key]}/{days_in_month}"
+        for h in metric_habits
+        if counts[h.key] > 0
+    ]
+    return " · ".join(parts)
 
 
 def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
@@ -265,11 +267,16 @@ def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
     today = today or date.today()
     month_label = date(year, month, 1).strftime("%B %Y")
 
+    # Metric-only habits (sleep, recovery) are computed and shown as context
+    # next to each date, not as tracked cards in the grid/tally.
+    card_habits = [h for h in state.habits if not h.metric_only]
+    metric_habits = [h for h in state.habits if h.metric_only]
+
     rows = _build_calendar_rows(year, month, today)
-    days_by_date = _build_days(rows, state.entries)
-    weeks = _build_weeks(rows, days_by_date, state.habits)
-    tally_rows = _build_tally(year, month, days_by_date, state.habits)
-    monthly_metrics = _build_monthly_metrics(year, month, days_by_date)
+    days_by_date = _build_days(rows, state.entries, metric_habits)
+    weeks = _build_weeks(rows, days_by_date, card_habits)
+    tally_rows = _build_tally(year, month, days_by_date, card_habits)
+    monthly_metrics = _build_monthly_metrics(year, month, days_by_date, metric_habits)
 
     # Attach week info to each day for the day-page nav.
     week_lookup = {cell.iso: w for w in weeks for cell in w["dates"]}
@@ -292,7 +299,7 @@ def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
         css=css,
         month_label=month_label,
         month_str=state.month,
-        habits=state.habits,
+        habits=card_habits,
         calendar_rows=rows,
         weeks=weeks,
         days=ordered_days,

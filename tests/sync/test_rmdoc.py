@@ -66,3 +66,29 @@ def test_malformed_bundle_without_pdf_raises(tmp_path):
 
     with pytest.raises(rmdoc.MalformedBundle):
         rmdoc.swap_base_pdf(bad, new_pdf, tmp_path / "out.rmdoc")
+
+
+def test_read_visible_name(tmp_path):
+    src, _ = make_rmdoc(tmp_path / "doc.rmdoc", doc_id="hello")
+    assert rmdoc.read_visible_name(src) == "hello"
+
+
+def test_copy_with_visible_name_renames_and_preserves_ink(tmp_path):
+    src, uuids = make_rmdoc(tmp_path / "doc.rmdoc", doc_id="abc", n_pages=4, rm_count=2)
+    out = tmp_path / "archived.rmdoc"
+
+    doc_id = rmdoc.copy_with_visible_name(src, out, "2026-05 Habit Dashboard")
+
+    assert doc_id == "abc"
+    assert rmdoc.read_visible_name(out) == "2026-05 Habit Dashboard"
+    # Everything except the metadata is byte-identical; ink survives.
+    with zipfile.ZipFile(src) as a, zipfile.ZipFile(out) as b:
+        assert a.namelist() == b.namelist()
+        for name in a.namelist():
+            if name.endswith(".metadata"):
+                continue
+            assert a.read(name) == b.read(name), name
+        rm_entries = [n for n in b.namelist() if n.endswith(".rm")]
+        assert len(rm_entries) == 2
+        for uid in uuids[:2]:
+            assert f"abc/{uid}.rm" in rm_entries

@@ -152,28 +152,43 @@ class AutomationService:
             current_job = await self.render.render(current_month, triggered_by="schedule")
             summary["render"]["current"] = _render_job_summary(current_job)
 
+            # Always render the previous month locally on the 1st so there is a
+            # final artifact on disk, regardless of whether we touch the device.
             if previous_month is not None:
                 previous_job = await self.render.render(previous_month, triggered_by="schedule")
                 summary["render"]["previous"] = _render_job_summary(previous_job)
-                summary["remarkable"]["archive"] = await _safe_upload(
-                    self.lifecycle.prepare_archive_previous_month(
-                        previous_month,
-                        dry_run=effective_dry_run,
-                    ),
-                    label="archive",
-                )
 
+            # Device mutations are gated by auto_upload_remarkable, the master
+            # switch for automatic device changes. Archiving must run *before* the
+            # current-month reset: the archive snapshots the home document (with
+            # its ink) and the reset then overwrites it with the new month.
             if self.settings.auto_upload_remarkable:
+                if previous_month is not None:
+                    summary["remarkable"]["archive"] = await _safe_upload(
+                        self.lifecycle.prepare_archive_previous_month(
+                            previous_month,
+                            dry_run=effective_dry_run,
+                        ),
+                        label="archive",
+                    )
                 current_pdf_path = Path(current_job.output_path or "")
                 summary["remarkable"]["current"] = await _safe_upload(
                     self.lifecycle.prepare_current_month_upload(
                         current_month,
                         current_pdf_path,
                         dry_run=effective_dry_run,
+                        # On the 1st, the home document must advance to the new
+                        # month as a fresh page (last month's ink is archived).
+                        reset=previous_month is not None,
                     ),
                     label="current",
                 )
             else:
+                if previous_month is not None:
+                    summary["remarkable"]["archive"] = {
+                        "attempted": False,
+                        "status": "skipped",
+                    }
                 summary["remarkable"]["current"] = {
                     "attempted": False,
                     "status": "skipped",
@@ -247,20 +262,30 @@ class AutomationService:
             current_job = await self.render.render(to_month, triggered_by="schedule")
             summary["render"]["previous"] = _render_job_summary(previous_job)
             summary["render"]["current"] = _render_job_summary(current_job)
-            summary["remarkable"]["archive"] = await _safe_upload(
-                self.lifecycle.prepare_archive_previous_month(from_month, dry_run=dry_run),
-                label="archive",
-            )
+            # Archive must precede the current-month reset (it snapshots the home
+            # document with its ink before the reset overwrites it). Both device
+            # mutations are gated by the auto_upload_remarkable master switch.
             if self.settings.auto_upload_remarkable:
+                summary["remarkable"]["archive"] = await _safe_upload(
+                    self.lifecycle.prepare_archive_previous_month(from_month, dry_run=dry_run),
+                    label="archive",
+                )
                 summary["remarkable"]["current"] = await _safe_upload(
                     self.lifecycle.prepare_current_month_upload(
                         to_month,
                         Path(current_job.output_path or ""),
                         dry_run=dry_run,
+                        # Explicit rollover always resets the home document to the
+                        # fresh new-month page.
+                        reset=True,
                     ),
                     label="current",
                 )
             else:
+                summary["remarkable"]["archive"] = {
+                    "attempted": False,
+                    "status": "skipped",
+                }
                 summary["remarkable"]["current"] = {
                     "attempted": False,
                     "status": "skipped",

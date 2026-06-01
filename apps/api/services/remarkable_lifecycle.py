@@ -44,13 +44,23 @@ class RemarkableLifecycleService:
         month: str,
         pdf_path: Path,
         dry_run: bool,
+        reset: bool = False,
     ) -> SyncResult:
+        """Upload the current-month dashboard to the device home screen.
+
+        ``reset=True`` is used at month rollover: it replaces the home document
+        with a fresh new-month page rather than merging annotations into it. The
+        previous month's ink has already been copied into the archive, and the new
+        month's page count differs, so a merge would wrongly abort and leave the
+        home screen stuck on the old month.
+        """
         target = build_current_month_target(month)
         request = SyncRequest(
             local_pdf_path=pdf_path,
             document_name=target.document_name,
             folder_path=target.folder_path,
             dry_run=dry_run,
+            reset=reset,
         )
         return await self.adapter.upload_pdf(request)
 
