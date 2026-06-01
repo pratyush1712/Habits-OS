@@ -86,7 +86,7 @@ class RemarkableSyncAdapter(Protocol):
     async def list_documents(self) -> list[RemarkableDocument]:
         ...
 
-    async def archive_document_from_device(
+    async def archive_device_document(
         self,
         source_document_name: str,
         target_folder_path: tuple[str, ...],

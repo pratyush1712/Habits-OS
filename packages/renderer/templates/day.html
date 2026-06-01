@@ -13,7 +13,7 @@
   </header>
 
   <h2 class="section-heading">Habits</h2>
-  <div class="habit-grid">
+  <div class="habit-grid habit-grid-compact">
     {% for h in habits %}
       {% set entry = day.by_habit.get(h.key) %}
       <div class="habit-card status-{{ entry.status if entry else 'none' }}{% if not entry %} empty{% endif %}">
@@ -41,8 +41,8 @@
     </div>
   {% endif %}
 
-  <h2 class="section-heading">Notes</h2>
-  <div class="lines fill"></div>
+  <h2 class="section-heading">Notes & Reflection</h2>
+  <div class="lines tall"></div>
 
   <div class="page-footer">
     <span><a href="#month">↑ Month</a></span>

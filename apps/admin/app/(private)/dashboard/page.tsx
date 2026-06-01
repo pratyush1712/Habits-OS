@@ -44,17 +44,17 @@ export default async function DashboardPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const notice = await readNotice(searchParams);
-  const statusResult = await api.status().catch(() => null);
-  const timezone = readString(asRecord(statusResult), "timezone") || "UTC";
+  const automationResult = await api.automationStatus().catch(() => null);
+  const timezone = readString(asRecord(automationResult), "timezone") || "UTC";
   const currentMonth = getCurrentMonthInTimezone(timezone);
-  const [automationResult, monthStateResult, renderJobsResult] =
-    await Promise.allSettled([
-      api.automationStatus(),
-      api.monthState(currentMonth),
-      api.renderJobs(6),
-    ]);
+  const statusResult = await api.status().catch(() => null);
+  const [monthStateResult, renderJobsResult] = await Promise.allSettled([
+    api.monthState(currentMonth),
+    api.renderJobs(6),
+  ]);
 
   const status = statusResult ? asRecord(statusResult) : null;
+  const automation = automationResult ? asRecord(automationResult) : null;
   const automation =
     automationResult.status === "fulfilled"
       ? asRecord(automationResult.value)

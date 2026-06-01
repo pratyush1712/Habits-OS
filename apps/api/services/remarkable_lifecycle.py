@@ -60,9 +60,10 @@ class RemarkableLifecycleService:
         dry_run: bool,
     ) -> SyncResult:
         target = build_archive_month_target(month)
-        # Archive the existing on-device document (with annotations) rather than
-        # uploading a fresh PDF, to preserve any handwritten notes the user made.
-        return await self.adapter.archive_document_from_device(
+        # Download the existing on-device document (with all its .rm annotations),
+        # and re-upload it to the archive folder. This preserves handwritten notes
+        # instead of uploading a fresh PDF that would lose all ink.
+        return await self.adapter.archive_device_document(
             source_document_name=CURRENT_DOCUMENT_NAME,
             target_folder_path=target.folder_path,
             target_document_name=target.document_name,

@@ -6,7 +6,12 @@ from packages.core.models import Habit
 
 
 def default_habits() -> list[Habit]:
-    """Return the built-in habit definitions in stable display order."""
+    """Return the built-in habit definitions in stable display order.
+
+    Sleep, recovery, and deep work are computed but not tracked as habits.
+    Sleep and recovery are displayed as metrics on day subtitles and the tally page.
+    Deep work has no evaluator and is removed entirely.
+    """
     return [
         Habit(
             key="workout",
@@ -20,34 +25,12 @@ def default_habits() -> list[Habit]:
             sources=["whoop", "manual"],
         ),
         Habit(
-            key="sleep",
-            label="Sleep",
-            short="Z",
-            kind="auto",
-            enabled=True,
-            sort_order=20,
-            description="Nightly sleep duration from WHOOP sleep events.",
-            event_types=["sleep"],
-            sources=["whoop"],
-        ),
-        Habit(
-            key="recovery",
-            label="Recovery",
-            short="R",
-            kind="auto",
-            enabled=True,
-            sort_order=30,
-            description="WHOOP recovery score status for each day.",
-            event_types=["recovery"],
-            sources=["whoop"],
-        ),
-        Habit(
             key="meditation",
             label="Meditation",
             short="M",
             kind="auto",
             enabled=True,
-            sort_order=40,
+            sort_order=30,
             description="Meditation sessions when meditation events exist.",
             event_types=["meditation"],
             sources=["muse", "apple_health", "manual"],
@@ -58,20 +41,9 @@ def default_habits() -> list[Habit]:
             short="J",
             kind="auto",
             enabled=True,
-            sort_order=50,
+            sort_order=40,
             description="Journal entries detected from Day One, with manual overrides honored.",
             event_types=["journal", "manual"],
             sources=["day_one", "manual"],
-        ),
-        Habit(
-            key="deep_work",
-            label="Deep Work",
-            short="D",
-            kind="manual",
-            enabled=True,
-            sort_order=60,
-            description="Manual deep-work check-in for MVP.",
-            event_types=["deep_work", "manual"],
-            sources=["manual"],
         ),
     ]

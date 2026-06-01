@@ -21,7 +21,7 @@ class ManualRemarkableSyncAdapter:
     async def list_documents(self) -> list[RemarkableDocument]:
         raise NotImplementedError("manual sync cannot list documents on the device")
 
-    async def archive_document_from_device(
+    async def archive_device_document(
         self,
         source_document_name: str,
         target_folder_path: tuple[str, ...],
