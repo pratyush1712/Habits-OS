@@ -94,6 +94,10 @@ h3 {
   color: #444;
   font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
+.page-header .subtitle .metrics {
+  font-size: 9pt;
+  color: #666;
+}
 .back-link {
   display: inline-block;
   font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;

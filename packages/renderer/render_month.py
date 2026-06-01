@@ -97,10 +97,12 @@ def _build_days(
             if not cell:
                 continue
             day_entries = entries_by_date.get(cell.iso, [])
+            day_metrics = _extract_metrics(day_entries)
             days_by_date[cell.iso] = {
                 "date": cell.iso,
                 "entries": day_entries,
                 "by_habit": {e.habit_key: e for e in day_entries},
+                "metrics": day_metrics,
             }
 
     ordered = sorted(days_by_date)
@@ -138,6 +140,20 @@ def _for_render(entry: HabitEntry) -> HabitEntry:
             "explanation": _clip_decimal_precision(entry.explanation),
         }
     )
+
+
+def _extract_metrics(entries: list[HabitEntry]) -> str:
+    """Extract sleep and recovery metrics from entries and format for display.
+
+    Returns a bullet-separated string like "Sleep 7h42m · Recovery 78%".
+    """
+    metrics = []
+    for entry in entries:
+        if entry.habit_key == "sleep" and entry.summary:
+            metrics.append(f"Sleep {entry.summary}")
+        elif entry.habit_key == "recovery" and entry.summary:
+            metrics.append(f"Recovery {entry.summary}")
+    return " · ".join(metrics) if metrics else ""
 
 
 def _build_weeks(
@@ -208,6 +224,36 @@ def _build_tally(
     return rows
 
 
+def _build_monthly_metrics(
+    year: int,
+    month: int,
+    days_by_date: dict[str, dict],
+) -> str:
+    """Calculate and format average sleep/recovery metrics for the month."""
+    days_in_month = calendar.monthrange(year, month)[1]
+    sleep_summaries = []
+    recovery_summaries = []
+
+    for day_num in range(1, days_in_month + 1):
+        iso = date(year, month, day_num).isoformat()
+        entries = days_by_date.get(iso, {}).get("entries", [])
+        for entry in entries:
+            if entry.habit_key == "sleep" and entry.summary:
+                sleep_summaries.append(entry.summary)
+            elif entry.habit_key == "recovery" and entry.summary:
+                recovery_summaries.append(entry.summary)
+
+    metrics = []
+    if sleep_summaries:
+        # Just show the count of nights with sleep data for simplicity
+        metrics.append(f"Sleep {len(sleep_summaries)} nights")
+    if recovery_summaries:
+        # Show count of recovery days
+        metrics.append(f"Recovery {len(recovery_summaries)} days")
+
+    return " · ".join(metrics) if metrics else ""
+
+
 def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
     """Render a MonthHabitState (or a JSON path that loads into one) to PDF."""
     if isinstance(state_or_path, MonthHabitState):
@@ -223,6 +269,7 @@ def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
     days_by_date = _build_days(rows, state.entries)
     weeks = _build_weeks(rows, days_by_date, state.habits)
     tally_rows = _build_tally(year, month, days_by_date, state.habits)
+    monthly_metrics = _build_monthly_metrics(year, month, days_by_date)
 
     # Attach week info to each day for the day-page nav.
     week_lookup = {cell.iso: w for w in weeks for cell in w["dates"]}
@@ -255,6 +302,7 @@ def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
         month_anchor=MONTH_ANCHOR,
         tally_anchor=TALLY_ANCHOR,
         tally_rows=tally_rows,
+        monthly_metrics=monthly_metrics,
     )
 
     out_dir = Path(out_dir)

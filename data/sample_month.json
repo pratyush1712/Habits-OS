@@ -2,11 +2,8 @@
   "month": "2026-05",
   "habits": [
     {"key": "workout",    "label": "Workout",     "short": "W"},
-    {"key": "sleep",      "label": "Sleep",       "short": "Z"},
-    {"key": "recovery",   "label": "Recovery",    "short": "R"},
     {"key": "meditation", "label": "Meditation",  "short": "M"},
-    {"key": "journaling", "label": "Journaling",  "short": "J"},
-    {"key": "deep_work",  "label": "Deep work",   "short": "D"}
+    {"key": "journaling", "label": "Journaling",  "short": "J"}
   ],
   "days": [
     {"date": "2026-05-01", "entries": [

@@ -9,7 +9,10 @@
 
   <header class="page-header">
     <h1>{{ day.weekday_long }}, {{ day.month_day_long }}</h1>
-    <p class="subtitle">{{ day.date }}</p>
+    <p class="subtitle">
+      {{ day.date }}
+      {% if day.metrics %}<br/><span class="metrics">{{ day.metrics }}</span>{% endif %}
+    </p>
   </header>
 
   <h2 class="section-heading">Habits</h2>
