@@ -402,7 +402,10 @@ async def test_current_present_month_labelled_name_is_resolved(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_current_merge_aborts_on_page_count_drift(tmp_path):
+async def test_current_merge_falls_back_to_force_replace_on_page_count_drift(tmp_path):
+    """When the rendered PDF has a different page count (e.g. June has 30 days, May has
+    31), the merge can't preserve annotations sensibly — they'd be on wrong pages.
+    The adapter should fall back to a force-replace upload rather than blocking."""
     rendered = _make_pdf(tmp_path, "rendered.pdf", pages=2)  # device has 3
     bundle, _ = make_rmdoc(tmp_path / "device.rmdoc", doc_id=CURRENT, n_pages=3, rm_count=1)
 
@@ -419,10 +422,13 @@ async def test_current_merge_aborts_on_page_count_drift(tmp_path):
 
     result = await adapter.upload_pdf(_current_request(rendered))
 
-    assert result.status == "unsupported"
-    assert result.device_mutated is False
-    # Crucially: no upload happened, so ink is untouched.
-    assert runner.put_calls() == []
+    # Should force-replace rather than block.
+    assert result.status == "updated"
+    assert result.device_mutated is True
+    puts = runner.put_calls()
+    assert len(puts) == 1
+    assert "--force" in puts[0].argv
+    assert Path(puts[0].argv[-2]).name == f"{CURRENT}.pdf"
 
 
 @pytest.mark.asyncio
