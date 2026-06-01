@@ -94,6 +94,10 @@ h3 {
   color: #444;
   font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
+.page-header .subtitle .metrics {
+  font-size: 9pt;
+  color: #666;
+}
 .back-link {
   display: inline-block;
   font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -271,6 +275,11 @@ h3 {
   gap: 3mm;
   margin-bottom: 4mm;
 }
+.habit-grid-compact {
+  grid-auto-rows: auto;
+  gap: 2mm;
+  margin-bottom: 2.5mm;
+}
 .habit-card {
   border: 0.9pt solid #111;
   padding: 2.5mm 3mm 2.5mm 3mm;
@@ -395,7 +404,7 @@ h3 {
 }
 .lines.tall {
   flex: 1 1 auto;
-  min-height: 40mm;
+  min-height: 75mm;
 }
 .lines.fill {
   flex: 1 1 auto;

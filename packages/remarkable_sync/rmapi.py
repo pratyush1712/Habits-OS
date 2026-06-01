@@ -35,6 +35,7 @@ from typing import Any, Protocol
 from packages.remarkable_sync.rmdoc import (
     MalformedBundle,
     PageCountMismatch,
+    copy_with_visible_name,
     swap_base_pdf,
 )
 from packages.remarkable_sync.base import (
@@ -144,6 +145,215 @@ class RmapiRemarkableSyncAdapter:
 
     async def update_pdf(self, request: SyncRequest) -> SyncResult:
         return await self._upload(request, action="update")
+
+    async def archive_device_document(
+        self,
+        source_document_name: str,
+        target_folder_path: tuple[str, ...],
+        target_document_name: str,
+        dry_run: bool = False,
+    ) -> SyncResult:
+        """Snapshot an existing on-device document into the frozen archive folder.
+
+        Downloads the home-screen document as an ``.rmdoc`` (which carries every
+        ``.rm`` annotation blob), rewrites its display name to the archive name,
+        and uploads it under ``HabitOS/<year>/Archive/``. This is what preserves
+        the user's handwriting when a month rolls over, instead of uploading a
+        fresh annotation-free PDF.
+
+        Archives are frozen: if the target already exists this is a no-op, so the
+        operation is safe to run more than once (e.g. a startup catch-up run plus
+        the nightly cron both firing on the 1st).
+        """
+
+        request = SyncRequest(
+            local_pdf_path=Path(),
+            document_name=target_document_name,
+            folder_path=target_folder_path,
+            dry_run=dry_run,
+        )
+
+        if dry_run:
+            return _result(
+                request,
+                action="upload",
+                status="planned",
+                message="Dry run; archive the on-device document with all annotations preserved.",
+                device_mutated=False,
+                instructions=[
+                    f"planned: rmapi ls {self._remote_folder_path(target_folder_path)} "
+                    f"→ skip if '{target_document_name}' already archived",
+                    f"planned: rmapi ls / → resolve '{source_document_name}' exact name",
+                    "planned: rmapi get '/<resolved-name>' → download .rmdoc (with ink)",
+                    f"planned: rewrite bundle visibleName to '{target_document_name}'",
+                    f"planned: rmapi mkdir {self._remote_folder_path(target_folder_path)}",
+                    f"planned: rmapi put '<tmp>/{target_document_name}.rmdoc' "
+                    f"{self._remote_folder_path(target_folder_path)}",
+                ],
+            )
+
+        tmp = Path(tempfile.mkdtemp(prefix="habitos-rmapi-"))
+        try:
+            # Archives are frozen — never overwrite an existing snapshot.
+            try:
+                if await self._document_exists_in_folder(
+                    target_folder_path, target_document_name
+                ):
+                    return _result(
+                        request,
+                        action="upload",
+                        status="uploaded",
+                        message=(
+                            f"Archive '{target_document_name}' already exists; left "
+                            "untouched (archives are frozen)."
+                        ),
+                        device_mutated=False,
+                    )
+            except FileNotFoundError:
+                return _binary_missing_result(request, "upload", self.config.binary)
+            except asyncio.TimeoutError:
+                return _timeout_result(request, "upload", "rmapi ls timed out")
+
+            # Resolve the actual on-device name (may carry a month label).
+            try:
+                resolved_name = await self._resolve_current_doc_name()
+            except FileNotFoundError:
+                return _binary_missing_result(request, "upload", self.config.binary)
+            except asyncio.TimeoutError:
+                return _timeout_result(
+                    request, "upload", "rmapi ls / timed out while resolving document name"
+                )
+            except _LsFailed as e:
+                return _result(
+                    request,
+                    action="upload",
+                    status="failed",
+                    message=f"rmapi ls / failed with exit code {e.run.returncode}.",
+                    device_mutated=False,
+                    instructions=_run_diagnostics(e.run),
+                )
+            except _AmbiguousCurrentDoc as e:
+                return _result(
+                    request,
+                    action="upload",
+                    status="unsupported",
+                    message=(
+                        "Multiple home-screen documents match the current-month "
+                        f"name '{source_document_name}'; refusing to guess which to archive."
+                    ),
+                    device_mutated=False,
+                    instructions=[
+                        f"candidates: {', '.join(e.candidates)}",
+                        "Rename or remove the extras so exactly one matches.",
+                    ],
+                )
+
+            if resolved_name is None:
+                return _result(
+                    request,
+                    action="upload",
+                    status="failed",
+                    message=f"Current-month document '{source_document_name}' not found on device.",
+                    device_mutated=False,
+                    instructions=[
+                        f"Make sure a document named '{source_document_name}' exists "
+                        "on the device home screen before archiving.",
+                    ],
+                )
+
+            # Download the .rmdoc bundle (with all .rm annotation blobs).
+            dl = tmp / "dl"
+            dl.mkdir()
+            try:
+                run = await self._run(["get", f"/{resolved_name}"], cwd=str(dl))
+            except FileNotFoundError:
+                return _binary_missing_result(request, "upload", self.config.binary)
+            except asyncio.TimeoutError:
+                return _timeout_result(
+                    request, "upload", "rmapi get timed out while downloading the document"
+                )
+            if run.returncode != 0:
+                return _result(
+                    request,
+                    action="upload",
+                    status="failed",
+                    message=f"rmapi get failed with exit code {run.returncode}.",
+                    device_mutated=False,
+                    instructions=_run_diagnostics(run),
+                )
+
+            downloaded = dl / f"{resolved_name}.rmdoc"
+            if not downloaded.is_file():
+                found = list(dl.glob("*.rmdoc"))
+                if not found:
+                    return _result(
+                        request,
+                        action="upload",
+                        status="failed",
+                        message="rmapi get did not produce an .rmdoc bundle.",
+                        device_mutated=False,
+                        instructions=_run_diagnostics(run),
+                    )
+                downloaded = found[0]
+
+            # Rewrite the display name so the archive entry reads e.g.
+            # "2026-05 Habit Dashboard" rather than inheriting "01. Habit Tracker".
+            up = tmp / "up"
+            up.mkdir()
+            staged = up / f"{target_document_name}.rmdoc"
+            try:
+                copy_with_visible_name(downloaded, staged, target_document_name)
+            except (MalformedBundle, KeyError) as e:
+                return _result(
+                    request,
+                    action="upload",
+                    status="failed",
+                    message=f"Could not rewrite reMarkable bundle for archive: {e}",
+                    device_mutated=False,
+                )
+
+            # Ensure the archive folder chain exists, then upload.
+            try:
+                await self._ensure_folder_chain(target_folder_path)
+            except FileNotFoundError:
+                return _binary_missing_result(request, "upload", self.config.binary)
+            except asyncio.TimeoutError:
+                return _timeout_result(
+                    request, "upload", "rmapi mkdir timed out while creating the archive folder"
+                )
+
+            folder_remote = self._remote_folder_path(target_folder_path)
+            try:
+                run = await self._run(["put", str(staged), folder_remote])
+            except FileNotFoundError:
+                return _binary_missing_result(request, "upload", self.config.binary)
+            except asyncio.TimeoutError:
+                return _timeout_result(
+                    request, "upload", "rmapi put timed out while uploading the archive"
+                )
+            if run.returncode != 0:
+                return _result(
+                    request,
+                    action="upload",
+                    status="failed",
+                    message=f"rmapi put failed with exit code {run.returncode}.",
+                    device_mutated=False,
+                    instructions=_run_diagnostics(run),
+                )
+
+            return _result(
+                request,
+                action="upload",
+                status="uploaded",
+                message=(
+                    f"Archived '{resolved_name}' as '{target_document_name}' "
+                    "with all annotations preserved."
+                ),
+                device_mutated=True,
+                instructions=_run_diagnostics(run),
+            )
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
 
     async def list_documents(self) -> list[RemarkableDocument]:
         """List machine-owned HabitOS documents only.
@@ -379,6 +589,24 @@ class RmapiRemarkableSyncAdapter:
                 message="rmapi upload succeeded (new current-month document created).",
             )
 
+        # Month rollover: replace the home document with a fresh new-month page.
+        # The prior month's ink has already been copied into the archive, and the
+        # new month's page count differs, so a merge would wrongly abort. This is
+        # independent of the preserve/replace config because the semantics here
+        # are "start a clean month", not "refresh today's data".
+        if request.reset:
+            return await self._put_named(
+                request,
+                action,
+                doc_name=existing,
+                force=True,
+                status_ok="updated",
+                message=(
+                    "rmapi reset succeeded (home document advanced to the new "
+                    "month; previous month preserved in the archive)."
+                ),
+            )
+
         if self.config.replace_existing_current:
             return await self._put_named(
                 request,
@@ -593,6 +821,12 @@ class RmapiRemarkableSyncAdapter:
         self, request: SyncRequest, target_kind: str, folder_remote: str
     ) -> list[str]:
         if target_kind == "current":
+            if request.reset:
+                return [
+                    "planned: rmapi ls /  (resolve the current-month document)",
+                    "planned (rollover): rmapi put --force '<tmp>/<doc>.pdf' /  "
+                    "(fresh new-month page; prior ink already archived)",
+                ]
             return [
                 "planned: rmapi ls /  (resolve the current-month document)",
                 "planned (if absent): rmapi put "
@@ -630,6 +864,24 @@ class RmapiRemarkableSyncAdapter:
     async def _exists(self, remote_path: str) -> bool:
         run = await self._run(["stat", remote_path])
         return run.returncode == 0
+
+    async def _document_exists_in_folder(
+        self, folder_path: tuple[str, ...], document_name: str
+    ) -> bool:
+        """True if a document named ``document_name`` lives directly in a folder.
+
+        Matches on the visibleName as shown by ``rmapi ls`` (which is
+        extension-less), so it is reliable regardless of how rmapi derives a
+        document name from an uploaded file — unlike a ``stat`` on a
+        ``.pdf``-suffixed path. A missing folder means the document cannot
+        exist, so ``False``.
+        """
+
+        folder_remote = self._remote_folder_path(folder_path)
+        run = await self._run(["ls", folder_remote])
+        if run.returncode != 0:
+            return False
+        return document_name in _parse_ls_files(run.stdout)
 
     # ------------------------------------------------------------------ utils
 

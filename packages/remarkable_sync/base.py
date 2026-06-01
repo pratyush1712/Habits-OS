@@ -46,6 +46,11 @@ class SyncRequest:
     document_name: str
     folder_path: tuple[str, ...]
     dry_run: bool = True
+    # When True, replace the current-month home document outright instead of
+    # merging into it. Used at month rollover: the new month is a fresh page
+    # with no annotations to preserve (last month's ink lives in the archive),
+    # and its page count legitimately differs, so a merge would wrongly abort.
+    reset: bool = False
 
     @property
     def target_path(self) -> str:
@@ -84,6 +89,15 @@ class RemarkableSyncAdapter(Protocol):
         ...
 
     async def list_documents(self) -> list[RemarkableDocument]:
+        ...
+
+    async def archive_device_document(
+        self,
+        source_document_name: str,
+        target_folder_path: tuple[str, ...],
+        target_document_name: str,
+        dry_run: bool = False,
+    ) -> SyncResult:
         ...
 
 

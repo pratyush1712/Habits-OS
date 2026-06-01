@@ -76,6 +76,52 @@ def read_page_count(rmdoc_path: Path) -> int:
     return int(content["pageCount"])
 
 
+def read_visible_name(rmdoc_path: Path) -> str | None:
+    """Return the ``visibleName`` recorded in the bundle's ``.metadata``."""
+
+    with zipfile.ZipFile(rmdoc_path) as zf:
+        names = zf.namelist()
+        try:
+            metadata_name = _root_entry(names, ".metadata")
+        except MalformedBundle:
+            return None
+        metadata = json.loads(zf.read(metadata_name))
+    name = metadata.get("visibleName")
+    return name if isinstance(name, str) else None
+
+
+def copy_with_visible_name(
+    src_rmdoc: Path, dst_rmdoc: Path, visible_name: str
+) -> str:
+    """Copy ``src_rmdoc`` to ``dst_rmdoc``, rewriting ``.metadata.visibleName``.
+
+    Every annotation blob, the base PDF, ``.content`` and ``.pagedata`` are copied
+    byte-for-byte; only the document's display name changes. This is what lets the
+    archived month show up as e.g. ``"2026-05 Habit Dashboard"`` rather than
+    inheriting the home-screen document's name, while keeping all handwritten ink
+    intact. Returns the doc id (``.metadata`` stem).
+    """
+
+    with zipfile.ZipFile(src_rmdoc) as zf:
+        names = zf.namelist()
+        metadata_name = _root_entry(names, ".metadata")
+        doc_id = metadata_name[: -len(".metadata")]
+        metadata = json.loads(zf.read(metadata_name))
+        metadata["visibleName"] = visible_name
+        new_metadata = json.dumps(metadata).encode("utf-8")
+
+        dst_rmdoc.parent.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(dst_rmdoc, "w", zipfile.ZIP_STORED) as out:
+            for info in zf.infolist():
+                data = (
+                    new_metadata
+                    if info.filename == metadata_name
+                    else zf.read(info.filename)
+                )
+                out.writestr(info, data)
+    return doc_id
+
+
 def swap_base_pdf(src_rmdoc: Path, new_pdf: Path, dst_rmdoc: Path) -> SwapInfo:
     """Write ``dst_rmdoc`` = ``src_rmdoc`` with only its base PDF replaced.
 
@@ -114,7 +160,9 @@ __all__ = [
     "MalformedBundle",
     "PageCountMismatch",
     "SwapInfo",
+    "copy_with_visible_name",
     "count_pdf_pages",
     "read_page_count",
+    "read_visible_name",
     "swap_base_pdf",
 ]

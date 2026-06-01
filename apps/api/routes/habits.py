@@ -17,6 +17,7 @@ router = APIRouter(prefix="/habits", tags=["habits"])
 class SeedDefaultsResponse(BaseModel):
     seeded: int
     total_active: int
+    retired: list[str] = []
     message: str
 
 

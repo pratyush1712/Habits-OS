@@ -72,8 +72,12 @@ class _Lifecycle:
         self.current_calls: list[dict] = []
         self.archive_calls: list[dict] = []
 
-    async def prepare_current_month_upload(self, month: str, pdf_path: Path, dry_run: bool):
-        self.current_calls.append({"month": month, "pdf_path": str(pdf_path), "dry_run": dry_run})
+    async def prepare_current_month_upload(
+        self, month: str, pdf_path: Path, dry_run: bool, reset: bool = False
+    ):
+        self.current_calls.append(
+            {"month": month, "pdf_path": str(pdf_path), "dry_run": dry_run, "reset": reset}
+        )
         return SyncResult(
             adapter="manual",
             action="upload",
@@ -149,6 +153,10 @@ async def test_run_nightly_pipeline_computes_window_and_affected_months():
     assert habits.calls == ["2026-05", "2026-06"]
     assert render.calls == [{"month": "2026-06", "triggered_by": "schedule"}]
     assert lifecycle.current_calls[0]["month"] == "2026-06"
+    # Mid-month run: not a rollover, so the home document is refreshed in place
+    # (merge), never reset.
+    assert lifecycle.current_calls[0]["reset"] is False
+    assert lifecycle.archive_calls == []
     assert result["months"]["affected"] == ["2026-05", "2026-06"]
     assert runs.completed[0]["run_id"] == "run-1"
 
@@ -164,12 +172,20 @@ async def test_run_nightly_pipeline_handles_month_rollover():
         runs_repo=_RunsRepo(),
     )
 
+    lifecycle = _Lifecycle()
+    service.lifecycle = lifecycle
+
     result = await service.run_nightly_pipeline(today=date(2026, 6, 1))
 
     assert result["months"]["previous"] == "2026-05"
     assert result["rollover"]["detected"] is True
     assert result["render"]["previous"]["month"] == "2026-05"
     assert result["remarkable"]["archive"]["target_path"] == "HabitOS/2026/Archive/2026-05 Habit Dashboard.pdf"
+    # On rollover the current-month upload must reset (fresh new-month page),
+    # and the archive must be attempted before it.
+    assert lifecycle.archive_calls == [{"month": "2026-05", "dry_run": True}]
+    assert lifecycle.current_calls[0]["month"] == "2026-06"
+    assert lifecycle.current_calls[0]["reset"] is True
 
 
 @pytest.mark.asyncio

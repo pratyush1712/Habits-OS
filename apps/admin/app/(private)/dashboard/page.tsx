@@ -1,5 +1,3 @@
-import { format } from "date-fns";
-
 import { JsonPanel } from "@/components/common/json-panel";
 import { NoticeBanner } from "@/components/common/notice-banner";
 import { MonthGrid } from "@/components/habit/month-grid";
@@ -25,6 +23,18 @@ import { readNotice } from "@/lib/notice";
 
 const RETURN_PATH = "/dashboard";
 
+function getCurrentMonthInTimezone(timezone: string): string {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    timeZone: timezone,
+  });
+  const parts = formatter.formatToParts(new Date());
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  return `${year}-${month}`;
+}
+
 /**
  * Private dashboard home with the current month pattern and common operations.
  */
@@ -33,22 +43,18 @@ export default async function DashboardPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const currentMonth = format(new Date(), "yyyy-MM");
   const notice = await readNotice(searchParams);
-  const [statusResult, automationResult, monthStateResult, renderJobsResult] =
-    await Promise.allSettled([
-      api.status(),
-      api.automationStatus(),
-      api.monthState(currentMonth),
-      api.renderJobs(6),
-    ]);
+  const automationResult = await api.automationStatus().catch(() => null);
+  const timezone = readString(asRecord(automationResult), "timezone") || "UTC";
+  const currentMonth = getCurrentMonthInTimezone(timezone);
+  const statusResult = await api.status().catch(() => null);
+  const [monthStateResult, renderJobsResult] = await Promise.allSettled([
+    api.monthState(currentMonth),
+    api.renderJobs(6),
+  ]);
 
-  const status =
-    statusResult.status === "fulfilled" ? asRecord(statusResult.value) : null;
-  const automation =
-    automationResult.status === "fulfilled"
-      ? asRecord(automationResult.value)
-      : null;
+  const status = statusResult ? asRecord(statusResult) : null;
+  const automation = automationResult ? asRecord(automationResult) : null;
   const statusMongo = asRecord(status ? status["mongo"] : null);
   const integrations = asRecord(status ? status["integrations"] : null);
   const whoopIntegration = asRecord(integrations ? integrations["whoop"] : null);
@@ -206,15 +212,11 @@ export default async function DashboardPage({
       >
         <div className="data-column grid gap-4 lg:grid-cols-2">
           <JsonPanel
-            data={statusResult.status === "fulfilled" ? statusResult.value : statusResult.reason}
+            data={statusResult || "Failed to load"}
             title="API status"
           />
           <JsonPanel
-            data={
-              automationResult.status === "fulfilled"
-                ? automationResult.value
-                : automationResult.reason
-            }
+            data={automationResult || "Failed to load"}
             title="Automation status"
           />
           <JsonPanel

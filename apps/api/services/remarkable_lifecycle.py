@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from packages.remarkable_sync import (
+    CURRENT_DOCUMENT_NAME,
     ManualRemarkableSyncAdapter,
     RemarkableSyncAdapter,
     SyncRequest,
@@ -43,13 +44,23 @@ class RemarkableLifecycleService:
         month: str,
         pdf_path: Path,
         dry_run: bool,
+        reset: bool = False,
     ) -> SyncResult:
+        """Upload the current-month dashboard to the device home screen.
+
+        ``reset=True`` is used at month rollover: it replaces the home document
+        with a fresh new-month page rather than merging annotations into it. The
+        previous month's ink has already been copied into the archive, and the new
+        month's page count differs, so a merge would wrongly abort and leave the
+        home screen stuck on the old month.
+        """
         target = build_current_month_target(month)
         request = SyncRequest(
             local_pdf_path=pdf_path,
             document_name=target.document_name,
             folder_path=target.folder_path,
             dry_run=dry_run,
+            reset=reset,
         )
         return await self.adapter.upload_pdf(request)
 
@@ -59,10 +70,12 @@ class RemarkableLifecycleService:
         dry_run: bool,
     ) -> SyncResult:
         target = build_archive_month_target(month)
-        request = SyncRequest(
-            local_pdf_path=self.output_dir / f"{month}-habit-dashboard.pdf",
-            document_name=target.document_name,
-            folder_path=target.folder_path,
+        # Download the existing on-device document (with all its .rm annotations),
+        # and re-upload it to the archive folder. This preserves handwritten notes
+        # instead of uploading a fresh PDF that would lose all ink.
+        return await self.adapter.archive_device_document(
+            source_document_name=CURRENT_DOCUMENT_NAME,
+            target_folder_path=target.folder_path,
+            target_document_name=target.document_name,
             dry_run=dry_run,
         )
-        return await self.adapter.upload_pdf(request)

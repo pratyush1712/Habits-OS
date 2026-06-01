@@ -6,7 +6,9 @@
 
   <header class="page-header">
     <h1>Habit Tally</h1>
-    <p class="subtitle">{{ month_label }} · one mark per day completed</p>
+    <p class="subtitle">{{ month_label }} · one mark per day completed
+      {% if monthly_metrics %}<br/><span class="metrics">{{ monthly_metrics }}</span>{% endif %}
+    </p>
   </header>
 
   <div class="tally-board">

@@ -34,13 +34,20 @@ class _Strict(BaseModel):
 class Habit(_Strict):
     """A habit the system tracks. `kind` controls whether the rule engine
     attempts to evaluate it from source events (auto) or only honours manual
-    overrides (manual)."""
+    overrides (manual).
+
+    `metric_only` habits are still computed and stored (so their data stays
+    available), but they are not user-controlled checkboxes. The renderer shows
+    them as context metrics (e.g. sleep duration, recovery score next to the
+    date) rather than as habit cards in the grid or tally. Use this for signals
+    that reflect the body's state rather than a deliberate action."""
 
     key: str
     label: str
     short: str
     kind: HabitKind = "auto"
     enabled: bool = True
+    metric_only: bool = False
     sort_order: int = 100
     description: str = ""
     event_types: list[EventType] = Field(default_factory=list)

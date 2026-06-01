@@ -61,17 +61,31 @@ HabitOS keeps the current month easy to find while still organizing old months.
 - Archived month:
   `HabitOS / YYYY / Archive / YYYY-MM Habit Dashboard.pdf`
 
-Monthly rollover behavior:
+Monthly rollover behavior (fires on the 1st, after the nightly recompute):
 
-1. Render/finalize the previous month.
-2. Prepare/archive the previous month under the year archive path.
+1. Render/finalize the previous month locally.
+2. **Archive the previous month by snapshotting the on-device home document**
+   — `rmapi get` downloads the `.rmdoc` bundle, which carries every `.rm`
+   annotation blob, the bundle's display name is rewritten to
+   `YYYY-MM Habit Dashboard`, and it is uploaded under the year archive path.
+   This preserves the user's handwriting; it does **not** upload a fresh,
+   annotation-free PDF. The archive is frozen and the step is idempotent: if
+   the target already exists (e.g. a startup catch-up run plus the cron both
+   fire on the 1st) it is left untouched.
 3. Render the new current month.
-4. Keep the new month visible on the home screen as `01. Habit Tracker`.
+4. **Reset the home screen** to the fresh new-month page (`reset=True`). Because
+   the previous month's ink now lives in the archive and the new month's page
+   count legitimately differs, the home document is replaced outright rather
+   than merged — a merge would keep the old ink and abort on the page-count
+   change, leaving the home screen stuck on the old month.
 
-Archived months are treated as frozen after they leave the reconcile window.
-If the previous month is still inside the rolling WHOOP reconcile window,
-HabitOS may re-render and refresh that archived month so late sleep/recovery
-settling is preserved.
+Both device mutations (archive + reset) only run when
+`HABITOS_AUTO_UPLOAD_REMARKABLE=true`; the archive always runs before the reset
+so the home document is captured before it is overwritten.
+
+Archived months are frozen once written. Within a month, the home document is
+refreshed nightly via the annotation-preserving merge (below), so late
+sleep/recovery settling is reflected without disturbing handwriting.
 
 ## Researched options
 

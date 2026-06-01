@@ -6,7 +6,20 @@ from packages.core.models import Habit
 
 
 def default_habits() -> list[Habit]:
-    """Return the built-in habit definitions in stable display order."""
+    """Return the built-in habit definitions in stable display order.
+
+    Three habits are deliberate, user-controlled actions and render as cards in
+    the grid and tally: ``workout``, ``meditation``, ``journaling``.
+
+    ``sleep`` and ``recovery`` are ``metric_only``: they are still computed and
+    stored from WHOOP data (so the numbers stay visible next to each day's date
+    and on the tally), but they are not checkboxes — they reflect the body's
+    state, not something the user decides to "do". ``deep_work`` was removed
+    entirely: there is no signal to evaluate it and the concept is too broad.
+
+    Re-running the seed-defaults flow reconciles an existing catalog to this
+    list, archiving any habit that no longer appears here (e.g. ``deep_work``).
+    """
     return [
         Habit(
             key="workout",
@@ -20,34 +33,12 @@ def default_habits() -> list[Habit]:
             sources=["whoop", "manual"],
         ),
         Habit(
-            key="sleep",
-            label="Sleep",
-            short="Z",
-            kind="auto",
-            enabled=True,
-            sort_order=20,
-            description="Nightly sleep duration from WHOOP sleep events.",
-            event_types=["sleep"],
-            sources=["whoop"],
-        ),
-        Habit(
-            key="recovery",
-            label="Recovery",
-            short="R",
-            kind="auto",
-            enabled=True,
-            sort_order=30,
-            description="WHOOP recovery score status for each day.",
-            event_types=["recovery"],
-            sources=["whoop"],
-        ),
-        Habit(
             key="meditation",
             label="Meditation",
             short="M",
             kind="auto",
             enabled=True,
-            sort_order=40,
+            sort_order=30,
             description="Meditation sessions when meditation events exist.",
             event_types=["meditation"],
             sources=["muse", "apple_health", "manual"],
@@ -58,20 +49,33 @@ def default_habits() -> list[Habit]:
             short="J",
             kind="auto",
             enabled=True,
-            sort_order=50,
+            sort_order=40,
             description="Journal entries detected from Day One, with manual overrides honored.",
             event_types=["journal", "manual"],
             sources=["day_one", "manual"],
         ),
         Habit(
-            key="deep_work",
-            label="Deep Work",
-            short="D",
-            kind="manual",
+            key="sleep",
+            label="Sleep",
+            short="Z",
+            kind="auto",
             enabled=True,
+            metric_only=True,
+            sort_order=50,
+            description="Sleep duration/efficiency from WHOOP, shown as a metric (not a habit).",
+            event_types=["sleep"],
+            sources=["whoop"],
+        ),
+        Habit(
+            key="recovery",
+            label="Recovery",
+            short="R",
+            kind="auto",
+            enabled=True,
+            metric_only=True,
             sort_order=60,
-            description="Manual deep-work check-in for MVP.",
-            event_types=["deep_work", "manual"],
-            sources=["manual"],
+            description="Recovery score from WHOOP, shown as a metric (not a habit).",
+            event_types=["recovery"],
+            sources=["whoop"],
         ),
     ]

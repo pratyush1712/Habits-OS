@@ -22,6 +22,7 @@ from packages.remarkable_sync import (
     build_archive_month_target,
     build_current_month_target,
 )
+from packages.remarkable_sync.rmdoc import read_visible_name
 from tests.sync._bundle_factory import make_pdf, make_rmdoc
 
 CURRENT = "01. Habit Tracker"
@@ -518,6 +519,184 @@ async def test_timeout_records_failed_status(tmp_path):
 
     assert result.status == "failed"
     assert "timed out" in result.message.lower()
+
+
+# --------------------------------------------------------- rollover reset
+
+
+@pytest.mark.asyncio
+async def test_reset_force_replaces_current_without_merge(tmp_path):
+    # At month rollover the home document must be reset to a fresh page: a
+    # force put of the PDF, never a get+swap merge (which would keep last
+    # month's ink and abort on the page-count change).
+    pdf = _make_pdf(tmp_path)
+    runner = FakeRunner(responses={("ls", "/"): _ls(CURRENT)}, default=_ok())
+    adapter = RmapiRemarkableSyncAdapter(_make_config(), runner=runner)
+
+    target = build_current_month_target("2026-06")
+    request = SyncRequest(
+        local_pdf_path=pdf,
+        document_name=target.document_name,
+        folder_path=target.folder_path,
+        dry_run=False,
+        reset=True,
+    )
+    result = await adapter.upload_pdf(request)
+
+    assert result.status == "updated"
+    assert result.device_mutated is True
+    assert not any(c.argv[1:2] == ["get"] for c in runner.calls)
+    puts = runner.put_calls()
+    assert len(puts) == 1
+    assert "--force" in puts[0].argv
+    assert Path(puts[0].argv[-2]).name == f"{CURRENT}.pdf"
+
+
+@pytest.mark.asyncio
+async def test_reset_when_absent_creates_fresh_document(tmp_path):
+    pdf = _make_pdf(tmp_path)
+    runner = FakeRunner(responses={("ls", "/"): _ls("Some Other Doc")}, default=_ok())
+    adapter = RmapiRemarkableSyncAdapter(_make_config(), runner=runner)
+
+    target = build_current_month_target("2026-06")
+    request = SyncRequest(
+        local_pdf_path=pdf,
+        document_name=target.document_name,
+        folder_path=target.folder_path,
+        dry_run=False,
+        reset=True,
+    )
+    result = await adapter.upload_pdf(request)
+
+    assert result.status == "uploaded"
+    puts = runner.put_calls()
+    assert len(puts) == 1
+    assert "--force" not in puts[0].argv
+
+
+# ------------------------------------------------- archive device document
+
+
+def _archive_target():
+    return build_archive_month_target("2026-05")
+
+
+async def _archive(adapter):
+    target = _archive_target()
+    return await adapter.archive_device_document(
+        source_document_name=CURRENT,
+        target_folder_path=target.folder_path,
+        target_document_name=target.document_name,
+        dry_run=False,
+    )
+
+
+@pytest.mark.asyncio
+async def test_archive_device_document_downloads_renames_and_uploads(tmp_path):
+    # The archive snapshots the on-device home document *with its ink* and
+    # uploads it under the archive name — never a fresh annotation-free PDF.
+    bundle, _ = make_rmdoc(tmp_path / "device.rmdoc", doc_id=CURRENT, n_pages=3, rm_count=2)
+    target = _archive_target()
+    archive_folder = "/" + "/".join(target.folder_path)
+
+    def _get(argv, env, timeout, cwd):
+        name = argv[-1].lstrip("/")
+        shutil.copyfile(bundle, Path(cwd) / f"{name}.rmdoc")
+        return _ok()
+
+    seen: dict[str, object] = {}
+
+    def _put(argv, env, timeout, cwd):
+        staged = Path(argv[-2])
+        seen["staged_name"] = staged.name
+        seen["visible_name"] = read_visible_name(staged)
+        seen["folder"] = argv[-1]
+        return _ok()
+
+    runner = FakeRunner(
+        responses={
+            ("ls", "/"): _ls(CURRENT),
+            # Archive folder is empty → target not yet archived.
+            ("ls", archive_folder): _ok(stdout=""),
+            ("get",): _get,
+            ("put",): _put,
+        },
+        default=_ok(),
+    )
+    adapter = RmapiRemarkableSyncAdapter(_make_config(), runner=runner)
+
+    result = await _archive(adapter)
+
+    assert result.status == "uploaded"
+    assert result.device_mutated is True
+    # Uploaded as an .rmdoc bundle (carries ink), renamed for the archive, into
+    # the archive folder.
+    assert seen["staged_name"] == f"{target.document_name}.rmdoc"
+    assert seen["visible_name"] == target.document_name
+    assert seen["folder"] == archive_folder
+
+
+@pytest.mark.asyncio
+async def test_archive_device_document_is_idempotent_when_target_exists(tmp_path):
+    # Archives are frozen. A second rollover run (e.g. catch-up + cron) must not
+    # re-download or duplicate the snapshot.
+    target = _archive_target()
+    archive_folder = "/" + "/".join(target.folder_path)
+    runner = FakeRunner(
+        responses={
+            ("ls", "/"): _ls(CURRENT),
+            # Target already present in the archive folder.
+            ("ls", archive_folder): _ls(target.document_name),
+        },
+        default=_ok(),
+    )
+    adapter = RmapiRemarkableSyncAdapter(_make_config(), runner=runner)
+
+    result = await _archive(adapter)
+
+    assert result.status == "uploaded"
+    assert result.device_mutated is False
+    assert "already exists" in result.message
+    assert not any(c.argv[1:2] == ["get"] for c in runner.calls)
+    assert runner.put_calls() == []
+
+
+@pytest.mark.asyncio
+async def test_archive_device_document_source_missing_fails(tmp_path):
+    target = _archive_target()
+    archive_folder = "/" + "/".join(target.folder_path)
+    runner = FakeRunner(
+        responses={
+            ("ls", "/"): _ls("Some Other Doc"),
+            ("ls", archive_folder): _ok(stdout=""),
+        },
+        default=_ok(),
+    )
+    adapter = RmapiRemarkableSyncAdapter(_make_config(), runner=runner)
+
+    result = await _archive(adapter)
+
+    assert result.status == "failed"
+    assert result.device_mutated is False
+    assert runner.put_calls() == []
+
+
+@pytest.mark.asyncio
+async def test_archive_device_document_dry_run_plans_only(tmp_path):
+    runner = FakeRunner(default=_ok())
+    adapter = RmapiRemarkableSyncAdapter(_make_config(), runner=runner)
+    target = _archive_target()
+
+    result = await adapter.archive_device_document(
+        source_document_name=CURRENT,
+        target_folder_path=target.folder_path,
+        target_document_name=target.document_name,
+        dry_run=True,
+    )
+
+    assert result.status == "planned"
+    assert result.device_mutated is False
+    assert runner.calls == []
 
 
 # ----------------------------------------------------------------- env
