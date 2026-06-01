@@ -145,6 +145,127 @@ class RmapiRemarkableSyncAdapter:
     async def update_pdf(self, request: SyncRequest) -> SyncResult:
         return await self._upload(request, action="update")
 
+    async def archive_document_from_device(
+        self,
+        source_document_name: str,
+        target_folder_path: tuple[str, ...],
+        target_document_name: str,
+        dry_run: bool = False,
+    ) -> SyncResult:
+        """Archive an existing on-device document to the archive folder.
+
+        Downloads the document from the device (preserving annotations) and
+        re-uploads it to the archive location, avoiding loss of handwritten notes.
+        """
+        source_remote = self._remote_document_path((), source_document_name)
+        target_remote = self._remote_document_path(target_folder_path, target_document_name)
+
+        if dry_run:
+            return SyncResult(
+                adapter="rmapi",
+                action="upload",
+                dry_run=True,
+                target_path=target_remote,
+                status="planned",
+                message="Dry run; archiving document from device without losing annotations.",
+                device_mutated=False,
+                instructions=[
+                    f"Would download: {source_remote}",
+                    f"Would upload to: {target_remote}",
+                ],
+            )
+
+        try:
+            # Verify source document exists
+            source_exists = await self._exists(source_remote)
+            if not source_exists:
+                return SyncResult(
+                    adapter="rmapi",
+                    action="upload",
+                    dry_run=False,
+                    target_path=target_remote,
+                    status="failed",
+                    message=f"Source document not found: {source_remote}",
+                    device_mutated=False,
+                )
+
+            # Create archive folder structure
+            try:
+                await self._ensure_folder_chain(target_folder_path)
+            except (FileNotFoundError, asyncio.TimeoutError) as e:
+                return SyncResult(
+                    adapter="rmapi",
+                    action="upload",
+                    dry_run=False,
+                    target_path=target_remote,
+                    status="failed",
+                    message=f"Failed to create archive folder: {e}",
+                    device_mutated=False,
+                )
+
+            # Download source document as .rmdoc bundle
+            import tempfile
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmp_bundle = Path(tmpdir) / f"{source_document_name}.rmdoc"
+
+                # Use rmapi get to download the document with all annotations
+                get_run = await self._run(["get", source_remote, str(tmp_bundle)])
+                if get_run.returncode != 0:
+                    return SyncResult(
+                        adapter="rmapi",
+                        action="upload",
+                        dry_run=False,
+                        target_path=target_remote,
+                        status="failed",
+                        message=f"Failed to download source document: {get_run.stderr}",
+                        device_mutated=False,
+                    )
+
+                # Upload to archive location using put-file to preserve bundle
+                put_run = await self._run(
+                    ["put", str(tmp_bundle), str(Path(target_remote).parent)]
+                )
+                if put_run.returncode != 0:
+                    return SyncResult(
+                        adapter="rmapi",
+                        action="upload",
+                        dry_run=False,
+                        target_path=target_remote,
+                        status="failed",
+                        message=f"Failed to archive document: {put_run.stderr}",
+                        device_mutated=False,
+                    )
+
+            return SyncResult(
+                adapter="rmapi",
+                action="upload",
+                dry_run=False,
+                target_path=target_remote,
+                status="uploaded",
+                message="Document archived from device with annotations preserved.",
+                device_mutated=True,
+            )
+        except FileNotFoundError:
+            return _binary_missing_result(
+                SyncRequest(
+                    local_pdf_path=Path(),
+                    document_name=target_document_name,
+                    folder_path=target_folder_path,
+                ),
+                action="upload",
+                binary=self.config.binary,
+            )
+        except asyncio.TimeoutError:
+            return SyncResult(
+                adapter="rmapi",
+                action="upload",
+                dry_run=False,
+                target_path=target_remote,
+                status="failed",
+                message="rmapi command timed out during archiving",
+                device_mutated=False,
+            )
+
     async def list_documents(self) -> list[RemarkableDocument]:
         """List machine-owned HabitOS documents only.
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from packages.remarkable_sync import (
+    CURRENT_DOCUMENT_NAME,
     ManualRemarkableSyncAdapter,
     RemarkableSyncAdapter,
     SyncRequest,
@@ -59,10 +60,11 @@ class RemarkableLifecycleService:
         dry_run: bool,
     ) -> SyncResult:
         target = build_archive_month_target(month)
-        request = SyncRequest(
-            local_pdf_path=self.output_dir / f"{month}-habit-dashboard.pdf",
-            document_name=target.document_name,
-            folder_path=target.folder_path,
+        # Archive the existing on-device document (with annotations) rather than
+        # uploading a fresh PDF, to preserve any handwritten notes the user made.
+        return await self.adapter.archive_document_from_device(
+            source_document_name=CURRENT_DOCUMENT_NAME,
+            target_folder_path=target.folder_path,
+            target_document_name=target.document_name,
             dry_run=dry_run,
         )
-        return await self.adapter.upload_pdf(request)

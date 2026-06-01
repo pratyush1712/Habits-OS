@@ -21,6 +21,29 @@ class ManualRemarkableSyncAdapter:
     async def list_documents(self) -> list[RemarkableDocument]:
         raise NotImplementedError("manual sync cannot list documents on the device")
 
+    async def archive_document_from_device(
+        self,
+        source_document_name: str,
+        target_folder_path: tuple[str, ...],
+        target_document_name: str,
+        dry_run: bool = False,
+    ) -> SyncResult:
+        target_path = "/".join((*target_folder_path, f"{target_document_name}.pdf"))
+        return SyncResult(
+            adapter=ManualRemarkableSyncAdapter.name,
+            action="upload",
+            dry_run=dry_run,
+            target_path=target_path,
+            status="manual_required",
+            device_mutated=False,
+            message="Manual archive instructions: move the existing document to preserve annotations.",
+            instructions=[
+                f"On the reMarkable device, locate: {source_document_name}",
+                f"Move it to: {target_path}",
+                "This preserves your handwritten annotations in the archive.",
+            ],
+        )
+
 
 def _manual_result(request: SyncRequest, *, action: SyncAction) -> SyncResult:
     pdf_path = request.local_pdf_path

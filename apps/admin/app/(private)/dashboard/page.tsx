@@ -1,5 +1,3 @@
-import { format } from "date-fns";
-
 import { JsonPanel } from "@/components/common/json-panel";
 import { NoticeBanner } from "@/components/common/notice-banner";
 import { MonthGrid } from "@/components/habit/month-grid";
@@ -25,6 +23,18 @@ import { readNotice } from "@/lib/notice";
 
 const RETURN_PATH = "/dashboard";
 
+function getCurrentMonthInTimezone(timezone: string): string {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    timeZone: timezone,
+  });
+  const parts = formatter.formatToParts(new Date());
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  return `${year}-${month}`;
+}
+
 /**
  * Private dashboard home with the current month pattern and common operations.
  */
@@ -33,18 +43,18 @@ export default async function DashboardPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const currentMonth = format(new Date(), "yyyy-MM");
   const notice = await readNotice(searchParams);
-  const [statusResult, automationResult, monthStateResult, renderJobsResult] =
+  const statusResult = await api.status().catch(() => null);
+  const timezone = readString(asRecord(statusResult), "timezone") || "UTC";
+  const currentMonth = getCurrentMonthInTimezone(timezone);
+  const [automationResult, monthStateResult, renderJobsResult] =
     await Promise.allSettled([
-      api.status(),
       api.automationStatus(),
       api.monthState(currentMonth),
       api.renderJobs(6),
     ]);
 
-  const status =
-    statusResult.status === "fulfilled" ? asRecord(statusResult.value) : null;
+  const status = statusResult ? asRecord(statusResult) : null;
   const automation =
     automationResult.status === "fulfilled"
       ? asRecord(automationResult.value)
@@ -206,7 +216,7 @@ export default async function DashboardPage({
       >
         <div className="data-column grid gap-4 lg:grid-cols-2">
           <JsonPanel
-            data={statusResult.status === "fulfilled" ? statusResult.value : statusResult.reason}
+            data={statusResult || "Failed to load"}
             title="API status"
           />
           <JsonPanel

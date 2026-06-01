@@ -86,6 +86,15 @@ class RemarkableSyncAdapter(Protocol):
     async def list_documents(self) -> list[RemarkableDocument]:
         ...
 
+    async def archive_document_from_device(
+        self,
+        source_document_name: str,
+        target_folder_path: tuple[str, ...],
+        target_document_name: str,
+        dry_run: bool = False,
+    ) -> SyncResult:
+        ...
+
 
 def build_machine_owned_target(month: str) -> MachineOwnedTarget:
     """Backward-compatible alias for the current month target."""
