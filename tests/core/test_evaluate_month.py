@@ -15,6 +15,7 @@ from packages.renderer.state_loader import load_events_input
 HABITS = [
     Habit(key="workout", label="Workout", short="W", kind="auto"),
     Habit(key="sleep", label="Sleep", short="Z", kind="auto"),
+    Habit(key="medication", label="Medication", short="Rx", kind="auto"),
     Habit(key="meditation", label="Meditation", short="M", kind="auto"),
     Habit(key="journaling", label="Journaling", short="J", kind="manual"),
     Habit(key="deep_work", label="Deep work", short="D", kind="manual"),
@@ -116,6 +117,11 @@ def test_full_sample_events_file_loads_and_evaluates():
     w7 = by_key[("2026-05-07", "workout")]
     assert w7.status == "manual" and w7.manually_overridden
     assert "manually marked" in w7.summary
+
+    # May 31: medication/supplement sample creates a partial aggregate entry.
+    med = by_key[("2026-05-31", "medication")]
+    assert med.status == "partial"
+    assert med.summary == "7/11 scheduled doses"
 
     # May 31: manual-only journaling via override still appears.
     assert by_key[("2026-05-31", "journaling")].status == "manual"

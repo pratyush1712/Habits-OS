@@ -65,6 +65,81 @@ def evaluate_workout(
     )
 
 
+def evaluate_medication(
+    day: date,
+    events: list[SourceEvent],
+    config: HabitRuleConfig = DEFAULT_RULES,
+) -> HabitEntry | None:
+    med_events = [e for e in events if e.event_type == "medication"]
+    if not med_events:
+        return None
+
+    scheduled_total = 0
+    taken_total = 0
+    prn_taken = 0
+    details: list[str] = []
+    linked_ids: list[str] = []
+    for event in med_events:
+        metrics = event.metrics
+        taken = _coerce_nonnegative_int(metrics.get("taken_count", metrics.get("taken", 1)))
+        total_value = metrics.get("scheduled_count", metrics.get("total_count", metrics.get("total")))
+        scheduled = _coerce_nonnegative_int(total_value) if total_value is not None else taken
+        is_prn = bool(metrics.get("prn", False))
+        label = str(metrics.get("med_label") or event.title or metrics.get("med_key") or "dose")
+        linked_ids.append(event.id)
+
+        if is_prn and scheduled == 0:
+            if config.medication.count_prn_without_schedule and taken > 0:
+                prn_taken += taken
+                details.append(f"{label}: {taken} PRN")
+            continue
+
+        scheduled_total += scheduled
+        taken_total += min(taken, scheduled) if scheduled > 0 else taken
+        if scheduled > 0:
+            details.append(f"{label}: {taken}/{scheduled}")
+        elif taken > 0:
+            details.append(f"{label}: {taken}")
+
+    if scheduled_total <= 0:
+        if prn_taken <= 0:
+            return None
+        return HabitEntry(
+            date=day,
+            habit_key="medication",
+            status="checked",
+            source=med_events[0].source,
+            summary=f"{prn_taken} PRN dose{'s' if prn_taken != 1 else ''}",
+            description=" · ".join(details),
+            linked_source_event_ids=linked_ids,
+            explanation="PRN/as-needed medication was logged; absence of PRN doses is not marked missed.",
+        )
+
+    if taken_total >= scheduled_total:
+        status: HabitStatus = "checked"
+    elif taken_total > 0:
+        status = "partial"
+    else:
+        status = "missed"
+
+    summary = f"{taken_total}/{scheduled_total} scheduled doses"
+    if prn_taken:
+        summary += f" · {prn_taken} PRN"
+    return HabitEntry(
+        date=day,
+        habit_key="medication",
+        status=status,
+        source=med_events[0].source,
+        summary=summary,
+        description=" · ".join(details),
+        linked_source_event_ids=linked_ids,
+        explanation=(
+            f"{taken_total}/{scheduled_total} scheduled medication/supplement doses taken. "
+            "PRN/as-needed doses are informational and are not counted as missed."
+        ),
+    )
+
+
 def evaluate_meditation(
     day: date,
     events: list[SourceEvent],
@@ -197,6 +272,7 @@ def evaluate_journaling(
 
 EVALUATORS: dict[str, Callable[[date, list[SourceEvent], HabitRuleConfig], HabitEntry | None]] = {
     "workout": evaluate_workout,
+    "medication": evaluate_medication,
     "meditation": evaluate_meditation,
     "sleep": evaluate_sleep,
     "recovery": evaluate_recovery,
@@ -287,6 +363,14 @@ def _entry_from_override(habit: Habit, o: HabitOverride) -> HabitEntry:
         explanation="manual override",
         manually_overridden=True,
     )
+
+
+def _coerce_nonnegative_int(value) -> int:
+    try:
+        coerced = int(value)
+    except (TypeError, ValueError):
+        return 0
+    return max(coerced, 0)
 
 
 def _fmt_min(m: float) -> str:

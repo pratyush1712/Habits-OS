@@ -9,19 +9,19 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
 
-import pytest
-
 from packages.core.config import (
-    DEFAULT_RULES,
     HabitRuleConfig,
     JournalingRule,
+    RecoveryRule,
     SleepRule,
 )
 from packages.core.models import Habit, HabitOverride, SourceEvent
 from packages.core.rules import (
     evaluate_day,
     evaluate_journaling,
+    evaluate_medication,
     evaluate_meditation,
+    evaluate_recovery,
     evaluate_sleep,
     evaluate_workout,
 )
@@ -104,6 +104,76 @@ def test_meditation_checked_boundary():
     assert entry is not None and entry.status == "checked"
 
 
+
+# ---------- medication ----------
+
+
+def _med_event(med_key, taken, scheduled, *, day=DAY, prn=False, label=None):
+    start = datetime(day.year, day.month, day.day, 12, 0, tzinfo=timezone.utc)
+    return SourceEvent(
+        id=f"manual:med:{day.isoformat()}:{med_key}",
+        source="manual",
+        source_event_id=f"med:{day.isoformat()}:{med_key}",
+        event_type="medication",
+        start_time_utc=start,
+        local_date=day,
+        title=label or med_key,
+        metrics={
+            "med_key": med_key,
+            "med_label": label or med_key,
+            "taken_count": taken,
+            "scheduled_count": scheduled,
+            "prn": prn,
+        },
+    )
+
+
+def test_medication_no_events_returns_none():
+    assert evaluate_medication(DAY, []) is None
+
+
+def test_medication_checked_when_all_scheduled_doses_taken():
+    entry = evaluate_medication(DAY, [
+        _med_event("propranolol_morning", 1, 1),
+        _med_event("magnesium", 2, 2),
+    ])
+    assert entry is not None
+    assert entry.habit_key == "medication"
+    assert entry.status == "checked"
+    assert entry.summary == "3/3 scheduled doses"
+
+
+def test_medication_partial_when_some_scheduled_doses_taken():
+    entry = evaluate_medication(DAY, [
+        _med_event("adderall_xr", 0, 1, label="Add 30"),
+        _med_event("adderall_ir", 1, 1, label="Add 20"),
+        _med_event("omega_3", 1, 3, label="O3"),
+    ])
+    assert entry is not None
+    assert entry.status == "partial"
+    assert entry.summary == "2/5 scheduled doses"
+    assert "Add 30: 0/1" in entry.description
+
+
+def test_medication_missed_when_observed_scheduled_day_has_zero_taken():
+    entry = evaluate_medication(DAY, [_med_event("magnesium", 0, 2)])
+    assert entry is not None
+    assert entry.status == "missed"
+    assert entry.summary == "0/2 scheduled doses"
+
+
+def test_medication_prn_absence_does_not_create_entry():
+    entry = evaluate_medication(DAY, [_med_event("hydroxyzine", 0, 0, prn=True)])
+    assert entry is None
+
+
+def test_medication_prn_taken_is_informational_checked_entry():
+    entry = evaluate_medication(DAY, [_med_event("hydroxyzine", 1, 0, prn=True)])
+    assert entry is not None
+    assert entry.status == "checked"
+    assert entry.summary == "1 PRN dose"
+    assert "absence of PRN" in entry.explanation
+
 # ---------- sleep ----------
 
 
@@ -179,9 +249,6 @@ def test_unknown_auto_habit_returns_none():
     assert entry is None
 
 # ---------- recovery ----------
-
-from packages.core.config import RecoveryRule
-from packages.core.rules import evaluate_recovery
 
 
 def _recovery_event(score, **kwargs):
