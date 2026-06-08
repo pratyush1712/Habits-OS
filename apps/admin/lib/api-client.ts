@@ -10,6 +10,7 @@ import {
   mongoLatestRender,
   mongoLogMedication,
   mongoMonthState,
+  mongoRecompute,
   mongoRenderJobs,
 } from "./mongo-data";
 
@@ -343,6 +344,10 @@ export const api = {
   },
 
   recompute(month: string): Promise<JsonRecord> {
+    if (isMongoDataConfigured()) {
+      return mongoRecompute(month);
+    }
+
     return callApi<JsonRecord>("/habits/recompute", {
       method: "POST",
       query: { month },

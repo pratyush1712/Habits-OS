@@ -22,6 +22,7 @@ import {
   type RenderJobsResponse,
   type SourceEvent,
 } from "./api-client";
+import { evaluateMonth, type HabitOverride } from "./habit-rules";
 import { MEDICATION_PLAN } from "./medication-plan";
 
 const DEFAULT_DB_NAME = "habitos";
@@ -41,6 +42,10 @@ type MongoDocument = {
 };
 
 type SourceEventDocument = MongoDocument & {
+  _id: string;
+};
+
+type HabitEntryDocument = MongoDocument & {
   _id: string;
 };
 
@@ -219,9 +224,9 @@ function medicationDays(events: SourceEvent[]): MedicationDayDose[] {
       med_key: medKey,
       taken: nonnegativeInteger(
         metrics.taken_count ??
-          metrics.taken ??
-          rawPayload.taken_count ??
-          rawPayload.taken,
+        metrics.taken ??
+        rawPayload.taken_count ??
+        rawPayload.taken,
       ),
       total: total == null ? null : nonnegativeInteger(total),
     });
@@ -294,6 +299,20 @@ export async function mongoHabits(): Promise<HabitListResponse> {
     delete habit.archived_at;
     return habit;
   });
+}
+
+export async function mongoManualOverrides(
+  month: string,
+): Promise<HabitOverride[]> {
+  const database = await db();
+  const range = monthRange(month);
+  const docs = await database
+    .collection<MongoDocument>("manual_overrides")
+    .find({ date: { $gte: range.start, $lt: range.end } })
+    .sort({ date: 1, habit_key: 1 })
+    .toArray();
+
+  return docs.map((doc) => fromDoc<HabitOverride>(doc));
 }
 
 export async function mongoHabitEntries(
@@ -416,5 +435,78 @@ export async function mongoLogMedication(
     local_date: localDate,
     month: localDate.slice(0, 7),
     updated: result.modifiedCount,
+  };
+}
+
+export async function mongoRecompute(
+  month: string,
+): Promise<Record<string, unknown>> {
+  const database = await db();
+  const [habits, events, overrides] = await Promise.all([
+    mongoHabits(),
+    mongoEvents({ limit: 5_000, month }),
+    mongoManualOverrides(month),
+  ]);
+
+  if (habits.length === 0) {
+    return {
+      entries_deleted: 0,
+      entries_written: 0,
+      events: events.length,
+      habits: 0,
+      month,
+      overrides: overrides.length,
+      warning:
+        "No active habits found. Seed defaults via POST /habits/seed-defaults or enable at least one habit before recomputing.",
+    };
+  }
+
+  const state = evaluateMonth(month, habits, events, overrides);
+  const range = monthRange(month);
+  const deleteResult = await database
+    .collection<MongoDocument>("habit_entries")
+    .deleteMany({ date: { $gte: range.start, $lt: range.end } });
+
+  const operations: AnyBulkWriteOperation<HabitEntryDocument>[] =
+    state.entries.map((entry) => {
+      const entryId = `${entry.date}:${entry.habit_key}`;
+
+      return {
+        replaceOne: {
+          filter: { _id: entryId },
+          replacement: {
+            _id: entryId,
+            confidence: entry.confidence,
+            date: entry.date,
+            description: entry.description,
+            explanation: entry.explanation,
+            habit_key: entry.habit_key,
+            linked_source_event_ids: entry.linked_source_event_ids ?? [],
+            manually_overridden: entry.manually_overridden,
+            source: entry.source,
+            status: entry.status,
+            summary: entry.summary,
+          },
+          upsert: true,
+        },
+      };
+    });
+
+  const writeResult =
+    operations.length > 0
+      ? await database
+        .collection<HabitEntryDocument>("habit_entries")
+        .bulkWrite(operations, { ordered: false })
+      : null;
+
+  return {
+    entries_deleted: deleteResult.deletedCount,
+    entries_written:
+      (writeResult?.upsertedCount ?? 0) + (writeResult?.modifiedCount ?? 0),
+    events: events.length,
+    habits: habits.length,
+    month,
+    overrides: overrides.length,
+    warning: null,
   };
 }
