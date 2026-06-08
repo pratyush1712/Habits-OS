@@ -66,7 +66,7 @@ export function Sidebar({
                     className={cn(
                       "inline-flex min-h-11 items-center border-2 border-slate-950 px-4 py-2 text-sm font-black no-underline transition-colors active:translate-y-0.5",
                       active
-                        ? "bg-blue-600 text-white hover:bg-blue-500"
+                        ? "bg-emerald-400 text-white hover:bg-blue-500"
                         : "bg-yellow-200 text-slate-950 hover:bg-green-300",
                     )}
                     href={link.href}

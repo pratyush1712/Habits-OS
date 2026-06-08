@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import Link from "next/link";
 
 import { logMedicationAction } from "@/lib/actions";
@@ -10,6 +9,18 @@ import { readNotice, resolveSearchParams } from "@/lib/notice";
 
 const RETURN_PATH = "/medication";
 const DEFAULT_TIMEZONE = "America/New_York";
+
+function formatDateInTimezone(date: Date, timezone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: timezone,
+    year: "numeric",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${values.year}-${values.month}-${values.day}`;
+}
 
 function readNumber(record: Record<string, unknown> | null, key: string): number | null {
   if (!record) {
@@ -25,7 +36,7 @@ function doseDefaults(events: SourceEvent[]): Record<string, number> {
   const counts: Record<string, number> = {};
 
   for (const event of events) {
-    const metrics = asRecord(event.metrics);
+    const metrics = asRecord(event.metrics) ?? asRecord(event.raw_payload);
     const medKey = readString(metrics, "med_key");
     const takenCount = readNumber(metrics, "taken_count");
 
@@ -38,7 +49,7 @@ function doseDefaults(events: SourceEvent[]): Record<string, number> {
 }
 
 function doseSummary(event: SourceEvent): string {
-  const metrics = asRecord(event.metrics);
+  const metrics = asRecord(event.metrics) ?? asRecord(event.raw_payload);
   const taken = readNumber(metrics, "taken_count") ?? 0;
   const scheduled = readNumber(metrics, "scheduled_count") ?? 0;
   const medKey = readString(metrics, "med_key") ?? event.title;
@@ -70,7 +81,7 @@ export default async function MedicationPage({
   const session = await requireAdminSession();
   const params = await resolveSearchParams(searchParams);
   const notice = await readNotice(searchParams);
-  const selectedDate = params.date ?? format(new Date(), "yyyy-MM-dd");
+  const selectedDate = params.date ?? formatDateInTimezone(new Date(), DEFAULT_TIMEZONE);
   const month = selectedDate.slice(0, 7);
   const events = await api.events({
     end: selectedDate,
@@ -103,7 +114,7 @@ export default async function MedicationPage({
               <Link className={buttonClassName("green")} href="/">
                 Home
               </Link>
-              <Link className={buttonClassName("white")} href={`/events?start=${selectedDate}&end=${selectedDate}&event_type=medication&month=`}>
+              <Link className={buttonClassName("white")} href={`/events?start=${selectedDate}&end=${selectedDate}&event_type=medication`}>
                 Events
               </Link>
             </nav>

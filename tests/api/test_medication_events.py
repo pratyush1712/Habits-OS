@@ -97,3 +97,54 @@ async def test_log_medication_events_rejects_unknown_timezone() -> None:
 
     assert response.status_code == 400
     assert response.json()["detail"] == "unknown timezone"
+
+
+async def test_log_medication_events_can_be_listed_by_date() -> None:
+    app = FastAPI()
+    app.include_router(router)
+    repo = _EventsRepo()
+
+    async def list_events(**kwargs):
+        return [
+            event
+            for event in repo.events
+            if kwargs.get("event_type") in (None, event.event_type)
+            and (kwargs.get("start") is None or event.local_date >= kwargs["start"])
+            and (kwargs.get("end") is None or event.local_date <= kwargs["end"])
+        ]
+
+    repo.list_events = list_events
+    app.dependency_overrides[get_events_repo] = lambda: repo
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        save = await client.post(
+            "/events/medication",
+            json={
+                "local_date": "2026-05-31",
+                "timezone": "America/New_York",
+                "doses": [
+                    {
+                        "med_key": "magnesium",
+                        "med_label": "Magnesium",
+                        "taken_count": 2,
+                        "scheduled_count": 2,
+                    }
+                ],
+            },
+        )
+        listed = await client.get(
+            "/events",
+            params={
+                "start": "2026-05-31",
+                "end": "2026-05-31",
+                "event_type": "medication",
+            },
+        )
+
+    assert save.status_code == 200
+    assert listed.status_code == 200
+    events = listed.json()
+    assert len(events) == 1
+    assert events[0]["metrics"]["med_key"] == "magnesium"
+    assert events[0]["metrics"]["taken_count"] == 2

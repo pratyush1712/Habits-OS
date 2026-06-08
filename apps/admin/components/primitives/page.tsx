@@ -55,7 +55,7 @@ export function Section({
   title: ReactNode;
 }) {
   return (
-    <section className="mt-6 border-4 border-slate-950 bg-white p-5 first:mt-0 sm:p-6">
+    <section className="mt-6 border-4 border-slate-950 bg-white p-5 sm:p-6">
       <div className="flex flex-col gap-3 border-b-4 border-slate-950 pb-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <p className="mono-label m-0 text-blue-700">{kicker}</p>

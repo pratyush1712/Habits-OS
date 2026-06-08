@@ -26,16 +26,17 @@ export default async function EventsPage({
 }) {
   const params = await resolveSearchParams(searchParams);
   const notice = await readNotice(searchParams);
-  const month = params.month ?? format(new Date(), "yyyy-MM");
   const source = params.source ?? "";
   const eventType = params.event_type ?? "";
   const start = params.start ?? "";
   const end = params.end ?? "";
+  const hasDateBounds = start.length > 0 || end.length > 0;
+  const month = hasDateBounds ? (params.month ?? "") : (params.month ?? format(new Date(), "yyyy-MM"));
   const events = await api.events({
     end: end || undefined,
     event_type: eventType || undefined,
     limit: 200,
-    month: month || undefined,
+    month: hasDateBounds ? undefined : month || undefined,
     source: source || undefined,
     start: start || undefined,
   });
@@ -83,6 +84,7 @@ export default async function EventsPage({
             >
               <option value="">All event types</option>
               <option value="journal">Journal</option>
+              <option value="medication">Medication</option>
               <option value="recovery">Recovery</option>
               <option value="sleep">Sleep</option>
               <option value="workout">Workout</option>

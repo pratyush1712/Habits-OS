@@ -52,7 +52,7 @@ export default function Home() {
             <div className="border-4 border-slate-950 bg-yellow-200 p-5" style={{ fontFamily: "Arial, Helvetica Neue, Helvetica, sans-serif" }}>
               <p className="m-0 text-lg font-black text-slate-950">Need the medication tracker?</p>
               <Link
-                className="mt-3 inline-flex min-h-16 items-center justify-center border-4 border-slate-950 bg-blue-600 px-8 py-4 text-2xl font-black uppercase tracking-tight text-white no-underline hover:bg-blue-500"
+                className="mt-3 inline-flex min-h-16 items-center justify-center border-4 border-slate-950 bg-emerald-200 px-8 py-4 text-2xl font-black uppercase tracking-tight text-white no-underline hover:bg-blue-500"
                 href="/medication"
               >
                 Open medication tracker
@@ -60,7 +60,7 @@ export default function Home() {
             </div>
             <div className="flex flex-wrap gap-4">
               <Link
-                className="focus-ring inline-flex h-11 items-center justify-center border border-transparent bg-accent px-6 font-mono text-[11px] tracking-[0.14em] text-paper uppercase no-underline transition-opacity hover:opacity-90"
+                className="focus-ring inline-flex h-11 items-center justify-center border border-slate-950 bg-emerald-200 px-6 font-mono text-[11px] tracking-[0.14em] text-paper uppercase no-underline transition-opacity hover:opacity-90"
                 href="/login"
               >
                 Enter admin

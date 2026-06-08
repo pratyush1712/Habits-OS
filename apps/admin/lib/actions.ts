@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 
 import { api, ApiError, type MedicationDoseInput } from "./api-client";
 import { MEDICATION_ITEMS } from "./medication-plan";
@@ -138,6 +138,7 @@ export async function logMedicationAction(formData: FormData): Promise<never> {
           : "Logged medication data.",
     );
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
@@ -154,6 +155,7 @@ export async function seedDefaultHabitsAction(formData: FormData): Promise<never
     refreshPaths(["/dashboard", "/habits"]);
     redirectWithNotice(returnPath, "Default habits seeded.");
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
@@ -169,6 +171,7 @@ export async function importSampleEventsAction(formData: FormData): Promise<neve
     refreshPaths(["/dashboard", "/events", "/habits"]);
     redirectWithNotice(returnPath, "Sample events imported.");
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
@@ -191,6 +194,7 @@ export async function recomputeMonthAction(formData: FormData): Promise<never> {
     ]);
     redirectWithNotice(returnPath, `Recomputed ${month}.`);
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
@@ -207,6 +211,7 @@ export async function renderMonthAction(formData: FormData): Promise<never> {
     refreshPaths(["/dashboard", `/month/${month}`, "/renders"]);
     redirectWithNotice(returnPath, `Started render for ${month}.`);
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
@@ -228,6 +233,7 @@ export async function remarkableUploadAction(formData: FormData): Promise<never>
     refreshPaths(["/dashboard", "/renders", "/connections"]);
     redirectWithNotice(returnPath, `Prepared reMarkable instructions for ${month}.`);
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
@@ -244,6 +250,7 @@ export async function nightlyRunAction(formData: FormData): Promise<never> {
     refreshPaths(["/dashboard", "/automation", "/renders"]);
     redirectWithNotice(returnPath, "Nightly automation invoked.");
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
@@ -265,6 +272,7 @@ export async function monthRolloverAction(formData: FormData): Promise<never> {
       `Month rollover prepared from ${fromMonth} to ${toMonth}.`,
     );
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
@@ -283,6 +291,7 @@ export async function dayOneSyncAction(formData: FormData): Promise<never> {
     refreshPaths(["/connections", "/events", "/habits"]);
     redirectWithNotice(returnPath, "Day One sync requested.");
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
@@ -307,6 +316,7 @@ export async function whoopSyncAction(formData: FormData): Promise<never> {
     refreshPaths(["/connections", "/events", "/habits"]);
     redirectWithNotice(returnPath, "WHOOP sync requested.");
   } catch (error) {
+    unstable_rethrow(error);
     redirectWithNotice(returnPath, toNoticeMessage(error), "error");
   }
 }
