@@ -26,7 +26,7 @@ struct ContentView: View {
                 Label("Settings", systemImage: "slider.horizontal.3")
             }
         }
-        .tint(.accentColor)
+        .tint(Color.accent)
         .task {
             await viewModel.refresh()
         }

@@ -194,10 +194,10 @@ enum ConnectionStatus: Equatable {
 
     var color: Color {
         switch self {
-        case .unknown: .secondary
-        case .connecting: .accentColor
-        case .connected: HabitOSDesign.success
-        case .unreachable: HabitOSDesign.danger
+        case .unknown: Color.inkGhost
+        case .connecting: Color.accent
+        case .connected: Color.accentHot
+        case .unreachable: Color.anomaly
         }
     }
 }

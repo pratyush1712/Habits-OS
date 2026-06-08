@@ -4,33 +4,36 @@ struct TodayView: View {
     @EnvironmentObject private var viewModel: AppViewModel
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                hero
+        ZStack {
+            GridBackground()
 
-                if let notice = viewModel.notice {
-                    NoticeBanner(notice: notice) {
-                        viewModel.dismissNotice()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    hero
+
+                    if let notice = viewModel.notice {
+                        NoticeBanner(notice: notice) {
+                            viewModel.dismissNotice()
+                        }
+                    }
+
+                    medicationCard
+
+                    if viewModel.isLoading {
+                        PaperPanel { LoadingRows() }
+                    } else if viewModel.lastConnectionError != nil && viewModel.monthState == nil {
+                        ConnectionHelpPanel(baseURL: viewModel.apiBaseURL) {
+                            Task { await viewModel.refresh() }
+                        }
+                    } else if viewModel.todayEntries.isEmpty {
+                        emptyState
+                    } else {
+                        entries
                     }
                 }
-
-                medicationCard
-
-                if viewModel.isLoading {
-                    Panel { LoadingRows() }
-                } else if viewModel.lastConnectionError != nil && viewModel.monthState == nil {
-                    ConnectionHelpPanel(baseURL: viewModel.apiBaseURL) {
-                        Task { await viewModel.refresh() }
-                    }
-                } else if viewModel.todayEntries.isEmpty {
-                    emptyState
-                } else {
-                    entries
-                }
+                .padding(18)
             }
-            .padding(18)
         }
-        .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
         .navigationTitle("Today")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -52,23 +55,23 @@ struct TodayView: View {
     }
 
     private var hero: some View {
-        Panel {
+        PaperPanel {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("HabitOS")
-                            .font(.caption.weight(.bold))
-                            .textCase(.uppercase)
-                            .tracking(1.2)
-                            .foregroundStyle(.secondary)
+                            .font(HabitOSFont.meta)
+                            .foregroundStyle(Color.inkFaint)
                         Text(viewModel.selectedDate, format: .dateTime.weekday(.wide).month().day())
-                            .font(.largeTitle.weight(.bold))
-                            .foregroundStyle(.primary)
+                            .font(HabitOSFont.h1)
+                            .foregroundStyle(Color.ink)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer()
                     DatePicker("Date", selection: $viewModel.selectedDate, displayedComponents: .date)
                         .labelsHidden()
+                        .foregroundStyle(Color.ink)
+                        .tint(Color.accent)
                 }
 
                 HStack(spacing: 12) {
@@ -91,29 +94,28 @@ struct TodayView: View {
         NavigationLink {
             MedicationLogView()
         } label: {
-            Panel {
+            PaperPanel {
                 HStack(spacing: 14) {
                     Image(systemName: "pills.fill")
-                        .font(.title2)
+                        .font(HabitOSFont.h3)
                         .foregroundStyle(.white)
                         .frame(width: 48, height: 48)
-                        .background(Color.accentColor)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(Color.rule)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Log medication")
-                            .font(.headline.weight(.bold))
-                            .foregroundStyle(.primary)
+                            .font(HabitOSFont.h3)
+                            .foregroundStyle(Color.ink)
                         Text(viewModel.medicationSummary)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(HabitOSFont.data)
+                            .foregroundStyle(Color.inkFaint)
                             .lineLimit(1)
                     }
 
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .font(HabitOSFont.body)
+                        .foregroundStyle(Color.inkFaint)
                 }
             }
         }
@@ -121,13 +123,14 @@ struct TodayView: View {
     }
 
     private var emptyState: some View {
-        Panel {
+        PaperPanel {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Nothing logged yet")
-                    .font(.title3.weight(.bold))
+                    .font(HabitOSFont.h3)
+                    .foregroundStyle(Color.ink)
                 Text("Pull down to refresh tracker data, or tap Log medication to record doses for this day.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                    .font(HabitOSFont.body)
+                    .foregroundStyle(Color.inkMid)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -136,7 +139,8 @@ struct TodayView: View {
     private var entries: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Resolved habits")
-                .font(.headline.weight(.bold))
+                .font(HabitOSFont.h3)
+                .foregroundStyle(Color.ink)
                 .padding(.horizontal, 4)
             ForEach(viewModel.todayEntries) { entry in
                 HabitEntryRow(entry: entry)
@@ -153,21 +157,22 @@ private struct StatPill: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: systemImage)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(Color.accent)
+                .font(HabitOSFont.data)
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .font(HabitOSFont.meta)
+                    .foregroundStyle(Color.inkFaint)
                 Text(value)
-                    .font(.headline.monospacedDigit().weight(.bold))
-                    .foregroundStyle(.primary)
+                    .font(HabitOSFont.data)
+                    .foregroundStyle(Color.ink)
             }
             Spacer(minLength: 0)
         }
         .padding(12)
         .frame(maxWidth: .infinity)
-        .background(Color(uiColor: .tertiarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(Color.paperDeep)
+        .overlay(Rectangle().stroke(Color.rule, lineWidth: 2))
     }
 }
 
@@ -175,20 +180,21 @@ private struct HabitEntryRow: View {
     let entry: HabitEntry
 
     var body: some View {
-        Panel {
+        PaperPanel {
             HStack(alignment: .top, spacing: 14) {
                 statusMark
                 VStack(alignment: .leading, spacing: 6) {
                     Text(entry.habitKey.replacingOccurrences(of: "_", with: " ").capitalized)
-                        .font(.headline.weight(.bold))
+                        .font(HabitOSFont.h3)
+                        .foregroundStyle(Color.ink)
                     Text(entry.summary.isEmpty ? entry.status.label : entry.summary)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(HabitOSFont.data)
+                        .foregroundStyle(Color.inkMid)
                         .fixedSize(horizontal: false, vertical: true)
                     if !entry.explanation.isEmpty {
                         Text(entry.explanation)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(HabitOSFont.meta)
+                            .foregroundStyle(Color.inkFaint)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -199,19 +205,19 @@ private struct HabitEntryRow: View {
 
     private var statusMark: some View {
         Image(systemName: entry.status == .checked || entry.status == .manual ? "checkmark" : entry.status == .missed ? "minus" : "circle.fill")
-            .font(.headline.weight(.bold))
+            .font(HabitOSFont.body)
             .foregroundStyle(statusColor)
             .frame(width: 38, height: 38)
-            .background(statusColor.opacity(0.12))
-            .clipShape(Circle())
+            .background(statusColor.opacity(0.15))
+            .overlay(Rectangle().stroke(statusColor, lineWidth: 2))
             .accessibilityLabel(entry.status.label)
     }
 
     private var statusColor: Color {
         switch entry.status {
-        case .checked, .manual: HabitOSDesign.success
-        case .partial, .warning: HabitOSDesign.warning
-        case .missed: HabitOSDesign.danger
+        case .checked, .manual: Color.accentHot
+        case .partial, .warning: Color.redPanel
+        case .missed: Color.anomaly
         }
     }
 }

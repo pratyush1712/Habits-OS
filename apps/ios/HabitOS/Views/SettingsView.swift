@@ -4,86 +4,141 @@ struct SettingsView: View {
     @EnvironmentObject private var viewModel: AppViewModel
 
     var body: some View {
-        Form {
-            Section {
-                HStack {
-                    Text("Connection")
-                        .font(.body)
-                    Spacer()
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(viewModel.connectionStatus.color)
-                            .frame(width: 8, height: 8)
-                        Text(viewModel.connectionStatus.label)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(viewModel.connectionStatus.color)
+        ZStack {
+            GridBackground()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    PaperPanel {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Settings")
+                                .font(HabitOSFont.h1)
+                                .foregroundStyle(Color.ink)
+
+                            HStack {
+                                Text("Connection")
+                                    .font(HabitOSFont.body)
+                                    .foregroundStyle(Color.ink)
+                                Spacer()
+                                HStack(spacing: 6) {
+                                    Rectangle()
+                                        .fill(connectionColor)
+                                        .frame(width: 8, height: 8)
+                                    Text(viewModel.connectionStatus.label)
+                                        .font(HabitOSFont.data)
+                                        .foregroundStyle(connectionColor)
+                                }
+                            }
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Server URL")
+                                    .font(HabitOSFont.meta)
+                                    .foregroundStyle(Color.inkFaint)
+                                TextField("Server URL", text: $viewModel.apiBaseURL)
+                                    .font(HabitOSFont.data)
+                                    .foregroundStyle(Color.ink)
+                                    .textInputAutocapitalization(.never)
+                                    .keyboardType(.URL)
+                                    .autocorrectionDisabled()
+                                    .padding(12)
+                                    .background(Color.green)
+                                    .overlay(Rectangle().stroke(Color.rule, lineWidth: 2))
+                            }
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("API key (optional)")
+                                    .font(HabitOSFont.meta)
+                                    .foregroundStyle(Color.inkFaint)
+                                SecureField("API key", text: $viewModel.mobileAPIKey)
+                                    .font(HabitOSFont.data)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .padding(12)
+                                    .background(Color.paper)
+                                    .overlay(Rectangle().stroke(Color.rule, lineWidth: 2))
+                            }
+
+                            Button {
+                                Haptic.medium()
+                                Task { await viewModel.refresh() }
+                            } label: {
+                                HStack {
+                                    Text("Test connection")
+                                    if viewModel.isLoading {
+                                        ProgressView()
+                                            .tint(Color.ink)
+                                    }
+                                }
+                            }
+                            .buttonStyle(SecondaryButtonStyle())
+                            .disabled(viewModel.isLoading)
+
+                            Text("The URL should end in /api/mobile. If your server requires a mobile API key, paste it above.")
+                                .font(HabitOSFont.meta)
+                                .foregroundStyle(Color.inkFaint)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
-                }
 
-                TextField("Server URL", text: $viewModel.apiBaseURL)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.URL)
-                    .autocorrectionDisabled()
+                    PaperPanel {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Timezone")
+                                .font(HabitOSFont.h3)
+                                .foregroundStyle(Color.ink)
 
-                SecureField("API key (optional)", text: $viewModel.mobileAPIKey)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Identifier")
+                                    .font(HabitOSFont.meta)
+                                    .foregroundStyle(Color.inkFaint)
+                                TextField("Identifier", text: $viewModel.timezoneIdentifier)
+                                    .font(HabitOSFont.data)
+                                    .foregroundStyle(Color.ink)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .padding(12)
+                                    .background(Color.paper)
+                                    .overlay(Rectangle().stroke(Color.rule, lineWidth: 2))
+                            }
+                        }
+                    }
 
-                Button {
-                    Haptic.medium()
-                    Task { await viewModel.refresh() }
-                } label: {
-                    HStack {
-                        Text("Test connection")
-                        if viewModel.isLoading {
+                    PaperPanel {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Medication")
+                                .font(HabitOSFont.h3)
+                                .foregroundStyle(Color.ink)
+
+                            Toggle("Update habits after saving", isOn: $viewModel.recomputeAfterMedicationSave)
+                                .font(HabitOSFont.body)
+                                .foregroundStyle(Color.ink)
+
+                            Text("When on, saving medication automatically recomputes habit entries for the month.")
+                                .font(HabitOSFont.meta)
+                                .foregroundStyle(Color.inkFaint)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
+                    if let notice = viewModel.notice {
+                        NoticeBanner(notice: notice) {
+                            viewModel.dismissNotice()
+                        }
+                    }
+
+                    PaperPanel {
+                        HStack {
+                            Text("Version")
+                                .font(HabitOSFont.body)
+                                .foregroundStyle(Color.ink)
                             Spacer()
-                            ProgressView()
+                            Text(appVersion)
+                                .font(HabitOSFont.data)
+                                .foregroundStyle(Color.inkFaint)
+                                .monospaced()
                         }
                     }
                 }
-                .disabled(viewModel.isLoading)
-            } header: {
-                Text("HabitOS Server")
-            } footer: {
-                Text("The URL should end in /api/mobile. If your server requires a mobile API key, paste it above.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section("Timezone") {
-                TextField("Identifier", text: $viewModel.timezoneIdentifier)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-            }
-
-            Section {
-                Toggle("Update habits after saving", isOn: $viewModel.recomputeAfterMedicationSave)
-            } header: {
-                Text("Medication")
-            } footer: {
-                Text("When on, saving medication automatically recomputes habit entries for the month.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
-            if let notice = viewModel.notice {
-                Section("Status") {
-                    NoticeBanner(notice: notice) {
-                        viewModel.dismissNotice()
-                    }
-                }
-            }
-
-            Section {
-                HStack {
-                    Text("Version")
-                        .font(.body)
-                    Spacer()
-                    Text(appVersion)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .monospaced()
-                }
+                .padding(18)
             }
         }
         .navigationTitle("Settings")
@@ -93,5 +148,14 @@ struct SettingsView: View {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
         return "\(version) (\(build))"
+    }
+
+    private var connectionColor: Color {
+        switch viewModel.connectionStatus {
+        case .unknown: Color.inkGhost
+        case .connecting: Color.accent
+        case .connected: Color.accentHot
+        case .unreachable: Color.anomaly
+        }
     }
 }
