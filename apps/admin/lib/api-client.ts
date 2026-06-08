@@ -2,6 +2,16 @@ import "server-only";
 
 import type { components, operations } from "./api-types";
 import { serverRuntimeConfig } from "./env";
+import {
+  isMongoDataConfigured,
+  mongoEvents,
+  mongoHabitEntries,
+  mongoHabits,
+  mongoLatestRender,
+  mongoLogMedication,
+  mongoMonthState,
+  mongoRenderJobs,
+} from "./mongo-data";
 
 type JsonRecord = Record<string, unknown>;
 type QueryValue = string | number | boolean | null | undefined;
@@ -25,26 +35,92 @@ type ApiJson<OperationName extends keyof operations> =
 
 export type HealthResponse = ApiJson<"health_health_get">;
 export type StatusResponse = ApiJson<"status_status_get">;
-export type AutomationStatusResponse = ApiJson<"automation_status_automation_status_get">;
-export type EventListResponse = ApiJson<"list_events_events_get">;
-export type HabitListResponse = ApiJson<"list_habits_habits_get">;
-export type HabitEntriesResponse = ApiJson<"list_habit_entries_habit_entries_get">;
-export type MonthStateResponse = ApiJson<"month_state_state_month_get">;
+export type AutomationStatusResponse =
+  ApiJson<"automation_status_automation_status_get">;
 export type RenderJobsResponse = ApiJson<"list_jobs_render_jobs_get">;
 export type RenderJobResponse = ApiJson<"render_month_render_month_post">;
 export type LatestRenderResponse = ApiJson<"latest_render_latest_get">;
-export type RemarkableStatusResponse = ApiJson<"remarkable_status_remarkable_status_get">;
-export type RemarkablePathsResponse = ApiJson<"remarkable_paths_remarkable_paths_get">;
-export type RemarkableInstructionsResponse = ApiJson<"sync_instructions_remarkable_instructions_get">;
+export type RemarkableStatusResponse =
+  ApiJson<"remarkable_status_remarkable_status_get">;
+export type RemarkablePathsResponse =
+  ApiJson<"remarkable_paths_remarkable_paths_get">;
+export type RemarkableInstructionsResponse =
+  ApiJson<"sync_instructions_remarkable_instructions_get">;
 export type WhoopStatusResponse = ApiJson<"whoop_status_whoop_status_get">;
 export type DayOneStatusResponse = ApiJson<"dayone_status_dayone_status_get">;
-export type SeedDefaultsResponse = ApiJson<"seed_defaults_habits_seed_defaults_post">;
+export type SeedDefaultsResponse =
+  ApiJson<"seed_defaults_habits_seed_defaults_post">;
 export type SyncResultResponse = components["schemas"]["SyncResult"];
-export type Habit = components["schemas"]["Habit"];
-export type HabitEntry = components["schemas"]["HabitEntry"];
-export type MonthHabitState = components["schemas"]["MonthHabitState"];
+export type EventSource =
+  | "whoop"
+  | "muse"
+  | "apple_health"
+  | "manual"
+  | "calendar"
+  | "github"
+  | "remarkable"
+  | "day_one"
+  | "medication";
+export type EventType =
+  | "workout"
+  | "sleep"
+  | "recovery"
+  | "meditation"
+  | "deep_work"
+  | "journal"
+  | "manual"
+  | "medication";
+export type Habit = Omit<
+  components["schemas"]["Habit"],
+  "event_types" | "sources"
+> & {
+  event_types?: EventType[];
+  sources?: EventSource[];
+};
+export type HabitEntry = Omit<components["schemas"]["HabitEntry"], "source"> & {
+  source: EventSource;
+};
+export type MedicationItem = {
+  dose: string;
+  key: string;
+  label: string;
+  prn?: boolean;
+  short: string;
+  total: number;
+};
+export type MedicationGroup = {
+  key: string;
+  label: string;
+  meds: MedicationItem[];
+};
+export type MedicationDayDose = {
+  date: string;
+  med_key: string;
+  status?: "taken" | "partial" | "missed" | "none" | null;
+  taken: number;
+  total?: number | null;
+};
+export type MonthHabitState = {
+  entries: HabitEntry[];
+  generated_at?: string;
+  habits: Habit[];
+  medication_days?: MedicationDayDose[];
+  medication_groups?: MedicationGroup[];
+  month: string;
+};
+export type MonthStateResponse = MonthHabitState;
 export type RenderJob = components["schemas"]["RenderJob"];
-export type SourceEvent = components["schemas"]["SourceEvent"];
+export type SourceEvent = Omit<
+  components["schemas"]["SourceEvent"],
+  "event_type" | "source"
+> & {
+  event_type: EventType;
+  source: EventSource;
+};
+
+export type EventListResponse = SourceEvent[];
+export type HabitListResponse = Habit[];
+export type HabitEntriesResponse = HabitEntry[];
 
 /**
  * Report upstream API failures with enough detail for the admin UI to display.
@@ -120,7 +196,8 @@ async function callApi<ResponseType>(
       method: options?.method ?? "GET",
       headers: buildHeaders(),
       cache: options?.cache ?? "no-store",
-      body: options?.body === undefined ? undefined : JSON.stringify(options.body),
+      body:
+        options?.body === undefined ? undefined : JSON.stringify(options.body),
     },
   );
 
@@ -159,32 +236,56 @@ export const api = {
     source?: string;
     start?: string;
   }): Promise<EventListResponse> {
+    if (isMongoDataConfigured()) {
+      return mongoEvents(query);
+    }
+
     return callApi<EventListResponse>("/events", { query });
   },
 
   habits(): Promise<HabitListResponse> {
+    if (isMongoDataConfigured()) {
+      return mongoHabits();
+    }
+
     return callApi<HabitListResponse>("/habits");
   },
 
   habitEntries(month: string): Promise<HabitEntriesResponse> {
+    if (isMongoDataConfigured()) {
+      return mongoHabitEntries(month);
+    }
+
     return callApi<HabitEntriesResponse>("/habit-entries", {
       query: { month },
     });
   },
 
   monthState(month: string): Promise<MonthStateResponse> {
+    if (isMongoDataConfigured()) {
+      return mongoMonthState(month);
+    }
+
     return callApi<MonthStateResponse>("/state/month", {
       query: { month },
     });
   },
 
   renderJobs(limit = 12): Promise<RenderJobsResponse> {
+    if (isMongoDataConfigured()) {
+      return mongoRenderJobs(limit);
+    }
+
     return callApi<RenderJobsResponse>("/render/jobs", {
       query: { limit },
     });
   },
 
   latestRender(month?: string): Promise<LatestRenderResponse> {
+    if (isMongoDataConfigured()) {
+      return mongoLatestRender(month);
+    }
+
     return callApi<LatestRenderResponse>("/render/latest", {
       query: { month },
     });
@@ -200,7 +301,9 @@ export const api = {
     });
   },
 
-  remarkableInstructions(month: string): Promise<RemarkableInstructionsResponse> {
+  remarkableInstructions(
+    month: string,
+  ): Promise<RemarkableInstructionsResponse> {
     return callApi<RemarkableInstructionsResponse>("/remarkable/instructions", {
       query: { month },
     });
@@ -219,6 +322,10 @@ export const api = {
   },
 
   logMedication(input: MedicationLogInput): Promise<JsonRecord> {
+    if (isMongoDataConfigured()) {
+      return mongoLogMedication(input);
+    }
+
     return callApi<JsonRecord>("/events/medication", {
       body: input,
       method: "POST",
