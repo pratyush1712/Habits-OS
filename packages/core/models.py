@@ -16,11 +16,28 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 HabitStatus = Literal["checked", "partial", "warning", "missed", "manual"]
 HabitKind = Literal["auto", "manual"]
 EventSource = Literal[
-    "whoop", "muse", "apple_health", "manual", "calendar", "github", "remarkable", "day_one"
+    "whoop",
+    "muse",
+    "apple_health",
+    "manual",
+    "calendar",
+    "github",
+    "remarkable",
+    "day_one",
+    "medication",
 ]
 EventType = Literal[
-    "workout", "sleep", "recovery", "meditation", "deep_work", "journal", "manual"
+    "workout",
+    "sleep",
+    "recovery",
+    "meditation",
+    "deep_work",
+    "journal",
+    "manual",
+    "medication",
 ]
+MedicationDoseStatus = Literal["taken", "partial", "missed", "none"]
+
 
 
 def _utcnow() -> datetime:
@@ -53,6 +70,41 @@ class Habit(_Strict):
     event_types: list[EventType] = Field(default_factory=list)
     sources: list[EventSource] = Field(default_factory=list)
 
+
+
+
+class MedicationItem(_Strict):
+    """A medication or supplement in the renderer schedule.
+
+    This is schedule/display metadata, not medical advice. Historical dose logs
+    stay in ``SourceEvent`` records so the regimen can change without rewriting
+    old adherence data.
+    """
+
+    key: str
+    label: str
+    short: str
+    dose: str = ""
+    total: int = Field(default=1, ge=0)
+    prn: bool = False
+
+
+class MedicationGroup(_Strict):
+    """A time-of-day bucket for the medication schedule shown in the PDF."""
+
+    key: str
+    label: str
+    meds: list[MedicationItem] = Field(default_factory=list)
+
+
+class MedicationDayDose(_Strict):
+    """One day's observed dose count for one medication/supplement."""
+
+    date: date
+    med_key: str
+    taken: int = Field(default=0, ge=0)
+    total: int | None = Field(default=None, ge=0)
+    status: MedicationDoseStatus | None = None
 
 class SourceEvent(_Strict):
     """A normalized event from a connector or manual import.
@@ -122,6 +174,8 @@ class MonthHabitState(_Strict):
     month: str
     habits: list[Habit]
     entries: list[HabitEntry]
+    medication_groups: list[MedicationGroup] = Field(default_factory=list)
+    medication_days: list[MedicationDayDose] = Field(default_factory=list)
     generated_at: datetime = Field(default_factory=_utcnow)
 
     @field_validator("month")

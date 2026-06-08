@@ -12,6 +12,9 @@ from packages.core.models import (
     Habit,
     HabitEntry,
     HabitOverride,
+    MedicationDayDose,
+    MedicationGroup,
+    MedicationItem,
     MonthHabitState,
     SourceEvent,
 )
@@ -169,3 +172,35 @@ def test_automation_run_rejects_invalid_date_string():
             render_summary={},
             remarkable_summary={},
         )
+
+
+
+def test_source_event_accepts_medication_literal():
+    e = SourceEvent(
+        id="manual:med-2026-05-31-magnesium",
+        source="manual",
+        source_event_id="med-2026-05-31-magnesium",
+        event_type="medication",
+        start_time_utc=datetime(2026, 5, 31, 23, 0, tzinfo=timezone.utc),
+        local_date=date(2026, 5, 31),
+        metrics={"med_key": "magnesium", "taken_count": 1, "scheduled_count": 2},
+    )
+    assert e.event_type == "medication"
+
+
+def test_month_state_accepts_medication_schedule_metadata():
+    state = MonthHabitState(
+        month="2026-05",
+        habits=[],
+        entries=[],
+        medication_groups=[
+            MedicationGroup(
+                key="night",
+                label="Night",
+                meds=[MedicationItem(key="magnesium", label="Mg", short="Mg", dose="2 x 100mg", total=2)],
+            )
+        ],
+        medication_days=[MedicationDayDose(date=date(2026, 5, 31), med_key="magnesium", taken=1, total=2)],
+    )
+    assert state.medication_groups[0].meds[0].key == "magnesium"
+    assert state.medication_days[0].taken == 1

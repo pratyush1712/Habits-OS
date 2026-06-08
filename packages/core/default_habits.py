@@ -8,8 +8,9 @@ from packages.core.models import Habit
 def default_habits() -> list[Habit]:
     """Return the built-in habit definitions in stable display order.
 
-    Three habits are deliberate, user-controlled actions and render as cards in
-    the grid and tally: ``workout``, ``meditation``, ``journaling``.
+    Four habits are deliberate, user-controlled actions and render as cards in
+    the grid and tally: ``workout``, ``medication``, ``meditation``, and
+    ``journaling``.
 
     ``sleep`` and ``recovery`` are ``metric_only``: they are still computed and
     stored from WHOOP data (so the numbers stay visible next to each day's date
@@ -31,6 +32,18 @@ def default_habits() -> list[Habit]:
             description="Exercise sessions from WHOOP or manual workout events.",
             event_types=["workout"],
             sources=["whoop", "manual"],
+        ),
+
+        Habit(
+            key="medication",
+            label="Medication",
+            short="Rx",
+            kind="auto",
+            enabled=True,
+            sort_order=20,
+            description="Medication and supplement dose logs from manual tracking events.",
+            event_types=["medication"],
+            sources=["manual", "medication"],
         ),
         Habit(
             key="meditation",

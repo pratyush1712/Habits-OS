@@ -43,12 +43,20 @@ class JournalingRule(_Strict):
     checked_min_entries: int = 1
 
 
+class MedicationRule(_Strict):
+    # Scheduled medications/supplements are checked when all recorded expected
+    # doses for the day are taken. PRN/as-needed doses are counted when logged,
+    # but absence of a PRN dose is not treated as missed.
+    count_prn_without_schedule: bool = True
+
+
 class HabitRuleConfig(_Strict):
     workout: WorkoutRule = WorkoutRule()
     meditation: MeditationRule = MeditationRule()
     sleep: SleepRule = SleepRule()
     recovery: RecoveryRule = RecoveryRule()
     journaling: JournalingRule = JournalingRule()
+    medication: MedicationRule = MedicationRule()
 
 
 DEFAULT_RULES = HabitRuleConfig()
