@@ -43,6 +43,9 @@ def test_renders_sample_pdf(tmp_path: Path) -> None:
     assert 'id="week-1"' in text
     assert 'id="week-1-review"' in text
     assert 'id="week-5-review"' in text
+    assert 'id="med-tally"' in text
+    assert "Medication schedule" in text
+    assert "Add 30" in text
     assert 'href="#month"' in text
     assert 'href="#day-2026-05-14"' in text
     assert 'href="#week-1-review"' in text

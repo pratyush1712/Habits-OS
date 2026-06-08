@@ -1,207 +1,998 @@
 {
   "month": "2026-05",
   "habits": [
-    {"key": "workout",    "label": "Workout",     "short": "W"},
-    {"key": "meditation", "label": "Meditation",  "short": "M"},
-    {"key": "journaling", "label": "Journaling",  "short": "J"},
-    {"key": "sleep",      "label": "Sleep",       "short": "Z", "metric_only": true},
-    {"key": "recovery",   "label": "Recovery",    "short": "R", "metric_only": true}
+    {
+      "key": "workout",
+      "label": "Workout",
+      "short": "W"
+    },
+    {
+      "key": "medication",
+      "label": "Medication",
+      "short": "Rx"
+    },
+    {
+      "key": "meditation",
+      "label": "Meditation",
+      "short": "M"
+    },
+    {
+      "key": "journaling",
+      "label": "Journaling",
+      "short": "J"
+    },
+    {
+      "key": "sleep",
+      "label": "Sleep",
+      "short": "Z",
+      "metric_only": true
+    },
+    {
+      "key": "recovery",
+      "label": "Recovery",
+      "short": "R",
+      "metric_only": true
+    }
   ],
   "days": [
-    {"date": "2026-05-01", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "45m run · easy z2",          "description": "Felt strong. No knee pain. Cool breeze along the river."},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h42m · 89% efficiency",     "description": ""},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 78",                    "description": "HRV trending up over the week."},
-      {"habit_key": "meditation", "status": "checked",  "summary": "10m breath",                  "description": ""},
-      {"habit_key": "journaling", "status": "checked",  "summary": "Morning pages · 3 pages",     "description": "Mostly untangling the Q2 review."}
-    ]},
-    {"date": "2026-05-02", "entries": [
-      {"habit_key": "workout",    "status": "missed",   "summary": "Rest day"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h05m · 91%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 82"},
-      {"habit_key": "meditation", "status": "partial",  "summary": "4m on a walk"}
-    ]},
-    {"date": "2026-05-03", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "60m yoga"},
-      {"habit_key": "sleep",      "status": "warning",  "summary": "6h12m · 84%",                 "description": "Late dinner, fell asleep restless."},
-      {"habit_key": "recovery",   "status": "warning",  "summary": "Score 61"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "12m yoga nidra"},
-      {"habit_key": "journaling", "status": "manual",   "summary": "Weekly review",               "description": "Set intentions: ship MVP renderer, ride twice."}
-    ]},
-    {"date": "2026-05-04", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "30m strength"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h55m · 90%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 74"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "8m breath"}
-    ]},
-    {"date": "2026-05-05", "entries": [
-      {"habit_key": "workout",    "status": "partial",  "summary": "12m walk"},
-      {"habit_key": "sleep",      "status": "warning",  "summary": "6h40m · 86%"},
-      {"habit_key": "recovery",   "status": "warning",  "summary": "Score 58"}
-    ]},
-    {"date": "2026-05-06", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "50m bike commute"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h30m · 88%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 71"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "10m breath"},
-      {"habit_key": "journaling", "status": "checked",  "summary": "Morning pages"}
-    ]},
-    {"date": "2026-05-07", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "45m strength"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h12m · 92%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 80"},
-      {"habit_key": "meditation", "status": "partial",  "summary": "3m on the train"}
-    ]},
-    {"date": "2026-05-08", "entries": [
-      {"habit_key": "workout",    "status": "missed",   "summary": "Travel day"},
-      {"habit_key": "sleep",      "status": "warning",  "summary": "5h50m · 81%",                 "description": "Red-eye."},
-      {"habit_key": "recovery",   "status": "missed",   "summary": "Score 49"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "15m airport pause"}
-    ]},
-    {"date": "2026-05-09", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "70m hike"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h25m · 93%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 76"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "10m forest sit"},
-      {"habit_key": "journaling", "status": "checked",  "summary": "Trip notes"}
-    ]},
-    {"date": "2026-05-10", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "40m trail run"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h48m · 90%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 75"},
-      {"habit_key": "meditation", "status": "missed",   "summary": ""},
-      {"habit_key": "journaling", "status": "manual",   "summary": "Weekly review",               "description": "Quiet week. The handwriting space matters more than I thought."}
-    ]},
-    {"date": "2026-05-11", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "45m strength"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h35m · 89%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 73"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "8m breath"}
-    ]},
-    {"date": "2026-05-12", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "55m bike"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h20m · 88%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 70"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "10m breath"}
-    ]},
-    {"date": "2026-05-13", "entries": [
-      {"habit_key": "workout",    "status": "partial",  "summary": "20m walk"},
-      {"habit_key": "sleep",      "status": "warning",  "summary": "6h50m · 85%"},
-      {"habit_key": "recovery",   "status": "warning",  "summary": "Score 62"},
-      {"habit_key": "journaling", "status": "checked",  "summary": "Morning pages"}
-    ]},
-    {"date": "2026-05-14", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "60m run · z2 + strides"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h00m · 90%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 77"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "12m breath"}
-    ]},
-    {"date": "2026-05-15", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "45m strength"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h40m · 89%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 72"},
-      {"habit_key": "meditation", "status": "partial",  "summary": "4m breath"}
-    ]},
-    {"date": "2026-05-16", "entries": [
-      {"habit_key": "workout",    "status": "missed",   "summary": "Rest day"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h20m · 92%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 79"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "15m yoga nidra"}
-    ]},
-    {"date": "2026-05-17", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "75m bike"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h05m · 91%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 81"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "10m breath"},
-      {"habit_key": "journaling", "status": "manual",   "summary": "Weekly review"}
-    ]},
-    {"date": "2026-05-18", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "45m run"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h45m · 89%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 74"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "8m breath"}
-    ]},
-    {"date": "2026-05-19", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "40m strength"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h28m · 88%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 71"}
-    ]},
-    {"date": "2026-05-20", "entries": [
-      {"habit_key": "workout",    "status": "partial",  "summary": "15m walk"},
-      {"habit_key": "sleep",      "status": "warning",  "summary": "6h15m · 83%",                 "description": "Late call."},
-      {"habit_key": "recovery",   "status": "warning",  "summary": "Score 60"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "10m breath"},
-      {"habit_key": "journaling", "status": "checked",  "summary": "Quick evening note"}
-    ]},
-    {"date": "2026-05-21", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "50m run"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h10m · 91%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 76"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "12m breath"}
-    ]},
-    {"date": "2026-05-22", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "45m strength"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h32m · 88%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 73"},
-      {"habit_key": "meditation", "status": "missed",   "summary": ""}
-    ]},
-    {"date": "2026-05-23", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "90m long ride"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h00m · 90%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 78"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "10m post-ride"},
-      {"habit_key": "journaling", "status": "checked",  "summary": "Weekend pages"}
-    ]},
-    {"date": "2026-05-24", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "35m easy run"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h22m · 92%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 80"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "15m breath"},
-      {"habit_key": "journaling", "status": "manual",   "summary": "Weekly review",               "description": "Strong consistency. Sleep is the lever."}
-    ]},
-    {"date": "2026-05-25", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "45m strength"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h38m · 89%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 75"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "10m breath"}
-    ]},
-    {"date": "2026-05-26", "entries": [
-      {"habit_key": "workout",    "status": "partial",  "summary": "10m walk"},
-      {"habit_key": "sleep",      "status": "warning",  "summary": "6h45m · 85%"},
-      {"habit_key": "recovery",   "status": "warning",  "summary": "Score 63"}
-    ]},
-    {"date": "2026-05-27", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "55m run"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h55m · 90%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 74"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "8m breath"}
-    ]},
-    {"date": "2026-05-28", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "45m strength"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "7h28m · 88%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 72"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "12m breath"},
-      {"habit_key": "journaling", "status": "checked",  "summary": "Morning pages"}
-    ]},
-    {"date": "2026-05-29", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "60m bike"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h00m · 90%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 76"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "10m breath"}
-    ]},
-    {"date": "2026-05-30", "entries": [
-      {"habit_key": "workout",    "status": "checked",  "summary": "80m long run"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h15m · 91%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 79"},
-      {"habit_key": "meditation", "status": "partial",  "summary": "4m post-run"},
-      {"habit_key": "journaling", "status": "checked",  "summary": "Weekend reflection"}
-    ]},
-    {"date": "2026-05-31", "entries": [
-      {"habit_key": "workout",    "status": "missed",   "summary": "Rest day"},
-      {"habit_key": "sleep",      "status": "checked",  "summary": "8h30m · 93%"},
-      {"habit_key": "recovery",   "status": "checked",  "summary": "Score 82"},
-      {"habit_key": "meditation", "status": "checked",  "summary": "15m yoga nidra"},
-      {"habit_key": "journaling", "status": "manual",   "summary": "Monthly review",              "description": "First full month with the dashboard. Pleasant surprise — I check the PDF in the morning instead of my phone."}
-    ]}
+    {
+      "date": "2026-05-01",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "45m run \u00b7 easy z2",
+          "description": "Felt strong. No knee pain. Cool breeze along the river."
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h42m \u00b7 89% efficiency",
+          "description": ""
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 78",
+          "description": "HRV trending up over the week."
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "10m breath",
+          "description": ""
+        },
+        {
+          "habit_key": "journaling",
+          "status": "checked",
+          "summary": "Morning pages \u00b7 3 pages",
+          "description": "Mostly untangling the Q2 review."
+        }
+      ]
+    },
+    {
+      "date": "2026-05-02",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "missed",
+          "summary": "Rest day"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h05m \u00b7 91%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 82"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "partial",
+          "summary": "4m on a walk"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-03",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "60m yoga"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "warning",
+          "summary": "6h12m \u00b7 84%",
+          "description": "Late dinner, fell asleep restless."
+        },
+        {
+          "habit_key": "recovery",
+          "status": "warning",
+          "summary": "Score 61"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "12m yoga nidra"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "manual",
+          "summary": "Weekly review",
+          "description": "Set intentions: ship MVP renderer, ride twice."
+        }
+      ]
+    },
+    {
+      "date": "2026-05-04",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "30m strength"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h55m \u00b7 90%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 74"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "8m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-05",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "partial",
+          "summary": "12m walk"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "warning",
+          "summary": "6h40m \u00b7 86%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "warning",
+          "summary": "Score 58"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-06",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "50m bike commute"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h30m \u00b7 88%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 71"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "10m breath"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "checked",
+          "summary": "Morning pages"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-07",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "45m strength"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h12m \u00b7 92%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 80"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "partial",
+          "summary": "3m on the train"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-08",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "missed",
+          "summary": "Travel day"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "warning",
+          "summary": "5h50m \u00b7 81%",
+          "description": "Red-eye."
+        },
+        {
+          "habit_key": "recovery",
+          "status": "missed",
+          "summary": "Score 49"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "15m airport pause"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-09",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "70m hike"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h25m \u00b7 93%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 76"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "10m forest sit"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "checked",
+          "summary": "Trip notes"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-10",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "40m trail run"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h48m \u00b7 90%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 75"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "missed",
+          "summary": ""
+        },
+        {
+          "habit_key": "journaling",
+          "status": "manual",
+          "summary": "Weekly review",
+          "description": "Quiet week. The handwriting space matters more than I thought."
+        }
+      ]
+    },
+    {
+      "date": "2026-05-11",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "45m strength"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h35m \u00b7 89%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 73"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "8m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-12",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "55m bike"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h20m \u00b7 88%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 70"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "10m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-13",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "partial",
+          "summary": "20m walk"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "warning",
+          "summary": "6h50m \u00b7 85%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "warning",
+          "summary": "Score 62"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "checked",
+          "summary": "Morning pages"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-14",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "60m run \u00b7 z2 + strides"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h00m \u00b7 90%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 77"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "12m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-15",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "45m strength"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h40m \u00b7 89%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 72"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "partial",
+          "summary": "4m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-16",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "missed",
+          "summary": "Rest day"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h20m \u00b7 92%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 79"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "15m yoga nidra"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-17",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "75m bike"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h05m \u00b7 91%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 81"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "10m breath"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "manual",
+          "summary": "Weekly review"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-18",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "45m run"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h45m \u00b7 89%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 74"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "8m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-19",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "40m strength"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h28m \u00b7 88%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 71"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-20",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "partial",
+          "summary": "15m walk"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "warning",
+          "summary": "6h15m \u00b7 83%",
+          "description": "Late call."
+        },
+        {
+          "habit_key": "recovery",
+          "status": "warning",
+          "summary": "Score 60"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "10m breath"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "checked",
+          "summary": "Quick evening note"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-21",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "50m run"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h10m \u00b7 91%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 76"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "12m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-22",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "45m strength"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h32m \u00b7 88%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 73"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "missed",
+          "summary": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-05-23",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "90m long ride"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h00m \u00b7 90%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 78"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "10m post-ride"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "checked",
+          "summary": "Weekend pages"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-24",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "35m easy run"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h22m \u00b7 92%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 80"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "15m breath"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "manual",
+          "summary": "Weekly review",
+          "description": "Strong consistency. Sleep is the lever."
+        }
+      ]
+    },
+    {
+      "date": "2026-05-25",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "45m strength"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h38m \u00b7 89%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 75"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "10m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-26",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "partial",
+          "summary": "10m walk"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "warning",
+          "summary": "6h45m \u00b7 85%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "warning",
+          "summary": "Score 63"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-27",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "55m run"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h55m \u00b7 90%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 74"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "8m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-28",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "45m strength"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "7h28m \u00b7 88%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 72"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "12m breath"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "checked",
+          "summary": "Morning pages"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-29",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "60m bike"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h00m \u00b7 90%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 76"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "10m breath"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-30",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "checked",
+          "summary": "80m long run"
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h15m \u00b7 91%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 79"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "partial",
+          "summary": "4m post-run"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "checked",
+          "summary": "Weekend reflection"
+        }
+      ]
+    },
+    {
+      "date": "2026-05-31",
+      "entries": [
+        {
+          "habit_key": "workout",
+          "status": "missed",
+          "summary": "Rest day"
+        },
+        {
+          "habit_key": "medication",
+          "status": "partial",
+          "summary": "7/11 scheduled doses",
+          "description": "May 31 sample from the medication/supplement tracker."
+        },
+        {
+          "habit_key": "sleep",
+          "status": "checked",
+          "summary": "8h30m \u00b7 93%"
+        },
+        {
+          "habit_key": "recovery",
+          "status": "checked",
+          "summary": "Score 82"
+        },
+        {
+          "habit_key": "meditation",
+          "status": "checked",
+          "summary": "15m yoga nidra"
+        },
+        {
+          "habit_key": "journaling",
+          "status": "manual",
+          "summary": "Monthly review",
+          "description": "First full month with the dashboard. Pleasant surprise \u2014 I check the PDF in the morning instead of my phone."
+        }
+      ]
+    }
+  ],
+  "medication_groups": [
+    {
+      "key": "morning",
+      "label": "Morning",
+      "meds": [
+        {
+          "key": "propranolol_morning",
+          "label": "Prop",
+          "short": "P-M",
+          "dose": "morning",
+          "total": 1
+        },
+        {
+          "key": "adderall_xr",
+          "label": "Add 30",
+          "short": "A30",
+          "dose": "30mg XR",
+          "total": 1
+        },
+        {
+          "key": "multivitamin",
+          "label": "M.V.",
+          "short": "MV",
+          "dose": "2 pills \u00b7 food \u00b7 1h from Adderall",
+          "total": 2
+        }
+      ]
+    },
+    {
+      "key": "afternoon",
+      "label": "Afternoon",
+      "meds": [
+        {
+          "key": "adderall_ir",
+          "label": "Add 20",
+          "short": "A20",
+          "dose": "20mg IR",
+          "total": 1
+        },
+        {
+          "key": "omega_3",
+          "label": "O3",
+          "short": "O3",
+          "dose": "3 pills \u00b7 1300mg EPA / 860mg DHA",
+          "total": 3
+        }
+      ]
+    },
+    {
+      "key": "night",
+      "label": "Night",
+      "meds": [
+        {
+          "key": "propranolol_night",
+          "label": "Prop",
+          "short": "P-N",
+          "dose": "night",
+          "total": 1
+        },
+        {
+          "key": "magnesium",
+          "label": "Mg",
+          "short": "Mg",
+          "dose": "2 \u00d7 100mg",
+          "total": 2
+        },
+        {
+          "key": "hydroxyzine",
+          "label": "Hy",
+          "short": "Hy",
+          "dose": "night / anxiety",
+          "total": 0,
+          "prn": true
+        }
+      ]
+    }
+  ],
+  "medication_days": [
+    {
+      "date": "2026-05-31",
+      "med_key": "propranolol_morning",
+      "taken": 1,
+      "total": 1
+    },
+    {
+      "date": "2026-05-31",
+      "med_key": "adderall_xr",
+      "taken": 0,
+      "total": 1
+    },
+    {
+      "date": "2026-05-31",
+      "med_key": "adderall_ir",
+      "taken": 1,
+      "total": 1
+    },
+    {
+      "date": "2026-05-31",
+      "med_key": "omega_3",
+      "taken": 1,
+      "total": 3
+    },
+    {
+      "date": "2026-05-31",
+      "med_key": "multivitamin",
+      "taken": 2,
+      "total": 2
+    },
+    {
+      "date": "2026-05-31",
+      "med_key": "propranolol_night",
+      "taken": 1,
+      "total": 1
+    },
+    {
+      "date": "2026-05-31",
+      "med_key": "magnesium",
+      "taken": 1,
+      "total": 2
+    }
   ]
 }

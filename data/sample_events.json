@@ -1,216 +1,419 @@
 {
   "month": "2026-05",
   "habits": [
-    {"key": "workout",    "label": "Workout",    "short": "W", "kind": "auto"},
-    {"key": "sleep",      "label": "Sleep",      "short": "Z", "kind": "auto"},
-    {"key": "meditation", "label": "Meditation", "short": "M", "kind": "auto"},
-    {"key": "journaling", "label": "Journaling", "short": "J", "kind": "manual"},
-    {"key": "deep_work",  "label": "Deep work",  "short": "D", "kind": "manual"}
+    { "key": "workout", "label": "Workout", "short": "W", "kind": "auto" },
+    {
+      "key": "medication",
+      "label": "Medication",
+      "short": "Rx",
+      "kind": "auto"
+    },
+    { "key": "sleep", "label": "Sleep", "short": "Z", "kind": "auto" },
+    {
+      "key": "meditation",
+      "label": "Meditation",
+      "short": "M",
+      "kind": "auto"
+    },
+    {
+      "key": "journaling",
+      "label": "Journaling",
+      "short": "J",
+      "kind": "manual"
+    },
+    { "key": "deep_work", "label": "Deep work", "short": "D", "kind": "manual" }
   ],
   "source_events": [
     {
       "id": "whoop:wk-001",
-      "source": "whoop", "source_event_id": "wk-001",
+      "source": "whoop",
+      "source_event_id": "wk-001",
       "event_type": "workout",
       "start_time_utc": "2026-05-01T13:00:00Z",
-      "end_time_utc":   "2026-05-01T13:45:00Z",
-      "local_date": "2026-05-01", "timezone": "America/New_York",
-      "title": "easy run · z2",
+      "end_time_utc": "2026-05-01T13:45:00Z",
+      "local_date": "2026-05-01",
+      "timezone": "America/New_York",
+      "title": "easy run \u00b7 z2",
       "description": "Felt strong along the river.",
-      "metrics": {"distance_km": 7.5}
+      "metrics": {
+        "distance_km": 7.5
+      }
     },
     {
       "id": "whoop:sl-001",
-      "source": "whoop", "source_event_id": "sl-001",
+      "source": "whoop",
+      "source_event_id": "sl-001",
       "event_type": "sleep",
       "start_time_utc": "2026-05-01T04:15:00Z",
-      "end_time_utc":   "2026-05-01T12:00:00Z",
-      "local_date": "2026-05-01", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-01T12:00:00Z",
+      "local_date": "2026-05-01",
+      "timezone": "America/New_York",
       "title": "Main sleep",
-      "metrics": {"efficiency_pct": 89}
+      "metrics": {
+        "efficiency_pct": 89
+      }
     },
     {
       "id": "muse:med-001",
-      "source": "muse", "source_event_id": "med-001",
+      "source": "muse",
+      "source_event_id": "med-001",
       "event_type": "meditation",
       "start_time_utc": "2026-05-01T11:30:00Z",
-      "end_time_utc":   "2026-05-01T11:40:00Z",
-      "local_date": "2026-05-01", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-01T11:40:00Z",
+      "local_date": "2026-05-01",
+      "timezone": "America/New_York",
       "title": "breath"
     },
-
     {
       "id": "whoop:sl-002",
-      "source": "whoop", "source_event_id": "sl-002",
+      "source": "whoop",
+      "source_event_id": "sl-002",
       "event_type": "sleep",
       "start_time_utc": "2026-05-02T06:00:00Z",
-      "end_time_utc":   "2026-05-02T12:30:00Z",
-      "local_date": "2026-05-02", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-02T12:30:00Z",
+      "local_date": "2026-05-02",
+      "timezone": "America/New_York",
       "title": "Main sleep",
-      "metrics": {"efficiency_pct": 84}
+      "metrics": {
+        "efficiency_pct": 84
+      }
     },
     {
       "id": "muse:med-002",
-      "source": "muse", "source_event_id": "med-002",
+      "source": "muse",
+      "source_event_id": "med-002",
       "event_type": "meditation",
       "start_time_utc": "2026-05-02T15:10:00Z",
-      "end_time_utc":   "2026-05-02T15:18:00Z",
-      "local_date": "2026-05-02", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-02T15:18:00Z",
+      "local_date": "2026-05-02",
+      "timezone": "America/New_York",
       "title": "breath"
     },
-
     {
       "id": "whoop:wk-003",
-      "source": "whoop", "source_event_id": "wk-003",
+      "source": "whoop",
+      "source_event_id": "wk-003",
       "event_type": "workout",
       "start_time_utc": "2026-05-03T16:00:00Z",
-      "end_time_utc":   "2026-05-03T16:12:00Z",
-      "local_date": "2026-05-03", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-03T16:12:00Z",
+      "local_date": "2026-05-03",
+      "timezone": "America/New_York",
       "title": "short walk"
     },
     {
       "id": "whoop:sl-003",
-      "source": "whoop", "source_event_id": "sl-003",
+      "source": "whoop",
+      "source_event_id": "sl-003",
       "event_type": "sleep",
       "start_time_utc": "2026-05-03T05:00:00Z",
-      "end_time_utc":   "2026-05-03T12:00:00Z",
-      "local_date": "2026-05-03", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-03T12:00:00Z",
+      "local_date": "2026-05-03",
+      "timezone": "America/New_York",
       "title": "Main sleep",
-      "metrics": {"efficiency_pct": 90}
+      "metrics": {
+        "efficiency_pct": 90
+      }
     },
-
     {
       "id": "whoop:wk-004",
-      "source": "whoop", "source_event_id": "wk-004",
+      "source": "whoop",
+      "source_event_id": "wk-004",
       "event_type": "workout",
       "start_time_utc": "2026-05-04T13:00:00Z",
-      "end_time_utc":   "2026-05-04T13:04:00Z",
-      "local_date": "2026-05-04", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-04T13:04:00Z",
+      "local_date": "2026-05-04",
+      "timezone": "America/New_York",
       "title": "two-block walk"
     },
     {
       "id": "whoop:sl-004",
-      "source": "whoop", "source_event_id": "sl-004",
+      "source": "whoop",
+      "source_event_id": "sl-004",
       "event_type": "sleep",
       "start_time_utc": "2026-05-04T04:30:00Z",
-      "end_time_utc":   "2026-05-04T12:30:00Z",
-      "local_date": "2026-05-04", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-04T12:30:00Z",
+      "local_date": "2026-05-04",
+      "timezone": "America/New_York",
       "title": "Main sleep",
-      "metrics": {"efficiency_pct": 91}
+      "metrics": {
+        "efficiency_pct": 91
+      }
     },
     {
       "id": "muse:med-004",
-      "source": "muse", "source_event_id": "med-004",
+      "source": "muse",
+      "source_event_id": "med-004",
       "event_type": "meditation",
       "start_time_utc": "2026-05-04T18:00:00Z",
-      "end_time_utc":   "2026-05-04T18:03:00Z",
-      "local_date": "2026-05-04", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-04T18:03:00Z",
+      "local_date": "2026-05-04",
+      "timezone": "America/New_York",
       "title": "breath"
     },
-
     {
       "id": "whoop:wk-005a",
-      "source": "whoop", "source_event_id": "wk-005a",
+      "source": "whoop",
+      "source_event_id": "wk-005a",
       "event_type": "workout",
       "start_time_utc": "2026-05-05T13:00:00Z",
-      "end_time_utc":   "2026-05-05T13:20:00Z",
-      "local_date": "2026-05-05", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-05T13:20:00Z",
+      "local_date": "2026-05-05",
+      "timezone": "America/New_York",
       "title": "lift"
     },
     {
       "id": "whoop:wk-005b",
-      "source": "whoop", "source_event_id": "wk-005b",
+      "source": "whoop",
+      "source_event_id": "wk-005b",
       "event_type": "workout",
       "start_time_utc": "2026-05-05T22:30:00Z",
-      "end_time_utc":   "2026-05-05T22:38:00Z",
-      "local_date": "2026-05-05", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-05T22:38:00Z",
+      "local_date": "2026-05-05",
+      "timezone": "America/New_York",
       "title": "evening walk"
     },
     {
       "id": "whoop:sl-005",
-      "source": "whoop", "source_event_id": "sl-005",
+      "source": "whoop",
+      "source_event_id": "sl-005",
       "event_type": "sleep",
       "start_time_utc": "2026-05-05T04:30:00Z",
-      "end_time_utc":   "2026-05-05T12:00:00Z",
-      "local_date": "2026-05-05", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-05T12:00:00Z",
+      "local_date": "2026-05-05",
+      "timezone": "America/New_York",
       "title": "Main sleep",
-      "metrics": {"efficiency_pct": 88}
+      "metrics": {
+        "efficiency_pct": 88
+      }
     },
-
     {
       "id": "whoop:wk-007",
-      "source": "whoop", "source_event_id": "wk-007",
+      "source": "whoop",
+      "source_event_id": "wk-007",
       "event_type": "workout",
       "start_time_utc": "2026-05-07T13:00:00Z",
-      "end_time_utc":   "2026-05-07T14:00:00Z",
-      "local_date": "2026-05-07", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-07T14:00:00Z",
+      "local_date": "2026-05-07",
+      "timezone": "America/New_York",
       "title": "long bike"
     },
     {
       "id": "whoop:sl-007",
-      "source": "whoop", "source_event_id": "sl-007",
+      "source": "whoop",
+      "source_event_id": "sl-007",
       "event_type": "sleep",
       "start_time_utc": "2026-05-07T04:00:00Z",
-      "end_time_utc":   "2026-05-07T11:45:00Z",
-      "local_date": "2026-05-07", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-07T11:45:00Z",
+      "local_date": "2026-05-07",
+      "timezone": "America/New_York",
       "title": "Main sleep",
-      "metrics": {"efficiency_pct": 92}
+      "metrics": {
+        "efficiency_pct": 92
+      }
     },
     {
       "id": "muse:med-007",
-      "source": "muse", "source_event_id": "med-007",
+      "source": "muse",
+      "source_event_id": "med-007",
       "event_type": "meditation",
       "start_time_utc": "2026-05-07T19:00:00Z",
-      "end_time_utc":   "2026-05-07T19:12:00Z",
-      "local_date": "2026-05-07", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-07T19:12:00Z",
+      "local_date": "2026-05-07",
+      "timezone": "America/New_York",
       "title": "breath"
     },
-
     {
       "id": "whoop:wk-014",
-      "source": "whoop", "source_event_id": "wk-014",
+      "source": "whoop",
+      "source_event_id": "wk-014",
       "event_type": "workout",
       "start_time_utc": "2026-05-14T13:30:00Z",
-      "end_time_utc":   "2026-05-14T14:00:00Z",
-      "local_date": "2026-05-14", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-14T14:00:00Z",
+      "local_date": "2026-05-14",
+      "timezone": "America/New_York",
       "title": "tempo run"
     },
     {
       "id": "whoop:sl-014",
-      "source": "whoop", "source_event_id": "sl-014",
+      "source": "whoop",
+      "source_event_id": "sl-014",
       "event_type": "sleep",
       "start_time_utc": "2026-05-14T04:15:00Z",
-      "end_time_utc":   "2026-05-14T12:15:00Z",
-      "local_date": "2026-05-14", "timezone": "America/New_York",
+      "end_time_utc": "2026-05-14T12:15:00Z",
+      "local_date": "2026-05-14",
+      "timezone": "America/New_York",
       "title": "Main sleep",
-      "metrics": {"efficiency_pct": 90}
+      "metrics": {
+        "efficiency_pct": 90
+      }
+    },
+    {
+      "source": "manual",
+      "event_type": "medication",
+      "start_time_utc": "2026-05-31T12:00:00Z",
+      "local_date": "2026-05-31",
+      "timezone": "America/New_York",
+      "id": "manual:med-2026-05-31-propranolol_morning",
+      "source_event_id": "med-2026-05-31-propranolol_morning",
+      "title": "Prop (Mor)",
+      "metrics": {
+        "med_key": "propranolol_morning",
+        "med_label": "Prop (Mor)",
+        "taken_count": 1,
+        "scheduled_count": 1,
+        "prn": false
+      }
+    },
+    {
+      "source": "manual",
+      "event_type": "medication",
+      "start_time_utc": "2026-05-31T12:00:00Z",
+      "local_date": "2026-05-31",
+      "timezone": "America/New_York",
+      "id": "manual:med-2026-05-31-adderall_xr",
+      "source_event_id": "med-2026-05-31-adderall_xr",
+      "title": "Add 30",
+      "metrics": {
+        "med_key": "adderall_xr",
+        "med_label": "Add 30",
+        "taken_count": 0,
+        "scheduled_count": 1,
+        "prn": false
+      }
+    },
+    {
+      "source": "manual",
+      "event_type": "medication",
+      "start_time_utc": "2026-05-31T12:00:00Z",
+      "local_date": "2026-05-31",
+      "timezone": "America/New_York",
+      "id": "manual:med-2026-05-31-adderall_ir",
+      "source_event_id": "med-2026-05-31-adderall_ir",
+      "title": "Add 20",
+      "metrics": {
+        "med_key": "adderall_ir",
+        "med_label": "Add 20",
+        "taken_count": 1,
+        "scheduled_count": 1,
+        "prn": false
+      }
+    },
+    {
+      "source": "manual",
+      "event_type": "medication",
+      "start_time_utc": "2026-05-31T12:00:00Z",
+      "local_date": "2026-05-31",
+      "timezone": "America/New_York",
+      "id": "manual:med-2026-05-31-omega_3",
+      "source_event_id": "med-2026-05-31-omega_3",
+      "title": "O3",
+      "metrics": {
+        "med_key": "omega_3",
+        "med_label": "O3",
+        "taken_count": 1,
+        "scheduled_count": 3,
+        "prn": false
+      }
+    },
+    {
+      "source": "manual",
+      "event_type": "medication",
+      "start_time_utc": "2026-05-31T12:00:00Z",
+      "local_date": "2026-05-31",
+      "timezone": "America/New_York",
+      "id": "manual:med-2026-05-31-multivitamin",
+      "source_event_id": "med-2026-05-31-multivitamin",
+      "title": "M.V.",
+      "metrics": {
+        "med_key": "multivitamin",
+        "med_label": "M.V.",
+        "taken_count": 2,
+        "scheduled_count": 2,
+        "prn": false
+      }
+    },
+    {
+      "source": "manual",
+      "event_type": "medication",
+      "start_time_utc": "2026-05-31T12:00:00Z",
+      "local_date": "2026-05-31",
+      "timezone": "America/New_York",
+      "id": "manual:med-2026-05-31-propranolol_night",
+      "source_event_id": "med-2026-05-31-propranolol_night",
+      "title": "Prop (Night)",
+      "metrics": {
+        "med_key": "propranolol_night",
+        "med_label": "Prop (Night)",
+        "taken_count": 1,
+        "scheduled_count": 1,
+        "prn": false
+      }
+    },
+    {
+      "source": "manual",
+      "event_type": "medication",
+      "start_time_utc": "2026-05-31T12:00:00Z",
+      "local_date": "2026-05-31",
+      "timezone": "America/New_York",
+      "id": "manual:med-2026-05-31-magnesium",
+      "source_event_id": "med-2026-05-31-magnesium",
+      "title": "Mg",
+      "metrics": {
+        "med_key": "magnesium",
+        "med_label": "Mg",
+        "taken_count": 1,
+        "scheduled_count": 2,
+        "prn": false
+      }
+    },
+    {
+      "source": "manual",
+      "event_type": "medication",
+      "start_time_utc": "2026-05-31T12:00:00Z",
+      "local_date": "2026-05-31",
+      "timezone": "America/New_York",
+      "id": "manual:med-2026-05-31-hydroxyzine",
+      "source_event_id": "med-2026-05-31-hydroxyzine",
+      "title": "Hy",
+      "metrics": {
+        "med_key": "hydroxyzine",
+        "med_label": "Hy",
+        "taken_count": 0,
+        "scheduled_count": 0,
+        "prn": true
+      }
     }
   ],
   "manual_overrides": [
     {
-      "date": "2026-05-04", "habit_key": "journaling",
+      "date": "2026-05-04",
+      "habit_key": "journaling",
       "status": "checked",
-      "summary": "Morning pages · 3 pages",
+      "summary": "Morning pages \u00b7 3 pages",
       "description": "Untangling the Q2 review."
     },
     {
-      "date": "2026-05-05", "habit_key": "deep_work",
+      "date": "2026-05-05",
+      "habit_key": "deep_work",
       "status": "checked",
-      "summary": "3h · renderer prototype"
+      "summary": "3h \u00b7 renderer prototype"
     },
     {
-      "date": "2026-05-07", "habit_key": "workout",
+      "date": "2026-05-07",
+      "habit_key": "workout",
       "status": "manual",
       "summary": "long bike (manually marked)",
       "description": "Override demo: manual entry takes priority over the auto-evaluated entry."
     },
     {
-      "date": "2026-05-07", "habit_key": "journaling",
+      "date": "2026-05-07",
+      "habit_key": "journaling",
       "status": "checked",
       "summary": "Trip notes"
     },
     {
-      "date": "2026-05-31", "habit_key": "journaling",
+      "date": "2026-05-31",
+      "habit_key": "journaling",
       "status": "manual",
       "summary": "Monthly review",
       "description": "First full month with the dashboard."
