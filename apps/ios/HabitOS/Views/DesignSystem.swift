@@ -7,6 +7,40 @@ enum HabitOSDesign {
     static let danger = Color.red
 }
 
+enum Haptic {
+    @MainActor
+    static func light() {
+        #if os(iOS)
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        #endif
+    }
+
+    @MainActor
+    static func medium() {
+        #if os(iOS)
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        #endif
+    }
+
+    @MainActor
+    static func success() {
+        #if os(iOS)
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        #endif
+    }
+
+    @MainActor
+    static func error() {
+        #if os(iOS)
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.error)
+        #endif
+    }
+}
+
 struct Panel<Content: View>: View {
     let content: Content
 
@@ -36,13 +70,30 @@ struct PrimaryButtonStyle: ButtonStyle {
             .minHeight(56)
             .background(Color.accentColor)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
-            .animation(.smooth(duration: 0.14), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.9 : 1)
+            .animation(.smooth(duration: 0.18), value: configuration.isPressed)
+    }
+}
+
+struct SecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.headline.weight(.bold))
+            .foregroundStyle(Color.accentColor)
+            .frame(maxWidth: .infinity)
+            .minHeight(48)
+            .background(Color.accentColor.opacity(0.1))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.8 : 1)
+            .animation(.smooth(duration: 0.18), value: configuration.isPressed)
     }
 }
 
 struct NoticeBanner: View {
     let notice: AppNotice
+    var onDismiss: (() -> Void)? = nil
 
     var body: some View {
         Label {
@@ -58,6 +109,18 @@ struct NoticeBanner: View {
         .background(background)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .accessibilityElement(children: .combine)
+        .overlay(alignment: .topTrailing) {
+            if onDismiss != nil {
+                Button {
+                    onDismiss?()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(foreground.opacity(0.6))
+                }
+                .padding(8)
+            }
+        }
     }
 
     private var iconName: String {

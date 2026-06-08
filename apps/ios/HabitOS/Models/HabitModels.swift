@@ -46,6 +46,20 @@ struct Habit: Codable, Identifiable, Hashable {
         case eventTypes = "event_types"
         case sources
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        key = try container.decode(String.self, forKey: .key)
+        label = try container.decode(String.self, forKey: .label)
+        short = try container.decode(String.self, forKey: .short)
+        kind = try container.decodeIfPresent(String.self, forKey: .kind) ?? "auto"
+        enabled = try container.decodeIfPresent(Bool.self, forKey: .enabled) ?? true
+        metricOnly = try container.decodeIfPresent(Bool.self, forKey: .metricOnly) ?? false
+        sortOrder = try container.decodeIfPresent(Int.self, forKey: .sortOrder) ?? 100
+        description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
+        eventTypes = try container.decodeIfPresent([String].self, forKey: .eventTypes) ?? []
+        sources = try container.decodeIfPresent([String].self, forKey: .sources) ?? []
+    }
 }
 
 struct HabitEntry: Codable, Identifiable, Hashable {
@@ -74,6 +88,20 @@ struct HabitEntry: Codable, Identifiable, Hashable {
         case explanation
         case manuallyOverridden = "manually_overridden"
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        date = try container.decode(DateOnly.self, forKey: .date)
+        habitKey = try container.decode(String.self, forKey: .habitKey)
+        status = try container.decode(HabitStatus.self, forKey: .status)
+        source = try container.decode(String.self, forKey: .source)
+        summary = try container.decodeIfPresent(String.self, forKey: .summary) ?? ""
+        description = try container.decodeIfPresent(String.self, forKey: .description) ?? ""
+        confidence = try container.decodeIfPresent(Double.self, forKey: .confidence) ?? 1.0
+        linkedSourceEventIDs = try container.decodeIfPresent([String].self, forKey: .linkedSourceEventIDs) ?? []
+        explanation = try container.decodeIfPresent(String.self, forKey: .explanation) ?? ""
+        manuallyOverridden = try container.decodeIfPresent(Bool.self, forKey: .manuallyOverridden) ?? false
+    }
 }
 
 struct MedicationItem: Codable, Identifiable, Hashable {
@@ -85,6 +113,41 @@ struct MedicationItem: Codable, Identifiable, Hashable {
     let prn: Bool
 
     var id: String { key }
+
+    init(
+        key: String,
+        label: String,
+        short: String,
+        dose: String,
+        total: Int,
+        prn: Bool
+    ) {
+        self.key = key
+        self.label = label
+        self.short = short
+        self.dose = dose
+        self.total = total
+        self.prn = prn
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        key = try container.decode(String.self, forKey: .key)
+        label = try container.decode(String.self, forKey: .label)
+        short = try container.decode(String.self, forKey: .short)
+        dose = try container.decodeIfPresent(String.self, forKey: .dose) ?? ""
+        total = try container.decodeIfPresent(Int.self, forKey: .total) ?? 1
+        prn = try container.decodeIfPresent(Bool.self, forKey: .prn) ?? false
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case key
+        case label
+        case short
+        case dose
+        case total
+        case prn
+    }
 }
 
 struct MedicationGroup: Codable, Identifiable, Hashable {
@@ -128,6 +191,16 @@ struct MonthHabitState: Codable, Hashable {
         case medicationGroups = "medication_groups"
         case medicationDays = "medication_days"
         case generatedAt = "generated_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        month = try container.decode(String.self, forKey: .month)
+        habits = try container.decodeIfPresent([Habit].self, forKey: .habits) ?? []
+        entries = try container.decodeIfPresent([HabitEntry].self, forKey: .entries) ?? []
+        medicationGroups = try container.decodeIfPresent([MedicationGroup].self, forKey: .medicationGroups) ?? []
+        medicationDays = try container.decodeIfPresent([MedicationDayDose].self, forKey: .medicationDays) ?? []
+        generatedAt = try container.decodeIfPresent(Date.self, forKey: .generatedAt) ?? Date()
     }
 }
 

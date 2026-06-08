@@ -28,6 +28,7 @@ struct HabitOSAPIClient {
         baseURL = url
         self.mobileAPIKey = mobileAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
         self.session = session
+        print("[HabitOSAPI] initialized baseURL=\(url.absoluteString) apiKey=\(self.mobileAPIKey.isEmpty ? "none" : "set")")
     }
 
     func monthState(month: String) async throws -> MonthHabitState {
@@ -52,8 +53,11 @@ struct HabitOSAPIClient {
         components?.queryItems = query.isEmpty ? nil : query
 
         guard let url = components?.url else {
+            print("[HabitOSAPI] failed to build URL for path=\(path)")
             throw HabitOSAPIError.invalidBaseURL(baseURL.absoluteString)
         }
+
+        print("[HabitOSAPI] → \(method) \(url.absoluteString)")
 
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -61,28 +65,71 @@ struct HabitOSAPIClient {
 
         if !mobileAPIKey.isEmpty {
             request.setValue(mobileAPIKey, forHTTPHeaderField: "X-HabitOS-Mobile-Key")
+            print("[HabitOSAPI]   auth: X-HabitOS-Mobile-Key present")
         }
 
         if let body {
             let encoder = JSONEncoder.habitOS
             request.httpBody = try encoder.encode(AnyEncodable(body))
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            if let bodyPreview = String(data: request.httpBody ?? Data(), encoding: .utf8) {
+                print("[HabitOSAPI]   body: \(bodyPreview)")
+            }
         }
 
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {
+            print("[HabitOSAPI] ← invalid response (not HTTPURLResponse)")
             throw HabitOSAPIError.invalidResponse
         }
 
+        let responsePreview = String(data: data, encoding: .utf8) ?? "<\(data.count) bytes, non-UTF8>"
+        let truncatedPreview = responsePreview.count > 500
+            ? String(responsePreview.prefix(500)) + "…"
+            : responsePreview
+        print("[HabitOSAPI] ← \(http.statusCode) (\(data.count) bytes) \(truncatedPreview)")
+
         guard 200..<300 ~= http.statusCode else {
-            throw HabitOSAPIError.server(statusCode: http.statusCode, message: Self.errorMessage(from: data))
+            let message = Self.errorMessage(from: data)
+            print("[HabitOSAPI] ✗ server error \(http.statusCode): \(message)")
+            throw HabitOSAPIError.server(statusCode: http.statusCode, message: message)
         }
 
         do {
-            return try JSONDecoder.habitOS.decode(Response.self, from: data)
+            let decoded = try JSONDecoder.habitOS.decode(Response.self, from: data)
+            print("[HabitOSAPI] ✓ decoded \(String(describing: Response.self))")
+            return decoded
         } catch {
-            throw HabitOSAPIError.decoding(error.localizedDescription)
+            let detail = Self.decodingDebugDescription(error)
+            print("[HabitOSAPI] ✗ decode failed for \(String(describing: Response.self)): \(detail)")
+            throw HabitOSAPIError.decoding(detail)
         }
+    }
+
+    private static func decodingDebugDescription(_ error: Error) -> String {
+        guard let decodingError = error as? DecodingError else {
+            return error.localizedDescription
+        }
+
+        switch decodingError {
+        case .keyNotFound(let key, let context):
+            return "missing key \"\(key.stringValue)\" at \(codingPath(context.codingPath))"
+        case .typeMismatch(let type, let context):
+            return "type mismatch for \(type) at \(codingPath(context.codingPath))"
+        case .valueNotFound(let type, let context):
+            return "missing value for \(type) at \(codingPath(context.codingPath))"
+        case .dataCorrupted(let context):
+            return "corrupt data at \(codingPath(context.codingPath)): \(context.debugDescription)"
+        @unknown default:
+            return decodingError.localizedDescription
+        }
+    }
+
+    private static func codingPath(_ path: [CodingKey]) -> String {
+        guard !path.isEmpty else {
+            return "<root>"
+        }
+        return path.map(\.stringValue).joined(separator: ".")
     }
 
     private static func errorMessage(from data: Data) -> String {

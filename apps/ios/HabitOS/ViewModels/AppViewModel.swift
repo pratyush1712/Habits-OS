@@ -68,6 +68,28 @@ final class AppViewModel: ObservableObject {
             .map { ($0.medKey, $0.taken) })
     }
 
+    var connectionStatus: ConnectionStatus {
+        if isLoading { return .connecting }
+        if lastConnectionError != nil { return .unreachable }
+        if monthState != nil { return .connected }
+        return .unknown
+    }
+
+    func presentNotice(_ notice: AppNotice, autoDismissAfter seconds: Double = 4.0) {
+        self.notice = notice
+        Haptic.medium()
+        Task {
+            try? await Task.sleep(for: .seconds(seconds))
+            await MainActor.run {
+                if self.notice?.id == notice.id {
+                    withAnimation(.smooth) {
+                        self.notice = nil
+                    }
+                }
+            }
+        }
+    }
+
     func refresh() async {
         isLoading = true
         defer { isLoading = false }
@@ -81,6 +103,7 @@ final class AppViewModel: ObservableObject {
             let message = readable(error)
             lastConnectionError = message
             notice = AppNotice(kind: .error, message: message)
+            Haptic.error()
         }
     }
 
@@ -117,11 +140,19 @@ final class AppViewModel: ObservableObject {
             notice = AppNotice(
                 kind: .success,
                 message: recomputeAfterMedicationSave
-                    ? "Saved \(response.events) medication logs and recomputed \(response.month)."
-                    : "Saved \(response.events) medication logs."
+                    ? "Saved medication log and updated habits for \(response.month)."
+                    : "Saved medication log for \(response.localDate.value)."
             )
+            Haptic.success()
         } catch {
             notice = AppNotice(kind: .error, message: readable(error))
+            Haptic.error()
+        }
+    }
+
+    func dismissNotice() {
+        withAnimation(.smooth) {
+            notice = nil
         }
     }
 
@@ -143,6 +174,31 @@ final class AppViewModel: ObservableObject {
             return description
         }
         return error.localizedDescription
+    }
+}
+
+enum ConnectionStatus: Equatable {
+    case unknown
+    case connecting
+    case connected
+    case unreachable
+
+    var label: String {
+        switch self {
+        case .unknown: "Not checked"
+        case .connecting: "Connecting…"
+        case .connected: "Connected"
+        case .unreachable: "Unreachable"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .unknown: .secondary
+        case .connecting: .accentColor
+        case .connected: HabitOSDesign.success
+        case .unreachable: HabitOSDesign.danger
+        }
     }
 }
 

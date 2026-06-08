@@ -5,41 +5,93 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Admin API") {
-                TextField("Base URL", text: $viewModel.apiBaseURL)
+            Section {
+                HStack {
+                    Text("Connection")
+                        .font(.body)
+                    Spacer()
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(viewModel.connectionStatus.color)
+                            .frame(width: 8, height: 8)
+                        Text(viewModel.connectionStatus.label)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(viewModel.connectionStatus.color)
+                    }
+                }
+
+                TextField("Server URL", text: $viewModel.apiBaseURL)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.URL)
                     .autocorrectionDisabled()
-                SecureField("Mobile API key (optional)", text: $viewModel.mobileAPIKey)
+
+                SecureField("API key (optional)", text: $viewModel.mobileAPIKey)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
-                Button("Test connection") {
+
+                Button {
+                    Haptic.medium()
                     Task { await viewModel.refresh() }
+                } label: {
+                    HStack {
+                        Text("Test connection")
+                        if viewModel.isLoading {
+                            Spacer()
+                            ProgressView()
+                        }
+                    }
                 }
-                Text("Default: https://habits.pratyushsudhakar.com/api/mobile. If HABITOS_MOBILE_API_KEY is configured on Vercel, paste that key here.")
+                .disabled(viewModel.isLoading)
+            } header: {
+                Text("HabitOS Server")
+            } footer: {
+                Text("The URL should end in /api/mobile. If your server requires a mobile API key, paste it above.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
 
-            Section("Local day") {
-                TextField("Timezone", text: $viewModel.timezoneIdentifier)
+            Section("Timezone") {
+                TextField("Identifier", text: $viewModel.timezoneIdentifier)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
             }
 
-            Section("Medication") {
-                Toggle("Recompute after save", isOn: $viewModel.recomputeAfterMedicationSave)
-                Text("Saving writes a medication source event through the admin mobile API, then optionally recomputes the month.")
+            Section {
+                Toggle("Update habits after saving", isOn: $viewModel.recomputeAfterMedicationSave)
+            } header: {
+                Text("Medication")
+            } footer: {
+                Text("When on, saving medication automatically recomputes habit entries for the month.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
 
             if let notice = viewModel.notice {
                 Section("Status") {
-                    NoticeBanner(notice: notice)
+                    NoticeBanner(notice: notice) {
+                        viewModel.dismissNotice()
+                    }
+                }
+            }
+
+            Section {
+                HStack {
+                    Text("Version")
+                        .font(.body)
+                    Spacer()
+                    Text(appVersion)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .monospaced()
                 }
             }
         }
         .navigationTitle("Settings")
+    }
+
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "0"
+        return "\(version) (\(build))"
     }
 }

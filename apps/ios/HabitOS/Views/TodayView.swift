@@ -9,7 +9,9 @@ struct TodayView: View {
                 hero
 
                 if let notice = viewModel.notice {
-                    NoticeBanner(notice: notice)
+                    NoticeBanner(notice: notice) {
+                        viewModel.dismissNotice()
+                    }
                 }
 
                 medicationCard
@@ -33,6 +35,7 @@ struct TodayView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    Haptic.medium()
                     Task { await viewModel.refresh() }
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
@@ -98,12 +101,13 @@ struct TodayView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Update medication")
+                        Text("Log medication")
                             .font(.headline.weight(.bold))
                             .foregroundStyle(.primary)
                         Text(viewModel.medicationSummary)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+                            .lineLimit(1)
                     }
 
                     Spacer()
@@ -119,9 +123,9 @@ struct TodayView: View {
     private var emptyState: some View {
         Panel {
             VStack(alignment: .leading, spacing: 10) {
-                Text("No entries for this day")
+                Text("Nothing logged yet")
                     .font(.title3.weight(.bold))
-                Text("Sync tracker data or log medication to start filling the day. This app stays lightweight and writes back to HabitOS as the source of truth.")
+                Text("Pull down to refresh tracker data, or tap Log medication to record doses for this day.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

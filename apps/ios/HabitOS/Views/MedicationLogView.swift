@@ -12,7 +12,9 @@ struct MedicationLogView: View {
                         .id("top")
 
                     if let notice = viewModel.notice {
-                        NoticeBanner(notice: notice)
+                        NoticeBanner(notice: notice) {
+                            viewModel.dismissNotice()
+                        }
                     }
 
                     ForEach(viewModel.medicationGroups) { group in
@@ -25,10 +27,16 @@ struct MedicationLogView: View {
             }
             .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Medication")
+            .refreshable {
+                await viewModel.refresh()
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Reload") {
+                    Button {
+                        Haptic.medium()
                         Task { await viewModel.refresh() }
+                    } label: {
+                        Label("Refresh", systemImage: "arrow.clockwise")
                     }
                     .disabled(viewModel.isLoading || viewModel.isSavingMedication)
                 }
@@ -52,7 +60,7 @@ struct MedicationLogView: View {
                     .textCase(.uppercase)
                     .tracking(1.2)
                     .foregroundStyle(.secondary)
-                Text("Tap counts. Save once.")
+                Text("Tap +/− to log doses")
                     .font(.largeTitle.weight(.bold))
                     .foregroundStyle(.primary)
                 DatePicker("Date", selection: $viewModel.selectedDate, displayedComponents: .date)
@@ -66,10 +74,11 @@ struct MedicationLogView: View {
 
     private var savePanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Toggle("Recompute month after save", isOn: $viewModel.recomputeAfterMedicationSave)
-                .font(.headline)
+            Toggle("Update habits after saving", isOn: $viewModel.recomputeAfterMedicationSave)
+                .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 4)
             Button {
+                Haptic.medium()
                 Task { await viewModel.saveMedication(counts: counts) }
             } label: {
                 if viewModel.isSavingMedication {
@@ -77,7 +86,7 @@ struct MedicationLogView: View {
                         .tint(.white)
                         .frame(maxWidth: .infinity)
                 } else {
-                    Text("Save medication log")
+                    Text("Save log")
                 }
             }
             .buttonStyle(PrimaryButtonStyle())
@@ -153,6 +162,7 @@ private struct MedicationDoseRow: View {
 
             HStack(spacing: 12) {
                 CountButton(systemImage: "minus", disabled: value == 0) {
+                    Haptic.light()
                     value = max(0, value - 1)
                 }
 
@@ -161,13 +171,16 @@ private struct MedicationDoseRow: View {
                     .frame(minWidth: 72)
                     .foregroundStyle(.primary)
                     .accessibilityLabel("\(med.label) taken count \(value)")
+                    .contentTransition(.numericText())
 
                 CountButton(systemImage: "plus", filled: true) {
+                    Haptic.light()
                     value += 1
                 }
 
                 if !med.prn {
-                    Button("Full") {
+                    Button("Fill") {
+                        Haptic.medium()
                         value = med.total
                     }
                     .font(.headline.weight(.bold))
