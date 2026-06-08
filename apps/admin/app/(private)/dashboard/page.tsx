@@ -93,7 +93,7 @@ export default async function DashboardPage({
                 {readString(status, "status") ?? "Unavailable"}
               </h3>
               <p className="m-0 text-sm text-ink-mid">
-                Mongo connected:{" "}
+                Backend reachable:{" "}
                 {readBoolean(statusMongo, "connected") ? "yes" : "no"}
               </p>
             </section>
