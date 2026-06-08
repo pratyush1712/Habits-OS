@@ -115,8 +115,9 @@ def get_habit_catalog(
 def get_month_state(
     habits_repo: HabitsRepo = Depends(get_habits_repo),
     entries_repo: HabitEntriesRepo = Depends(get_entries_repo),
+    events_repo: SourceEventsRepo = Depends(get_events_repo),
 ) -> MonthStateService:
-    return MonthStateService(habits_repo, entries_repo)
+    return MonthStateService(habits_repo, entries_repo, events_repo)
 
 
 def get_render_service(
@@ -222,7 +223,7 @@ def build_automation_service_from_state(state) -> AutomationService:
     accounts_repo = SourceAccountsRepo(db)
     runs_repo = AutomationRunsRepo(db)
     evaluation = HabitEvaluationService(events_repo, overrides_repo, habits_repo, entries_repo)
-    month_state = MonthStateService(habits_repo, entries_repo)
+    month_state = MonthStateService(habits_repo, entries_repo, events_repo)
     render = RenderService(jobs_repo, month_state, output_dir)
     adapter = build_remarkable_adapter_from_state(state)
     lifecycle = RemarkableLifecycleService(adapter=adapter, output_dir=output_dir)
