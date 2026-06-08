@@ -37,10 +37,10 @@ export default async function LoginPage({
         <div className="mx-auto max-w-[760px] space-y-8">
           <div className="space-y-5 border-b border-ink pb-8">
             <p className="mono-label m-0">Sign in</p>
-            <h1 className="m-0 text-[clamp(2.5rem,6vw,5rem)] leading-[0.98] tracking-[-0.03em] font-light">
+            <h1 className="mb-4 text-[clamp(2.5rem,6vw,5rem)] leading-[0.98] tracking-[-0.03em] font-light">
               Google only. One operator.
             </h1>
-            <p className="section-lede m-0">
+            <p className="section-lede mt-4">
               Authentication is intentionally minimal: a single Google account,
               a single private surface, and no local passwords to maintain.
             </p>
@@ -51,9 +51,9 @@ export default async function LoginPage({
 
           <section className="paper-panel px-6 py-6">
             <div className="space-y-4">
-              <p className="mono-label m-0">Access policy</p>
+              <p className="mono-label mb-4">Access policy</p>
               <Rule />
-              <p className="m-0 body-column">
+              <p className="mt-4 body-column">
                 Only <code>pratyushsudhakar03@gmail.com</code> is accepted. If
                 Google OAuth is not configured on this deployment yet, the sign-in
                 button stays disabled instead of failing mysteriously.
