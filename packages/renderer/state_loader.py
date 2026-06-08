@@ -60,6 +60,8 @@ def load_events_input(path: Path | str) -> tuple[str, list[Habit], list[SourceEv
 
 def _from_legacy(raw: dict[str, Any]) -> MonthHabitState:
     habits = [Habit.model_validate({**h, "kind": h.get("kind", "auto")}) for h in raw["habits"]]
+    medication_groups = raw.get("medication_groups", [])
+    medication_days = raw.get("medication_days", [])
     entries: list[HabitEntry] = []
     for day in raw.get("days", []):
         d = date.fromisoformat(day["date"])
@@ -77,4 +79,10 @@ def _from_legacy(raw: dict[str, Any]) -> MonthHabitState:
                 )
             )
     entries.sort(key=lambda e: (e.date, e.habit_key))
-    return MonthHabitState(month=raw["month"], habits=habits, entries=entries)
+    return MonthHabitState(
+        month=raw["month"],
+        habits=habits,
+        entries=entries,
+        medication_groups=medication_groups,
+        medication_days=medication_days,
+    )

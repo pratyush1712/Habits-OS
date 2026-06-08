@@ -19,11 +19,11 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from packages.core.models import HabitEntry, MonthHabitState
+from packages.core.models import HabitEntry, MedicationDayDose, MedicationItem, MonthHabitState
 from packages.renderer.links import (
     MONTH_ANCHOR,
     TALLY_ANCHOR,
-    day_anchor,
+    MED_TALLY_ANCHOR,
     week_anchor,
     week_review_anchor,
 )
@@ -39,6 +39,14 @@ STATUS_GLYPH: dict[str, str] = {
     "warning": "△",
     "missed": "○",
     "manual": "◆",
+}
+
+
+MED_STATUS_GLYPH: dict[str, str] = {
+    "taken": "●",
+    "partial": "◐",
+    "missed": "○",
+    "none": "·",
 }
 
 WEEKDAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -86,11 +94,22 @@ def _build_days(
     rows: list[list[CalendarCell]],
     entries: list[HabitEntry],
     metric_habits,
+    medication_days: list[MedicationDayDose],
 ) -> dict[str, dict]:
     """Index entries by ISO date and stash per-habit lookup."""
     entries_by_date: dict[str, list[HabitEntry]] = {}
     for e in entries:
         entries_by_date.setdefault(e.date.isoformat(), []).append(_for_render(e))
+
+    medication_by_date: dict[str, dict[str, dict]] = {}
+    for dose in medication_days:
+        total = dose.total if dose.total is not None else dose.taken
+        status = dose.status or _medication_status(dose.taken, total)
+        medication_by_date.setdefault(dose.date.isoformat(), {})[dose.med_key] = {
+            "status": status,
+            "taken": dose.taken,
+            "total": total,
+        }
 
     days_by_date: dict[str, dict] = {}
     for row in rows:
@@ -103,6 +122,7 @@ def _build_days(
                 "date": cell.iso,
                 "entries": day_entries,
                 "by_habit": by_habit,
+                "by_med": medication_by_date.get(cell.iso, {}),
                 "metrics": _format_metrics(by_habit, metric_habits),
             }
 
@@ -226,6 +246,71 @@ def _build_tally(
     return rows
 
 
+def _medication_status(taken: int, total: int | None) -> str:
+    expected = total if total is not None else taken
+    if expected <= 0:
+        return "taken" if taken > 0 else "none"
+    if taken >= expected:
+        return "taken"
+    if taken > 0:
+        return "partial"
+    return "missed"
+
+
+def _flatten_medications(med_groups) -> list[MedicationItem]:
+    meds: list[MedicationItem] = []
+    for group in med_groups:
+        meds.extend(group.meds)
+    return meds
+
+
+def _build_med_tally(
+    year: int,
+    month: int,
+    days_by_date: dict[str, dict],
+    med_groups,
+) -> list[dict]:
+    """Build per-medication dose counts from logged medication day records.
+
+    The denominator is based on days with explicit medication observations. This
+    avoids rendering missing historical data as missed when the schedule was
+    added after the fact. PRN meds only accrue possible doses on days they were
+    logged.
+    """
+    rows: list[dict] = []
+    for med in _flatten_medications(med_groups):
+        days: list[dict] = []
+        total_taken = 0
+        total_possible = 0
+        for day_num in range(1, calendar.monthrange(year, month)[1] + 1):
+            iso = date(year, month, day_num).isoformat()
+            logged = days_by_date.get(iso, {}).get("by_med", {}).get(med.key)
+            if logged:
+                taken = int(logged["taken"])
+                total = int(logged["total"])
+            else:
+                taken = 0
+                total = 0 if med.prn else 0
+            total_taken += taken
+            total_possible += total
+            days.append({
+                "day": day_num,
+                "iso": iso,
+                "taken": taken,
+                "total": total,
+                "filled": total > 0 and taken >= total,
+                "partial": total > 0 and 0 < taken < total,
+            })
+        rows.append({
+            "med": med,
+            "days": days,
+            "total_taken": total_taken,
+            "total_possible": total_possible,
+        })
+    return rows
+
+
+
 def _build_monthly_metrics(
     year: int,
     month: int,
@@ -273,10 +358,11 @@ def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
     metric_habits = [h for h in state.habits if h.metric_only]
 
     rows = _build_calendar_rows(year, month, today)
-    days_by_date = _build_days(rows, state.entries, metric_habits)
+    days_by_date = _build_days(rows, state.entries, metric_habits, state.medication_days)
     weeks = _build_weeks(rows, days_by_date, card_habits)
     tally_rows = _build_tally(year, month, days_by_date, card_habits)
     monthly_metrics = _build_monthly_metrics(year, month, days_by_date, metric_habits)
+    med_tally_rows = _build_med_tally(year, month, days_by_date, state.medication_groups)
 
     # Attach week info to each day for the day-page nav.
     week_lookup = {cell.iso: w for w in weeks for cell in w["dates"]}
@@ -308,7 +394,11 @@ def render(state_or_path, out_dir: Path, today: date | None = None) -> Path:
         status_glyph=STATUS_GLYPH,
         month_anchor=MONTH_ANCHOR,
         tally_anchor=TALLY_ANCHOR,
+        med_tally_anchor=MED_TALLY_ANCHOR,
         tally_rows=tally_rows,
+        med_groups=state.medication_groups,
+        med_status_glyph=MED_STATUS_GLYPH,
+        med_tally_rows=med_tally_rows,
         monthly_metrics=monthly_metrics,
     )
 

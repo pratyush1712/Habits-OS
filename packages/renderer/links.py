@@ -5,6 +5,7 @@ from __future__ import annotations
 
 MONTH_ANCHOR = "month"
 TALLY_ANCHOR = "tally"
+MED_TALLY_ANCHOR = "med-tally"
 
 
 def day_anchor(iso_date: str) -> str:
