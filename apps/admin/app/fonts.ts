@@ -1,7 +1,7 @@
 import { JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 
 /**
- * Editorial serif used for all readable interface copy.
+ * Legacy serif export kept for compatibility; the admin UI now uses a plain system sans.
  */
 export const serif = Source_Serif_4({
   subsets: ["latin"],

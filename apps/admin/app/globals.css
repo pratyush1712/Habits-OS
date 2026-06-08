@@ -3,28 +3,33 @@
 @import "shadcn/tailwind.css";
 
 @theme inline {
-  --color-paper: oklch(97.5% 0.004 80);
-  --color-paper-deep: oklch(95.5% 0.006 80);
-  --color-rule: oklch(86% 0.006 80);
-  --color-rule-soft: oklch(91% 0.005 80);
-  --color-ink: oklch(22% 0.008 80);
-  --color-ink-mid: oklch(42% 0.008 80);
-  --color-ink-faint: oklch(58% 0.006 80);
-  --color-ink-ghost: oklch(72% 0.005 80);
-  --color-accent: oklch(40% 0.085 248);
-  --color-anomaly: oklch(46% 0.105 38);
-  --font-serif: var(--font-serif-loaded), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-serif);
+  --color-paper: oklch(96% 0.04 92);
+  --color-paper-deep: oklch(91% 0.055 88);
+  --color-rule: oklch(19% 0.018 260);
+  --color-rule-soft: oklch(72% 0.035 88);
+  --color-ink: oklch(17% 0.02 260);
+  --color-ink-mid: oklch(31% 0.026 260);
+  --color-ink-faint: oklch(45% 0.026 260);
+  --color-ink-ghost: oklch(63% 0.026 260);
+  --color-accent: oklch(48% 0.18 257);
+  --color-accent-hot: oklch(75% 0.19 142);
+  --color-warning-panel: oklch(91% 0.14 91);
+  --color-blue-panel: oklch(89% 0.085 230);
+  --color-green-panel: oklch(86% 0.12 145);
+  --color-red-panel: oklch(58% 0.18 28);
+  --color-anomaly: oklch(48% 0.19 28);
+  --font-serif: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --font-sans: Arial, "Helvetica Neue", Helvetica, sans-serif;
   --font-mono: var(--font-mono-loaded), ui-monospace, Menlo, monospace;
-  --text-display: 6.5rem;
-  --text-h1: 2.75rem;
-  --text-h2: 1.75rem;
-  --text-h3: 1.125rem;
+  --text-display: 6rem;
+  --text-h1: 3rem;
+  --text-h2: 2rem;
+  --text-h3: 1.25rem;
   --text-body: 1.125rem;
-  --text-data: 0.875rem;
-  --text-meta: 0.6875rem;
+  --text-data: 0.9375rem;
+  --text-meta: 0.75rem;
   --radius-none: 0;
-  --radius-chip: 2px;
+  --radius-chip: 0;
   --ease-out: cubic-bezier(0.2, 0, 0, 1);
   --dur-disclosure: 120ms;
   --dur-focus: 80ms;
@@ -35,28 +40,28 @@
 :root {
   --background: var(--color-paper);
   --foreground: var(--color-ink);
-  --card: var(--color-paper);
+  --card: white;
   --card-foreground: var(--color-ink);
-  --popover: var(--color-paper);
+  --popover: white;
   --popover-foreground: var(--color-ink);
   --primary: var(--color-accent);
-  --primary-foreground: var(--color-paper);
-  --secondary: var(--color-paper-deep);
+  --primary-foreground: white;
+  --secondary: var(--color-warning-panel);
   --secondary-foreground: var(--color-ink);
   --muted: var(--color-paper-deep);
   --muted-foreground: var(--color-ink-faint);
-  --accent: var(--color-paper-deep);
-  --accent-foreground: var(--color-ink);
+  --accent: var(--color-accent);
+  --accent-foreground: white;
   --destructive: var(--color-anomaly);
-  --destructive-foreground: var(--color-paper);
+  --destructive-foreground: white;
   --border: var(--color-rule);
   --input: var(--color-rule);
   --ring: var(--color-accent);
-  --sidebar: var(--color-paper);
+  --sidebar: var(--color-warning-panel);
   --sidebar-foreground: var(--color-ink);
   --sidebar-primary: var(--color-accent);
-  --sidebar-primary-foreground: var(--color-paper);
-  --sidebar-accent: var(--color-paper-deep);
+  --sidebar-primary-foreground: white;
+  --sidebar-accent: var(--color-blue-panel);
   --sidebar-accent-foreground: var(--color-ink);
   --sidebar-border: var(--color-rule);
   --sidebar-ring: var(--color-accent);
@@ -69,31 +74,52 @@
 html {
   background: var(--color-paper);
   color-scheme: light;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  background: var(--color-paper);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--color-rule) 8%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      0deg,
+      color-mix(in oklab, var(--color-rule) 8%, transparent) 1px,
+      transparent 1px
+    ),
+    var(--color-paper);
+  background-size: 36px 36px;
   color: var(--color-ink);
-  font-family: var(--font-serif);
-  font-feature-settings: "onum", "kern", "liga";
+  font-family: var(--font-sans);
+  font-feature-settings: "kern", "liga";
   font-optical-sizing: auto;
   font-size: var(--text-body);
-  line-height: 1.62;
+  font-weight: 700;
+  line-height: 1.42;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--color-accent) 14%, transparent);
+  background: var(--color-warning-panel);
   color: var(--color-ink);
 }
 
 a {
   color: var(--color-accent);
   text-decoration: underline;
-  text-decoration-thickness: 0.5px;
-  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 code,
@@ -119,18 +145,20 @@ samp {
 [data-slot="sheet-content"],
 [data-slot="popover-content"],
 [data-slot="tooltip-content"] {
-  border: 1px solid var(--color-ink);
+  border: 4px solid var(--color-ink);
   border-radius: 0;
-  background: var(--color-paper);
+  background: white;
   box-shadow: none;
 }
 
 @keyframes disclosure {
   from {
     opacity: 0;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -151,20 +179,13 @@ samp {
   position: relative;
 }
 
-.focus-ring::after {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 1px;
-  transform: scaleX(0);
-  transform-origin: left center;
-  background: var(--color-accent);
-  content: "";
+.focus-ring:focus-visible {
+  outline: 4px solid var(--color-warning-panel);
+  outline-offset: 3px;
 }
 
-.focus-ring:focus-visible::after {
-  animation: focus-grow var(--dur-focus) var(--ease-out) forwards;
+.focus-ring::after {
+  display: none;
 }
 
 @keyframes now-pulse {
@@ -173,7 +194,7 @@ samp {
     opacity: 1;
   }
   50% {
-    opacity: 0.6;
+    opacity: 0.55;
   }
 }
 
@@ -187,6 +208,7 @@ samp {
   *::after {
     animation-duration: 0ms !important;
     animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
     transition-duration: 0ms !important;
   }
 }
@@ -199,38 +221,39 @@ samp {
 
 @layer utilities {
   .mono-label {
-    @apply font-mono text-[11px] tracking-[0.14em] uppercase text-ink-faint;
+    @apply font-mono text-[12px] font-black tracking-[0.12em] uppercase text-slate-950;
   }
 
   .field-label {
-    @apply text-[12px] italic text-ink-faint;
+    @apply text-[14px] font-black text-slate-950;
   }
 
   .status-note {
-    @apply text-sm italic text-ink-mid;
+    @apply text-base font-bold text-slate-800;
   }
 
   .status-note-strong {
-    @apply text-sm italic text-accent;
+    @apply text-base font-black text-blue-700;
   }
 
   .display-title {
     font-size: clamp(3rem, 8vw, var(--text-display));
-    line-height: 0.98;
-    letter-spacing: -0.022em;
-    font-weight: 300;
+    line-height: 0.92;
+    letter-spacing: -0.05em;
+    font-weight: 950;
+    text-wrap: balance;
   }
 
   .section-title {
     font-size: clamp(2rem, 4vw, var(--text-h1));
-    line-height: 1.1;
-    letter-spacing: -0.012em;
-    font-weight: 400;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    font-weight: 950;
     text-wrap: balance;
   }
 
   .section-lede {
-    @apply max-w-[68ch] text-[20px] leading-[1.5] italic text-ink-mid;
+    @apply max-w-[68ch] text-[22px] leading-[1.3] font-black text-slate-800;
     text-wrap: pretty;
   }
 
@@ -239,30 +262,30 @@ samp {
   }
 
   .data-column {
-    max-width: 980px;
+    max-width: 1040px;
   }
 
   .paper-panel {
-    @apply border border-rule bg-paper;
+    @apply border-4 border-slate-950 bg-white;
   }
 
   .paper-panel-inset {
-    @apply border border-rule bg-paper-deep;
+    @apply border-4 border-slate-950 bg-blue-100;
   }
 
   .notice-banner {
-    @apply border px-4 py-3 font-mono text-[12px] tracking-[0.08em];
+    @apply border-4 border-slate-950 px-5 py-4 text-xl font-black;
   }
 
   .notice-banner-info {
-    @apply border-rule bg-paper-deep text-ink;
+    @apply bg-green-400 text-slate-950;
   }
 
   .notice-banner-error {
-    @apply border-anomaly bg-paper text-anomaly;
+    @apply bg-red-500 text-white;
   }
 
   .muted-link {
-    @apply text-ink-mid no-underline transition-colors hover:text-ink;
+    @apply font-black text-blue-700 no-underline transition-colors hover:text-blue-900;
   }
 }
