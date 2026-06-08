@@ -41,7 +41,7 @@ struct SettingsView: View {
                                     .keyboardType(.URL)
                                     .autocorrectionDisabled()
                                     .padding(12)
-                                    .background(Color.green)
+                                    .background(Color.paper)
                                     .overlay(Rectangle().stroke(Color.rule, lineWidth: 2))
                             }
 
