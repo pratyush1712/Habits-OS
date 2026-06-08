@@ -70,13 +70,13 @@ integration is actually scoped.
 | Field | Sketch |
 |---|---|
 | Likely integration type | **Depends on vendor.** Evaluate the actual vendor before assuming an API exists. Many medication trackers do not expose one. |
-| Likely `SourceEvent.event_type` | New literal needed — `EventType` does not yet include `"medication"`. Adding it requires updating `packages/core/models.py` per blueprint §11. |
-| Likely `SourceEvent.source` | New literal needed. Use a vendor-neutral name (e.g. `"medication"`) or a vendor-specific one (e.g. `"pillpack"`); pick one and document. |
-| Likely habit mappings | New habit key (e.g. `medication`) — would need a `Habit` entry and a new evaluator. |
-| Default habits needed | Yes — new entry in `packages/core/default_habits.py`. |
-| Rule engine changes | Yes — new pure evaluator: `checked` when one or more medication-taken events on the date; `missed` otherwise. |
+| Likely `SourceEvent.event_type` | `"medication"` exists for manual/vendor-normalized dose-count observations. |
+| Likely `SourceEvent.source` | `"manual"` for local logs or `"medication"` for a future vendor-neutral connector. |
+| Likely habit mappings | `medication` — aggregate scheduled-dose coverage for the day. |
+| Default habits needed | Already present in `packages/core/default_habits.py`. |
+| Rule engine changes | Implemented: `checked` when all explicitly observed scheduled doses are taken, `partial` for some, `missed` only when an observed scheduled day has zero taken. PRN/as-needed absence is not missed. |
 | Likely automation compatibility | Depends entirely on the vendor. If a pull API exists, likely `nightly_eligible=True` with idempotent upsert. If not, manual-first. |
-| Likely MVP path | Most likely a manual `POST /events/medication` endpoint or an iOS Shortcut tied to a reminder. Promote to API integration only if the vendor exposes a stable one. |
+| Likely MVP path | Manual dose-count events first (including `/events/import-sample` fixtures). A dedicated route or iOS Shortcut can be added later without changing the core model. |
 | Likely risk | **Privacy-sensitive data.** Per blueprint §15, ensure nothing identifiable is logged. Token encryption (currently deferred per `CLAUDE.md` §10) should be revisited before storing real medication credentials. |
 
 ---

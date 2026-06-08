@@ -1,7 +1,7 @@
 # HabitOS Admin
 
 Private operational surface for HabitOS. This app is intentionally small and
-debugging-oriented: inspect source events, review resolved month state, kick
+debugging-oriented: inspect source events, manually log medication/supplement dose counts, review resolved month state, kick
 recomputes and renders, and prepare reMarkable upload instructions.
 
 ## Stack
@@ -72,6 +72,7 @@ Private:
 - `/month/[month]`
 - `/day/[date]`
 - `/events`
+- `/medication`
 - `/habits`
 - `/habits/[key]`
 - `/automation`
