@@ -26,7 +26,7 @@ struct MedicationLogView: View {
 
                         savePanel
                     }
-                    .padding(18)
+                    .padding(12)
                 }
                 .navigationTitle("Medication")
                 .refreshable {

@@ -31,7 +31,7 @@ struct TodayView: View {
                         entries
                     }
                 }
-                .padding(18)
+                .padding(12)
             }
         }
         .navigationTitle("Today")
