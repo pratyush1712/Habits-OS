@@ -5,7 +5,7 @@ calm, hyperlinked monthly PDF for **reMarkable 2**.
 
 The full pipeline is wired end to end:
 
-> WHOOP + Day One + manual events → normalized `source_events` → habit rule engine → persisted `habit_entries` → rendered monthly PDF → manual or automated reMarkable sync.
+> WHOOP + Day One + manual medication/supplement events → normalized `source_events` → habit rule engine → persisted `habit_entries` → rendered monthly PDF → manual or automated reMarkable sync.
 
 A nightly APScheduler job reconciles a rolling window, recomputes touched
 months, renders the current month, and (optionally) pushes the PDF to the
@@ -81,7 +81,7 @@ and applied idempotently at app startup via `ensure_indexes()`.
 
 Collections currently in use:
 
-- `source_events` — normalized events from WHOOP, Day One, manual import
+- `source_events` — normalized events from WHOOP, Day One, manual medication/supplement import
 - `habit_entries` — resolved per-day habit results
 - `habits` — habit catalog (seeded with defaults on startup)
 - `manual_overrides` — user overrides that take priority over rules
@@ -110,6 +110,7 @@ recipes in [docs/api.md](docs/api.md).
 | GET    | `/status`                                          | Mongo, integrations, latest render & sync summary                |
 | GET    | `/events?month=&source=&limit=`                    | List ingested source events                                      |
 | POST   | `/events/import-sample`                            | Ingest `data/sample_events.json` into Mongo                      |
+| POST   | `/events/medication`                               | Manually upsert medication/supplement dose-count events          |
 | GET    | `/habits`                                          | List habit catalog                                               |
 | POST   | `/habits/seed-defaults`                            | Re-seed default habits                                           |
 | POST   | `/habits/recompute?month=YYYY-MM`                  | Run the rule engine and persist entries                          |
@@ -184,7 +185,7 @@ containing in order:
 2. **Weekly review pages** — one per calendar row in the month. Per-habit
    counts, a list of the week's days (each tappable), an "intention" line
    block, and a tall "reflection" line block for handwriting.
-3. **Daily detail pages** — one per day. A habit table with status, summary,
+4. **Daily detail pages** — one per day. A habit table with status, summary,
    and (where present) extended details, plus a tall blank line block for
    notes. Each page has a back link to the month dashboard, the parent week,
    and prev/next day.
@@ -252,7 +253,7 @@ authenticating rmapi locally. The default remains `manual`.
 | ---------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | WHOOP                  | ✅ OAuth, manual + nightly sync              | Workouts, sleep, recovery. See [docs/whoop_integration.md](docs/whoop_integration.md).         |
 | Day One                | ✅ Local SQLite, metadata-only by default    | Drives the `journaling` habit. See [docs/integrations/dayone.md](docs/integrations/dayone.md). |
-| Manual / sample events | ✅ `/events/import-sample`, sample fixtures  | —                                                                                              |
+| Manual / sample events | ✅ `/events/import-sample`, sample fixtures  | Includes medication/supplement dose-count events.                                              |
 | reMarkable (manual)    | ✅ Upload instructions, never mutates device | Default adapter.                                                                               |
 | reMarkable (rmapi)     | ✅ Cloud sync via ddvk/rmapi                 | Folder allowlist, replace gated by env var.                                                    |
 | Muse / Apple Health    | ⏳ Not started                               | Sketch in [docs/integration_examples.md](docs/integration_examples.md).                        |
@@ -279,6 +280,11 @@ Start here:
   integrations today and what status it exposes.
 - [`packages/connectors/base.py`](packages/connectors/base.py) — the typed
   contract (`ConnectorCapability`, `IntegrationSyncSummary`, `BaseConnector`).
+
+Manual medication/supplement logging is available in the admin app at
+`/medication`. It writes idempotent `event_type="medication"` source events
+through `POST /events/medication`, then can recompute and render the selected
+month from the same form.
 
 WHOOP predates the formal contract; the blueprint documents the migration
 path without forcing a refactor now.
@@ -347,7 +353,20 @@ tests/
   "month": "2026-05",
   "habits": [
     {"key": "workout", "label": "Workout", "short": "W"},
+    {"key": "medication", "label": "Medication", "short": "Rx"},
     ...
+  ],
+  "medication_groups": [
+    {
+      "key": "night",
+      "label": "Night",
+      "meds": [
+        {"key": "magnesium", "label": "Mg", "short": "Mg", "dose": "2 x 100mg", "total": 2}
+      ]
+    }
+  ],
+  "medication_days": [
+    {"date": "2026-05-31", "med_key": "magnesium", "taken": 1, "total": 2}
   ],
   "days": [
     {
@@ -367,6 +386,17 @@ tests/
 
 Days missing from the file render as empty (no status glyphs). Invalid
 statuses cause the renderer to raise.
+
+
+Medication/supplement tracking uses two layers:
+
+- `medication_groups` + `medication_days` are renderer/state metadata for the
+  PDF schedule, chips, and tally. This lets the schedule change over time
+  without rewriting historical logs.
+- `source_events` with `event_type: "medication"` store observed dose counts
+  (`med_key`, `taken_count`, `scheduled_count`, optional `prn`) and the rule
+  engine rolls them into the aggregate `medication` habit entry. PRN/as-needed
+  items are informational unless a dose is logged; absence is not marked missed.
 
 `data/sample_events.json` drives the rule engine and the API
 `/events/import-sample` route.

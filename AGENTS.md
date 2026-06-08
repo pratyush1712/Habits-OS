@@ -42,7 +42,7 @@ HabitOS should be:
 The reMarkable 2 should be treated as the **calm output surface**, not the source of truth.
 
 ```text
-Trackers / APIs / manual imports
+Trackers / APIs / manual imports / medication dose logs
   → connectors
   → normalized source_events
   → habit rule engine
@@ -357,6 +357,7 @@ manual
 calendar
 github
 remarkable
+medication
 ```
 
 ### Initial habits
@@ -368,6 +369,7 @@ recovery
 meditation
 journaling
 deep_work
+medication
 ```
 
 ---

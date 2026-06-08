@@ -31,7 +31,7 @@ sample data
 Then expand carefully:
 
 ```text
-WHOOP
+WHOOP / manual medication logs
   → normalized source_events
   → habit_entries
   → regenerated PDF
@@ -255,6 +255,7 @@ manual
 calendar
 github
 remarkable
+medication
 ```
 
 ### Habit statuses
@@ -276,6 +277,7 @@ recovery
 meditation
 journaling
 deep_work
+medication
 ```
 
 ---
