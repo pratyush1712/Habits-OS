@@ -106,6 +106,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/medication": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log Medication Events */
+        post: operations["log_medication_events_events_medication_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/events/import-sample": {
         parameters: {
             query?: never;
@@ -477,6 +494,12 @@ export interface components {
          * @description A habit the system tracks. `kind` controls whether the rule engine
          *     attempts to evaluate it from source events (auto) or only honours manual
          *     overrides (manual).
+         *
+         *     `metric_only` habits are still computed and stored (so their data stays
+         *     available), but they are not user-controlled checkboxes. The renderer shows
+         *     them as context metrics (e.g. sleep duration, recovery score next to the
+         *     date) rather than as habit cards in the grid or tally. Use this for signals
+         *     that reflect the body's state rather than a deliberate action.
          */
         Habit: {
             /** Key */
@@ -497,6 +520,11 @@ export interface components {
              */
             enabled: boolean;
             /**
+             * Metric Only
+             * @default false
+             */
+            metric_only: boolean;
+            /**
              * Sort Order
              * @default 100
              */
@@ -507,9 +535,9 @@ export interface components {
              */
             description: string;
             /** Event Types */
-            event_types?: ("workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual")[];
+            event_types?: ("workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication")[];
             /** Sources */
-            sources?: ("whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one")[];
+            sources?: ("whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one" | "medication")[];
         };
         /**
          * HabitEntry
@@ -532,7 +560,7 @@ export interface components {
              * Source
              * @enum {string}
              */
-            source: "whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one";
+            source: "whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one" | "medication";
             /**
              * Summary
              * @default
@@ -562,6 +590,102 @@ export interface components {
             manually_overridden: boolean;
         };
         /**
+         * MedicationDayDose
+         * @description One day's observed dose count for one medication/supplement.
+         */
+        MedicationDayDose: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Med Key */
+            med_key: string;
+            /**
+             * Taken
+             * @default 0
+             */
+            taken: number;
+            /** Total */
+            total?: number | null;
+            /** Status */
+            status?: ("taken" | "partial" | "missed" | "none") | null;
+        };
+        /** MedicationDoseInput */
+        MedicationDoseInput: {
+            /** Med Key */
+            med_key: string;
+            /** Med Label */
+            med_label: string;
+            /** Taken Count */
+            taken_count: number;
+            /** Scheduled Count */
+            scheduled_count: number;
+            /**
+             * Prn
+             * @default false
+             */
+            prn: boolean;
+        };
+        /**
+         * MedicationGroup
+         * @description A time-of-day bucket for the medication schedule shown in the PDF.
+         */
+        MedicationGroup: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Meds */
+            meds?: components["schemas"]["MedicationItem"][];
+        };
+        /**
+         * MedicationItem
+         * @description A medication or supplement in the renderer schedule.
+         *
+         *     This is schedule/display metadata, not medical advice. Historical dose logs
+         *     stay in ``SourceEvent`` records so the regimen can change without rewriting
+         *     old adherence data.
+         */
+        MedicationItem: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Short */
+            short: string;
+            /**
+             * Dose
+             * @default
+             */
+            dose: string;
+            /**
+             * Total
+             * @default 1
+             */
+            total: number;
+            /**
+             * Prn
+             * @default false
+             */
+            prn: boolean;
+        };
+        /** MedicationLogInput */
+        MedicationLogInput: {
+            /**
+             * Local Date
+             * Format: date
+             */
+            local_date: string;
+            /**
+             * Timezone
+             * @default UTC
+             */
+            timezone: string;
+            /** Doses */
+            doses: components["schemas"]["MedicationDoseInput"][];
+        };
+        /**
          * MonthHabitState
          * @description Everything the renderer needs to produce a monthly PDF.
          */
@@ -572,6 +696,10 @@ export interface components {
             habits: components["schemas"]["Habit"][];
             /** Entries */
             entries: components["schemas"]["HabitEntry"][];
+            /** Medication Groups */
+            medication_groups?: components["schemas"]["MedicationGroup"][];
+            /** Medication Days */
+            medication_days?: components["schemas"]["MedicationDayDose"][];
             /**
              * Generated At
              * Format: date-time
@@ -624,6 +752,11 @@ export interface components {
             seeded: number;
             /** Total Active */
             total_active: number;
+            /**
+             * Retired
+             * @default []
+             */
+            retired: string[];
             /** Message */
             message: string;
         };
@@ -642,7 +775,7 @@ export interface components {
              * Source
              * @enum {string}
              */
-            source: "whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one";
+            source: "whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one" | "medication";
             /** External User Id */
             external_user_id: string;
             /**
@@ -688,14 +821,14 @@ export interface components {
              * Source
              * @enum {string}
              */
-            source: "whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one";
+            source: "whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one" | "medication";
             /** Source Event Id */
             source_event_id: string;
             /**
              * Event Type
              * @enum {string}
              */
-            event_type: "workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual";
+            event_type: "workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication";
             /**
              * Start Time Utc
              * Format: date-time
@@ -941,6 +1074,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SourceEvent"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_medication_events_events_medication_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MedicationLogInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
