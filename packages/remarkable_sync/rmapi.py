@@ -936,6 +936,8 @@ class RmapiRemarkableSyncAdapter:
 
     def _build_env(self) -> dict[str, str]:
         env = dict(os.environ)
+        env.pop("RMAPI_CONFIG", None)
+        env.pop("RMAPI_TRACE", None)
         if self.config.config_path is not None:
             env["RMAPI_CONFIG"] = str(self.config.config_path)
         if self.config.trace:
