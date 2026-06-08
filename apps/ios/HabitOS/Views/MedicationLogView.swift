@@ -79,6 +79,7 @@ struct MedicationLogView: View {
         VStack(alignment: .leading, spacing: 12) {
             Toggle("Update habits after saving", isOn: $viewModel.recomputeAfterMedicationSave)
                 .font(HabitOSFont.data)
+                .foregroundStyle(Color.ink)
                 .padding(.horizontal, 4)
             Button {
                 Haptic.medium()
