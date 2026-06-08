@@ -55,6 +55,26 @@ class SourceEventsRepo:
         )
         return [doc_to_model(d, SourceEvent, id_field="id") async for d in cursor]
 
+    async def delete_by_source_date_range_except(
+        self,
+        *,
+        source: str,
+        start: date,
+        end: date,
+        keep_ids: set[str],
+        event_type: str | None = None,
+    ) -> int:
+        query: dict = {
+            "source": source,
+            "local_date": {"$gte": start.isoformat(), "$lte": end.isoformat()},
+        }
+        if event_type is not None:
+            query["event_type"] = event_type
+        if keep_ids:
+            query["_id"] = {"$nin": sorted(keep_ids)}
+        result = await self.coll.delete_many(query)
+        return result.deleted_count
+
     async def list_events(
         self,
         *,

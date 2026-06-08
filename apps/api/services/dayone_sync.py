@@ -153,18 +153,38 @@ class DayOneSyncService:
         )
 
         counts = await self.events_repo.upsert_many_counts(events)
+        deleted = await self.events_repo.delete_by_source_date_range_except(
+            source=SOURCE,
+            event_type="journal",
+            start=start,
+            end=end,
+            keep_ids={event.id for event in events},
+        )
         summary.inserted = counts["inserted"]
         summary.updated = counts["updated"]
         summary.event_counts_by_type = {"journal": len(events)} if events else {}
-        summary.affected_months = sorted(
-            {event.local_date.strftime("%Y-%m") for event in events}
-        )
+        summary.affected_months = _months_in_range(start, end)
+        if deleted:
+            summary.extra["deleted"] = deleted
 
         if recompute:
             for month in summary.affected_months:
                 await self.evaluation.recompute(month)
 
         return summary
+
+
+def _months_in_range(start: date, end: date) -> list[str]:
+    months: list[str] = []
+    cursor = date(start.year, start.month, 1)
+    end_month = date(end.year, end.month, 1)
+    while cursor <= end_month:
+        months.append(cursor.strftime("%Y-%m"))
+        if cursor.month == 12:
+            cursor = date(cursor.year + 1, 1, 1)
+        else:
+            cursor = date(cursor.year, cursor.month + 1, 1)
+    return months
 
 
 def summary_to_status_dict(summary: IntegrationSyncSummary) -> dict:

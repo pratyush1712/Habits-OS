@@ -82,7 +82,11 @@ class AutomationService:
         previous_month = _previous_month(current_month) if resolved_today.day == 1 else None
         start = resolved_today - timedelta(days=self.settings.reconcile_days)
         end = resolved_today
-        affected_months = _affected_months(start, end)
+        dayone_lookback_days = max(
+            0, getattr(getattr(self.settings, "dayone", None), "lookback_days", 0)
+        )
+        dayone_start = resolved_today - timedelta(days=dayone_lookback_days)
+        affected_months = _affected_months(min(start, dayone_start), end)
         summary = {
             "date": resolved_today.isoformat(),
             "timezone": self.settings.habitos_timezone,
@@ -91,6 +95,8 @@ class AutomationService:
                 "start": start.isoformat(),
                 "end": end.isoformat(),
                 "reconcile_days": self.settings.reconcile_days,
+                "dayone_start": dayone_start.isoformat(),
+                "dayone_lookback_days": dayone_lookback_days,
             },
             "months": {
                 "current": current_month,
@@ -131,12 +137,14 @@ class AutomationService:
             )
 
             # Day One is optional. Missing DAYONE_DB_PATH ⇒ skipped, not failed.
+            # Day One has its own reconciliation window because mobile entries
+            # can arrive on the desktop DB after their original journal date.
             # New months touched by Day One get folded into the recompute set
             # so the journaling habit reflects the latest entries.
             recompute_months: set[str] = set(affected_months)
             if self.dayone is not None:
                 dayone_summary = await self.dayone.sync_range(
-                    start=start, end=end, recompute=False
+                    start=dayone_start, end=end, recompute=False
                 )
                 summary["dayone"] = summary_to_status_dict(dayone_summary)
                 recompute_months.update(dayone_summary.affected_months)

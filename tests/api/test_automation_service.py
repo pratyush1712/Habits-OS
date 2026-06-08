@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
@@ -10,6 +10,7 @@ from datetime import date as _date
 
 from apps.api.services.automation import AutomationService
 from packages.connectors.base import IntegrationSyncSummary
+from packages.connectors.dayone.config import DayOneSettings
 from packages.core.models import RenderJob
 from packages.remarkable_sync import SyncResult
 
@@ -21,6 +22,7 @@ class _Settings:
     default_whoop_external_user_id: str = "whoop-user-1"
     auto_upload_remarkable: bool = True
     remarkable_dry_run: bool = True
+    dayone: DayOneSettings = field(default_factory=lambda: DayOneSettings(lookback_days=4))
 
 
 class _Whoop:
@@ -151,6 +153,8 @@ async def test_run_nightly_pipeline_computes_window_and_affected_months():
         }
     ]
     assert habits.calls == ["2026-05", "2026-06"]
+    assert result["window"]["dayone_start"] == "2026-06-06"
+    assert result["window"]["dayone_lookback_days"] == 4
     assert render.calls == [{"month": "2026-06", "triggered_by": "schedule"}]
     assert lifecycle.current_calls[0]["month"] == "2026-06"
     # Mid-month run: not a rollover, so the home document is refreshed in place
@@ -249,8 +253,8 @@ async def test_run_nightly_pipeline_records_dayone_skipped_when_not_wired():
 
 @pytest.mark.asyncio
 async def test_run_nightly_pipeline_unions_dayone_affected_months():
-    # Day One adds 2026-04 (older edit), which is outside the WHOOP window
-    # of 2026-05..2026-06. The pipeline must recompute that older month too.
+    # Day One uses its own lookback window and can still report affected
+    # months independently of the WHOOP sync result.
     dayone = _Dayone(affected_months=["2026-04", "2026-06"])
     habits = _Habits()
     service = AutomationService(
@@ -267,10 +271,58 @@ async def test_run_nightly_pipeline_unions_dayone_affected_months():
     assert result["months"]["affected"] == ["2026-04", "2026-05", "2026-06"]
     assert habits.calls == ["2026-04", "2026-05", "2026-06"]
     assert dayone.calls == [
-        {"start": _date(2026, 5, 27), "end": _date(2026, 6, 10), "recompute": False}
+        {"start": _date(2026, 6, 6), "end": _date(2026, 6, 10), "recompute": False}
     ]
+    assert result["window"]["dayone_start"] == "2026-06-06"
+    assert result["window"]["dayone_lookback_days"] == 4
     assert result["dayone"]["inserted"] == 2
     assert result["dayone"]["affected_months"] == ["2026-04", "2026-06"]
+
+
+@pytest.mark.asyncio
+async def test_dayone_lookback_can_cover_previous_month_independently():
+    dayone = _Dayone(affected_months=["2026-05"])
+    habits = _Habits()
+    service = AutomationService(
+        settings=_Settings(dayone=DayOneSettings(lookback_days=5)),
+        whoop=_Whoop(),
+        habits=habits,
+        render=_Render(),
+        lifecycle=_Lifecycle(),
+        runs_repo=_RunsRepo(),
+        dayone=dayone,
+    )
+
+    result = await service.run_nightly_pipeline(today=_date(2026, 6, 2))
+
+    assert dayone.calls == [
+        {"start": _date(2026, 5, 28), "end": _date(2026, 6, 2), "recompute": False}
+    ]
+    assert result["months"]["affected"] == ["2026-05", "2026-06"]
+    assert habits.calls == ["2026-05", "2026-06"]
+
+
+@pytest.mark.asyncio
+async def test_run_nightly_pipeline_uses_dayone_specific_lookback_window():
+    dayone = _Dayone(affected_months=["2026-06"])
+    service = AutomationService(
+        settings=_Settings(reconcile_days=14, dayone=DayOneSettings(lookback_days=2)),
+        whoop=_Whoop(),
+        habits=_Habits(),
+        render=_Render(),
+        lifecycle=_Lifecycle(),
+        runs_repo=_RunsRepo(),
+        dayone=dayone,
+    )
+
+    result = await service.run_nightly_pipeline(today=_date(2026, 6, 10))
+
+    assert dayone.calls == [
+        {"start": _date(2026, 6, 8), "end": _date(2026, 6, 10), "recompute": False}
+    ]
+    assert result["window"]["start"] == "2026-05-27"
+    assert result["window"]["dayone_start"] == "2026-06-08"
+    assert result["window"]["dayone_lookback_days"] == 2
 
 
 @pytest.mark.asyncio

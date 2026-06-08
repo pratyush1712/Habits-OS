@@ -85,6 +85,7 @@ class _StubEventsRepo:
                 inserted += 1
             self.upserted_ids[e.id] = {
                 "source": e.source,
+                "event_type": e.event_type,
                 "source_event_id": e.source_event_id,
                 "local_date": e.local_date.isoformat(),
                 "metrics": dict(e.metrics),
@@ -93,6 +94,29 @@ class _StubEventsRepo:
         self.inserted_count += inserted
         self.updated_count += updated
         return {"inserted": inserted, "updated": updated, "total": inserted + updated}
+
+    async def delete_by_source_date_range_except(
+        self,
+        *,
+        source: str,
+        start: date,
+        end: date,
+        keep_ids: set[str],
+        event_type: str | None = None,
+    ) -> int:
+        deleted = 0
+        for event_id, event in list(self.upserted_ids.items()):
+            event_date = date.fromisoformat(event["local_date"])
+            if event_id in keep_ids:
+                continue
+            if event["source"] != source:
+                continue
+            if event_type is not None and event.get("event_type") != event_type:
+                continue
+            if start <= event_date <= end:
+                del self.upserted_ids[event_id]
+                deleted += 1
+        return deleted
 
 
 class _StubEvaluation:
@@ -207,6 +231,76 @@ async def test_happy_path_writes_one_event_per_local_date(tmp_path: Path) -> Non
         assert set(ev["raw_payload_keys"]).issubset(
             {"entry_uuids", "snapshot_taken_at", "db_schema_version", "source_kind"}
         )
+
+
+@pytest.mark.asyncio
+async def test_later_appearing_past_entry_is_inserted_when_range_revisited(
+    tmp_path: Path,
+) -> None:
+    db = tmp_path / "DayOne.sqlite"
+    _build_minimal_dayone_db(db)
+    conn = sqlite3.connect(db)
+    try:
+        conn.execute("DELETE FROM ZENTRY WHERE ZGREGORIANDAY = 1")
+        conn.commit()
+    finally:
+        conn.close()
+
+    events_repo = _StubEventsRepo()
+    service = DayOneSyncService(
+        DayOneSettings(db_path=db),
+        events_repo,
+        _StubEvaluation(),
+    )
+
+    first = await service.sync_range(start=date(2026, 5, 1), end=date(2026, 5, 2))
+    assert first.inserted == 1
+    assert {v["local_date"] for v in events_repo.upserted_ids.values()} == {"2026-05-02"}
+
+    conn = sqlite3.connect(db)
+    try:
+        conn.execute(
+            "INSERT INTO ZENTRY (Z_PK, ZUUID, ZCREATIONDATE, ZGREGORIANYEAR, ZGREGORIANMONTH, ZGREGORIANDAY, ZISDRAFT, ZJOURNAL, ZMARKDOWNTEXT) VALUES (?, ?, ?, ?, ?, ?, 0, 1, NULL)",
+            (4, "e-delayed", _core_data_seconds(datetime(2026, 5, 1, 20, 0)), 2026, 5, 1),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    second = await service.sync_range(start=date(2026, 5, 1), end=date(2026, 5, 2))
+    assert second.inserted == 1
+    assert second.updated == 1
+    by_local_date = {v["local_date"]: v for v in events_repo.upserted_ids.values()}
+    assert sorted(by_local_date) == ["2026-05-01", "2026-05-02"]
+    assert by_local_date["2026-05-01"]["metrics"]["entry_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_stale_dayone_daily_event_is_removed_when_entry_disappears(
+    tmp_path: Path,
+) -> None:
+    db = tmp_path / "DayOne.sqlite"
+    _build_minimal_dayone_db(db)
+    events_repo = _StubEventsRepo()
+    service = DayOneSyncService(
+        DayOneSettings(db_path=db),
+        events_repo,
+        _StubEvaluation(),
+    )
+
+    first = await service.sync_range(start=date(2026, 5, 1), end=date(2026, 5, 2))
+    assert first.inserted == 2
+
+    conn = sqlite3.connect(db)
+    try:
+        conn.execute("DELETE FROM ZENTRY WHERE ZGREGORIANDAY = 1")
+        conn.commit()
+    finally:
+        conn.close()
+
+    second = await service.sync_range(start=date(2026, 5, 1), end=date(2026, 5, 2))
+    assert second.extra["deleted"] == 1
+    assert {v["local_date"] for v in events_repo.upserted_ids.values()} == {"2026-05-02"}
 
 
 # ---------- idempotency ----------
