@@ -9,8 +9,9 @@ const NAV_SECTIONS = [
   {
     label: "Overview",
     links: [
-      { href: "/dashboard", label: "Dashboard", disabled: false },
-      { href: "/events", label: "Events", disabled: false },
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/events", label: "Events" },
+      { href: "/medication", label: "Medication" },
       { href: "/habits", label: "Habits" },
     ],
   },
@@ -26,7 +27,7 @@ const NAV_SECTIONS = [
 ];
 
 /**
- * Text-first navigation that keeps the design system free of decorative icons.
+ * Big-button navigation that matches the medication tracker control-panel style.
  */
 export function Sidebar({
   currentMonth,
@@ -47,11 +48,13 @@ export function Sidebar({
   }));
 
   return (
-    <nav className="space-y-10">
+    <nav className="flex max-w-[860px] flex-col gap-3" aria-label="Admin navigation">
       {sections.map((section) => (
-        <div className="space-y-3" key={section.label}>
-          <p className="m-0 text-[12px] italic text-ink-faint">{section.label}</p>
-          <ul className="m-0 list-none space-y-1.5 p-0">
+        <div className="space-y-2" key={section.label}>
+          <p className="m-0 font-mono text-[11px] font-black tracking-[0.14em] text-slate-700 uppercase">
+            {section.label}
+          </p>
+          <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
             {section.links.map((link) => {
               const active =
                 pathname === link.href ||
@@ -61,10 +64,10 @@ export function Sidebar({
                 <li key={link.href}>
                   <Link
                     className={cn(
-                      "block no-underline transition-colors",
+                      "inline-flex min-h-11 items-center border-2 border-slate-950 px-4 py-2 text-sm font-black no-underline transition-colors active:translate-y-0.5",
                       active
-                        ? "font-medium italic text-ink"
-                        : "text-ink-mid hover:text-ink",
+                        ? "bg-blue-600 text-white hover:bg-blue-500"
+                        : "bg-yellow-200 text-slate-950 hover:bg-green-300",
                     )}
                     href={link.href}
                   >
