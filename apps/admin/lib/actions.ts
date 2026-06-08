@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { api, ApiError } from "./api-client";
+import { api, ApiError, type MedicationDoseInput } from "./api-client";
+import { MEDICATION_ITEMS } from "./medication-plan";
 
 /**
  * Read a required string field from an HTML form submission.
@@ -16,6 +17,25 @@ function requireField(formData: FormData, name: string): string {
   }
 
   return value.trim();
+}
+
+/**
+ * Read an optional boolean flag from an HTML form submission.
+ */
+function readOptionalNumberField(formData: FormData, name: string): number {
+  const value = formData.get(name);
+
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return 0;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`Invalid count for field: ${name}`);
+  }
+
+  return parsed;
 }
 
 /**
@@ -66,6 +86,62 @@ function refreshPaths(paths: string[]): void {
     revalidatePath(path);
   }
 }
+
+/**
+ * Log one day's medication and supplement dose counts from the admin app.
+ */
+export async function logMedicationAction(formData: FormData): Promise<never> {
+  const localDate = requireField(formData, "localDate");
+  const timezone = requireField(formData, "timezone");
+  const returnPath = requireField(formData, "returnPath");
+  const recompute = readBooleanField(formData, "recompute");
+  const render = readBooleanField(formData, "render");
+  const month = localDate.slice(0, 7);
+
+  const doses: MedicationDoseInput[] = MEDICATION_ITEMS.map((med) => ({
+    med_key: med.key,
+    med_label: med.label,
+    prn: med.prn ?? false,
+    scheduled_count: med.total,
+    taken_count: readOptionalNumberField(formData, `taken.${med.key}`),
+  }));
+
+  try {
+    await api.logMedication({
+      doses,
+      local_date: localDate,
+      timezone,
+    });
+
+    if (recompute) {
+      await api.recompute(month);
+    }
+
+    if (render) {
+      await api.renderMonth(month);
+    }
+
+    refreshPaths([
+      "/dashboard",
+      "/events",
+      "/habits",
+      "/medication",
+      `/month/${month}`,
+      "/renders",
+    ]);
+    redirectWithNotice(
+      returnPath,
+      render
+        ? `Logged medication data, recomputed, and started render for ${month}.`
+        : recompute
+          ? `Logged medication data and recomputed ${month}.`
+          : "Logged medication data.",
+    );
+  } catch (error) {
+    redirectWithNotice(returnPath, toNoticeMessage(error), "error");
+  }
+}
+
 
 /**
  * Seed the default habits catalog from the backend.

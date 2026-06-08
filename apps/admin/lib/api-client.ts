@@ -6,6 +6,20 @@ import { serverRuntimeConfig } from "./env";
 type JsonRecord = Record<string, unknown>;
 type QueryValue = string | number | boolean | null | undefined;
 type QueryParams = Record<string, QueryValue>;
+
+export type MedicationDoseInput = {
+  med_key: string;
+  med_label: string;
+  prn?: boolean;
+  scheduled_count: number;
+  taken_count: number;
+};
+
+export type MedicationLogInput = {
+  doses: MedicationDoseInput[];
+  local_date: string;
+  timezone?: string;
+};
 type ApiJson<OperationName extends keyof operations> =
   operations[OperationName]["responses"][200]["content"]["application/json"];
 
@@ -94,6 +108,7 @@ async function callApi<ResponseType>(
   path: string,
   options?: {
     cache?: RequestCache;
+    body?: unknown;
     method?: "GET" | "POST";
     query?: QueryParams;
   },
@@ -105,6 +120,7 @@ async function callApi<ResponseType>(
       method: options?.method ?? "GET",
       headers: buildHeaders(),
       cache: options?.cache ?? "no-store",
+      body: options?.body === undefined ? undefined : JSON.stringify(options.body),
     },
   );
 
@@ -200,6 +216,13 @@ export const api = {
 
   async whoopOAuthStart(): Promise<JsonRecord> {
     return callApi<JsonRecord>("/whoop/oauth/start");
+  },
+
+  logMedication(input: MedicationLogInput): Promise<JsonRecord> {
+    return callApi<JsonRecord>("/events/medication", {
+      body: input,
+      method: "POST",
+    });
   },
 
   importSample(): Promise<JsonRecord> {
