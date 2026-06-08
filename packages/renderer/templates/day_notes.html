@@ -1,0 +1,50 @@
+<section class="page day-page day-notes-page" id="day-notes-{{ day.date }}">
+  <div class="page-inner">
+    <div class="nav-row">
+      <a class="back-link" href="#month">← {{ month_label }}</a>
+      <a class="back-link" href="#day-{{ day.date }}">← habits</a>
+      {% if day.prev_iso %}<a
+        class="back-link"
+        href="#day-notes-{{ day.prev_iso }}"
+        >← prev</a
+      >{% endif %} {% if day.next_iso %}<a
+        class="back-link"
+        href="#day-notes-{{ day.next_iso }}"
+        >next →</a
+      >{% endif %}
+    </div>
+
+    <header class="page-header page-header-slim">
+      <h1>{{ day.weekday_long }}, {{ day.month_day_long }}</h1>
+      <p class="subtitle">
+        {{ day.date }} &nbsp;·&nbsp; Notes &amp; Reflection
+      </p>
+    </header>
+
+    {% set has_details = namespace(value=false) %} {% for h in habits %}{% if
+    day.by_habit.get(h.key) and day.by_habit[h.key].description %}{% set
+    has_details.value = true %}{% endif %}{% endfor %} {% if has_details.value
+    %}
+    <h2 class="section-heading">Details</h2>
+    <div class="details">
+      {% for h in habits %} {% set entry = day.by_habit.get(h.key) %} {% if
+      entry and entry.description %}
+      <p class="entry-detail">
+        <span class="label">{{ h.label }}</span>{{ entry.description }}
+      </p>
+      {% endif %} {% endfor %}
+    </div>
+    {% endif %}
+
+    <h2 class="section-heading">Notes &amp; Reflection</h2>
+    <div class="lines fill"></div>
+
+    <div class="page-footer">
+      <span><a href="#month">↑ Month</a></span>
+      <span
+        ><a href="#day-{{ day.date }}">← habits</a> &nbsp;·&nbsp; {{ day.date
+        }}</span
+      >
+    </div>
+  </div>
+</section>

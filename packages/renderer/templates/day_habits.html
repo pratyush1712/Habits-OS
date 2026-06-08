@@ -1,0 +1,89 @@
+{# Context variables (new, added to existing context): med_groups — list of
+{key, label, meds: [{key, label, dose, short, total, prn}]} med_status_glyph —
+dict {taken/partial/missed/none → glyph char} day.by_med — dict {med_key:
+{status, taken, total}} (may be absent / empty) #}
+<section class="page day-page day-habits-page" id="day-{{ day.date }}">
+  <div class="page-inner">
+    <div class="nav-row">
+      <a class="back-link" href="#month">← {{ month_label }}</a>
+      {% if day.week_anchor %}<a class="back-link" href="#{{ day.week_anchor }}"
+        >{{ day.week_label }}</a
+      >{% endif %} {% if day.prev_iso %}<a
+        class="back-link"
+        href="#day-{{ day.prev_iso }}"
+        >← prev</a
+      >{% endif %} {% if day.next_iso %}<a
+        class="back-link"
+        href="#day-{{ day.next_iso }}"
+        >next →</a
+      >{% endif %}
+    </div>
+
+    <header class="page-header">
+      <h1>{{ day.weekday_long }}, {{ day.month_day_long }}</h1>
+      <p class="subtitle">
+        {{ day.date }} {% if day.metrics %}&nbsp;·&nbsp;<span class="metrics"
+          >{{ day.metrics }}</span
+        >{% endif %}
+      </p>
+    </header>
+
+    <h2 class="section-heading">Habits</h2>
+    <div class="habit-grid habit-grid-compact">
+      {% for h in habits %} {% set entry = day.by_habit.get(h.key) %}
+      <div
+        class="habit-card status-{{ entry.status if entry else 'none' }}{% if not entry %} empty{% endif %}"
+      >
+        <div class="card-top">
+          <span class="card-glyph"
+            >{% if entry %}{{ status_glyph[entry.status] }}{% else %}·{% endif
+            %}</span
+          >
+          <span class="card-name">{{ h.label }}</span>
+          <span class="card-state">{{ entry.status if entry else '—' }}</span>
+        </div>
+        <div class="card-summary">
+          {{ entry.summary if entry and entry.summary else '' }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h2 class="section-heading">Medications</h2>
+    <div class="med-schedule">
+      {% for group in med_groups %}
+      <div class="med-group">
+        <span class="med-time-label">{{ group.label }}</span>
+        <div class="med-items">
+          {% for med in group.meds %} {% set by_med = day.by_med if day.by_med
+          is defined else {} %} {% set med_entry = by_med.get(med.key) %} {% set
+          ms = med_entry.status if med_entry else 'none' %} {% set med_total =
+          med.total if med.total is defined else 1 %}
+          <span class="med-chip status-{{ ms }}">
+            <span class="med-glyph">{{ med_status_glyph.get(ms, '·') }}</span>
+            <span class="med-name">{{ med.label }}</span>
+            <span class="med-dose">{{ med.dose }}</span>
+            {% if med_total > 1 %}
+            <span class="med-count"
+              >{{ med_entry.taken if med_entry else '—' }}/{{ med_total }}</span
+            >
+            {% endif %} {% if med.prn is defined and med.prn %}<span
+              class="med-prn"
+              >prn</span
+            >{% endif %}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="page-footer">
+      <span><a href="#month">↑ Month</a></span>
+      <span
+        >{{ day.weekday_long }} · {{ day.date }} &nbsp;·&nbsp;
+        <a href="#day-notes-{{ day.date }}">notes →</a></span
+      >
+    </div>
+  </div>
+</section>

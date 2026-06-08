@@ -1,0 +1,57 @@
+{# New context variables needed: med_tally_anchor — string anchor id for this
+page (e.g. "med-tally") med_tally_rows — list of { med: {key, label, short,
+dose, total, prn}, days: [{iso, day, taken, total, filled, partial}],
+total_taken: int, (total doses taken across month) total_possible: int (total
+doses possible across month) } tally_anchor — needed to link back to habit tally
+#}
+<section class="page tally-page med-tally-page" id="{{ med_tally_anchor }}">
+  <div class="page-inner">
+    <div class="nav-row">
+      <a class="back-link" href="#{{ month_anchor }}">← {{ month_label }}</a>
+      <a class="back-link" href="#{{ tally_anchor }}">← Habit tally</a>
+    </div>
+
+    <header class="page-header">
+      <h1>Medication Tally</h1>
+      <p class="subtitle">
+        {{ month_label }} · filled = full dose · half = partial
+      </p>
+    </header>
+
+    <div class="tally-board">
+      {% for row in med_tally_rows %}
+      <div class="tally-row">
+        <div class="tally-label">
+          <div class="tally-habit">
+            {{ row.med.label }}<span class="tally-med-dose">
+              {{ row.med.dose }}</span
+            >
+          </div>
+          <div class="tally-count">
+            {{ row.total_taken }}
+            <span class="tally-count-denom">/ {{ row.total_possible }}</span>
+          </div>
+        </div>
+        <div class="tally-days">
+          {% for d in row.days %}
+          <a
+            class="tally-day{% if d.filled %} filled{% elif d.partial %} partial{% endif %}"
+            href="#day-{{ d.iso }}"
+            title="{{ d.taken }}/{{ d.total }}"
+            >{{ d.day }}</a
+          >
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="page-footer">
+      <span><a href="#{{ month_anchor }}">↑ Month</a></span>
+      <span
+        ><a href="#{{ tally_anchor }}">← Habits</a> &nbsp;·&nbsp; {{ month_label
+        }} · Medications</span
+      >
+    </div>
+  </div>
+</section>
