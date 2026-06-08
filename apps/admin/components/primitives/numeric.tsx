@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Monospace numeric readout with optional serif unit annotation.
+ * Monospace numeric readout with optional unit annotation.
  */
 export function Numeric({
   className,
@@ -15,9 +15,9 @@ export function Numeric({
   value: ReactNode;
 }) {
   return (
-    <span className={cn("tabular font-mono text-[14px] text-ink", className)}>
+    <span className={cn("tabular font-mono text-[15px] font-black text-slate-950", className)}>
       {value}
-      {unit ? <span className="ml-1 font-serif italic text-ink-mid">{unit}</span> : null}
+      {unit ? <span className="ml-1 font-sans text-slate-700">{unit}</span> : null}
     </span>
   );
 }

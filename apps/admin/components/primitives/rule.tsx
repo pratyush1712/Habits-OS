@@ -1,5 +1,5 @@
 /**
- * Hairline rule used throughout the editorial layout system.
+ * Heavy divider used throughout the control-panel layout system.
  */
 export function Rule({
   variant = "default",
@@ -8,10 +8,10 @@ export function Rule({
 }) {
   const tone =
     variant === "strong"
-      ? "border-ink"
+      ? "border-slate-950"
       : variant === "soft"
-        ? "border-rule-soft"
-        : "border-rule";
+        ? "border-slate-400"
+        : "border-slate-950";
 
-  return <hr className={`my-0 border-0 border-t ${tone}`} />;
+  return <hr className={`my-0 border-0 border-t-4 ${tone}`} />;
 }

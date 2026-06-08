@@ -2,8 +2,6 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { Rule } from "./rule";
-
 /**
  * Top-level page wrapper that applies the shared gutter and maximum width.
  */
@@ -15,7 +13,7 @@ export function Page({
   className?: string;
 }) {
   return (
-    <div className={cn("mx-auto max-w-[1180px] px-[clamp(20px,5vw,88px)]", className)}>
+    <div className={cn("mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8", className)}>
       {children}
     </div>
   );
@@ -41,7 +39,7 @@ export function Column({
 }
 
 /**
- * Screen section with the numbering and typography from the handoff.
+ * Bold section block for operational pages.
  */
 export function Section({
   children,
@@ -57,20 +55,18 @@ export function Section({
   title: ReactNode;
 }) {
   return (
-    <section className="border-t border-rule pt-[88px] pb-14 first:border-t-0">
-      <div className="grid items-baseline gap-6 md:grid-cols-[88px_1fr]">
-        <div className="mono-label flex w-[60px] border-t border-ink pt-3">
-          {number}
-        </div>
+    <section className="mt-6 border-4 border-slate-950 bg-white p-5 first:mt-0 sm:p-6">
+      <div className="flex flex-col gap-3 border-b-4 border-slate-950 pb-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <p className="mono-label">{kicker}</p>
+          <p className="mono-label m-0 text-blue-700">{kicker}</p>
           <h2 className="section-title m-0">{title}</h2>
         </div>
+        <div className="inline-flex w-fit border-2 border-slate-950 bg-yellow-300 px-3 py-1 font-mono text-sm font-black">
+          {number}
+        </div>
       </div>
-      {lede ? (
-        <p className="section-lede mt-4 ml-0 md:ml-[112px]">{lede}</p>
-      ) : null}
-      <div className="mt-10 ml-0 md:ml-[112px]">{children}</div>
+      {lede ? <p className="section-lede mt-4 mb-0">{lede}</p> : null}
+      <div className="mt-5">{children}</div>
     </section>
   );
 }
@@ -90,20 +86,21 @@ export function PageHeader({
   title: ReactNode;
 }) {
   return (
-    <header className="space-y-4">
+    <header className="border-4 border-slate-950 bg-white p-5 sm:p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <p className="mono-label">{eyebrow}</p>
-          <h1 className="m-0 text-[clamp(2rem,4vw,3.5rem)] leading-[1.02] tracking-[-0.02em] font-light">
+        <div className="space-y-3">
+          <p className="mono-label m-0 text-blue-700">{eyebrow}</p>
+          <h1 className="m-0 text-[clamp(2.5rem,6vw,5rem)] leading-none font-black tracking-[-0.05em]">
             {title}
           </h1>
           {subtitle ? (
-            <p className="body-column m-0 text-ink-mid italic">{subtitle}</p>
+            <p className="m-0 max-w-[70ch] text-xl leading-snug font-black text-slate-800">
+              {subtitle}
+            </p>
           ) : null}
         </div>
         {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
       </div>
-      <Rule />
     </header>
   );
 }
