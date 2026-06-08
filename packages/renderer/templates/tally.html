@@ -1,35 +1,47 @@
 <section class="page tally-page" id="{{ tally_anchor }}">
-<div class="page-inner">
-  <div class="nav-row">
-    <a class="back-link" href="#{{ month_anchor }}">← {{ month_label }}</a>
-  </div>
+  <div class="page-inner">
+    <div class="nav-row">
+      <a class="back-link" href="#{{ month_anchor }}">← {{ month_label }}</a>
+      <a class="back-link" href="#{{ med_tally_anchor }}">Med tally →</a>
+    </div>
 
-  <header class="page-header">
-    <h1>Habit Tally</h1>
-    <p class="subtitle">{{ month_label }} · one mark per day completed
-      {% if monthly_metrics %}<br/><span class="metrics">{{ monthly_metrics }}</span>{% endif %}
-    </p>
-  </header>
+    <header class="page-header">
+      <h1>Habit Tally</h1>
+      <p class="subtitle">
+        {{ month_label }} · one mark per day completed {% if monthly_metrics
+        %}<br /><span class="metrics">{{ monthly_metrics }}</span>{% endif %}
+      </p>
+    </header>
 
-  <div class="tally-board">
-    {% for row in tally_rows %}
+    <div class="tally-board">
+      {% for row in tally_rows %}
       <div class="tally-row">
         <div class="tally-label">
           <div class="tally-habit">{{ row.habit.label }}</div>
-          <div class="tally-count">{{ row.filled_count }} <span class="tally-count-denom">/ {{ row.total_days }}</span></div>
+          <div class="tally-count">
+            {{ row.filled_count }}
+            <span class="tally-count-denom">/ {{ row.total_days }}</span>
+          </div>
         </div>
         <div class="tally-days">
           {% for d in row.days %}
-            <a class="tally-day{% if d.filled %} filled{% endif %}" href="#day-{{ d.iso }}">{{ d.day }}</a>
+          <a
+            class="tally-day{% if d.filled %} filled{% endif %}"
+            href="#day-{{ d.iso }}"
+            >{{ d.day }}</a
+          >
           {% endfor %}
         </div>
       </div>
-    {% endfor %}
-  </div>
+      {% endfor %}
+    </div>
 
-  <div class="page-footer">
-    <span><a href="#{{ month_anchor }}">↑ Month</a></span>
-    <span>{{ month_label }} · Tally</span>
+    <div class="page-footer">
+      <span><a href="#{{ month_anchor }}">↑ Month</a></span>
+      <span
+        >{{ month_label }} · Habits &nbsp;·&nbsp;
+        <a href="#{{ med_tally_anchor }}">Med tally →</a></span
+      >
+    </div>
   </div>
-</div>
 </section>

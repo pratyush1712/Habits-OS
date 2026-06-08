@@ -1,77 +1,81 @@
 <section class="page month-page" id="month">
-<div class="page-inner">
-  <header class="month-header">
-    <h1 class="month-title">{{ month_label }}</h1>
-    <p class="month-sub">HabitOS · Monthly dashboard</p>
-  </header>
+  <div class="page-inner">
+    <header class="month-header">
+      <h1 class="month-title">{{ month_label }}</h1>
+      <p class="month-sub">HabitOS · Monthly dashboard</p>
+    </header>
 
-  <div class="weekday-row">
-    {% for w in weekday_headers %}
+    <div class="weekday-row">
+      {% for w in weekday_headers %}
       <div class="weekday-cell">{{ w }}</div>
-    {% endfor %}
-  </div>
+      {% endfor %}
+    </div>
 
-  <div class="month-grid">
-    {% for row in calendar_rows %}
+    <div class="month-grid">
+      {% for row in calendar_rows %}
       <div class="week-row">
-        {% for cell in row %}
-          {% if cell %}
-            {% set day = days_by_date[cell.iso] %}
-            <a class="day-cell{% if cell.is_today %} today{% endif %}" href="#day-{{ cell.iso }}">
-              <div class="day-num">{{ cell.day }}</div>
-              <div class="day-statuses">
-                {% for h in habits %}
-                  {% set entry = day.by_habit.get(h.key) %}
-                  {% if entry %}
-                    <span class="status status-{{ entry.status }}" title="{{ h.label }}">{{ status_glyph[entry.status] }}</span>
-                  {% else %}
-                    <span class="status status-none" title="{{ h.label }}">·</span>
-                  {% endif %}
-                {% endfor %}
-              </div>
-            </a>
-          {% else %}
-            <div class="day-cell empty"></div>
-          {% endif %}
-        {% endfor %}
+        {% for cell in row %} {% if cell %} {% set day = days_by_date[cell.iso]
+        %}
+        <a
+          class="day-cell{% if cell.is_today %} today{% endif %}"
+          href="#day-{{ cell.iso }}"
+        >
+          <div class="day-num">{{ cell.day }}</div>
+          <div class="day-statuses">
+            {% for h in habits %} {% set entry = day.by_habit.get(h.key) %} {%
+            if entry %}
+            <span class="status status-{{ entry.status }}" title="{{ h.label }}"
+              >{{ status_glyph[entry.status] }}</span
+            >
+            {% else %}
+            <span class="status status-none" title="{{ h.label }}">·</span>
+            {% endif %} {% endfor %}
+          </div>
+        </a>
+        {% else %}
+        <div class="day-cell empty"></div>
+        {% endif %} {% endfor %}
       </div>
-    {% endfor %}
-  </div>
+      {% endfor %}
+    </div>
 
-  <div class="legend">
-    <div>
-      <h3>Habits</h3>
-      <ul>
-        {% for h in habits %}
-          <li><span class="key">{{ h.short }}</span>{{ h.label }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-    <div>
-      <h3>Status</h3>
-      <ul>
-        <li><span class="status status-checked">●</span> &nbsp;completed</li>
-        <li><span class="status status-partial">◐</span> &nbsp;partial</li>
-        <li><span class="status status-warning">△</span> &nbsp;below target</li>
-        <li><span class="status status-missed">○</span> &nbsp;missed</li>
-        <li><span class="status status-manual">◆</span> &nbsp;manual</li>
-        <li><span class="status status-none">·</span> &nbsp;no data</li>
-      </ul>
-    </div>
-    <div>
-      <h3>Weeks</h3>
+    <div class="legend">
       <div>
-        {% for w in weeks %}
+        <h3>Habits</h3>
+        <ul>
+          {% for h in habits %}
+          <li><span class="key">{{ h.short }}</span>{{ h.label }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div>
+        <h3>Status</h3>
+        <ul>
+          <li><span class="status status-checked">●</span> &nbsp;completed</li>
+          <li><span class="status status-partial">◐</span> &nbsp;partial</li>
+          <li>
+            <span class="status status-warning">△</span> &nbsp;below target
+          </li>
+          <li><span class="status status-missed">○</span> &nbsp;missed</li>
+          <li><span class="status status-manual">◆</span> &nbsp;manual</li>
+          <li><span class="status status-none">·</span> &nbsp;no data</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Navigate</h3>
+        <div>
+          {% for w in weeks %}
           <a class="week-link" href="#{{ w.anchor }}">{{ w.label }}</a>
-        {% endfor %}
-        <a class="week-link" href="#{{ tally_anchor }}">Tally</a>
+          {% endfor %}
+          <a class="week-link" href="#{{ tally_anchor }}">Habits</a>
+          <a class="week-link" href="#{{ med_tally_anchor }}">Meds</a>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="page-footer">
-    <span>HabitOS</span>
-    <span>{{ month_label }}</span>
+    <div class="page-footer">
+      <span>HabitOS</span>
+      <span>{{ month_label }}</span>
+    </div>
   </div>
-</div>
 </section>

@@ -1,33 +1,56 @@
 <section class="page week-page week-plan" id="{{ week.anchor }}">
-<div class="page-inner">
-  <div class="nav-row">
-    <a class="back-link" href="#month">← {{ month_label }}</a>
-    <a class="back-link" href="#{{ week.review_anchor }}">{{ week.label }} review →</a>
-  </div>
+  <div class="page-inner">
+    <div class="nav-row">
+      <a class="back-link" href="#month">← {{ month_label }}</a>
+      <a class="back-link" href="#{{ week.review_anchor }}"
+        >{{ week.label }} review →</a
+      >
+    </div>
 
-  <header class="page-header">
-    <h1>{{ week.plan_label }}</h1>
-    <p class="subtitle">{{ week.start_label }} – {{ week.end_label }} · looking forward</p>
-  </header>
+    <header class="page-header">
+      <h1>{{ week.plan_label }}</h1>
+      <p class="subtitle">
+        {{ week.start_label }} – {{ week.end_label }} · looking forward
+      </p>
+    </header>
 
-  <h2 class="section-heading">Days this week</h2>
-  <ul class="week-days week-days-plan">
-    {% for cell in week.dates %}
+    <h2 class="section-heading">Days this week</h2>
+    <ul class="week-days week-days-plan">
+      {% for cell in week.dates %}
       <li>
         <a href="#day-{{ cell.iso }}">
           <span class="date">{{ cell.weekday_short }} {{ cell.day }}</span>
         </a>
       </li>
-    {% endfor %}
-  </ul>
+      {% endfor %}
+    </ul>
 
-  <h2 class="section-heading">Intention for the week</h2>
-  <p class="prompt">What matters most this week? What would make it a good one?</p>
-  <div class="lines fill"></div>
+    <h2 class="section-heading">Medication schedule</h2>
+    <div class="med-week-ref">
+      {% for group in med_groups %}
+      <div class="med-ref-row">
+        <span class="med-ref-time">{{ group.label }}</span>
+        <span class="med-ref-list">
+          {% for med in group.meds %}{{ med.label }} {{ med.dose }}{% if med.prn
+          is defined and med.prn %} <em>(prn)</em>{% endif %}{% if not loop.last
+          %} · {% endif %}{% endfor %}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
 
-  <div class="page-footer">
-    <span><a href="#month">↑ Month</a></span>
-    <span>{{ week.plan_label }} &nbsp;·&nbsp; <a href="#{{ week.review_anchor }}">review →</a></span>
+    <h2 class="section-heading">Intention for the week</h2>
+    <p class="prompt">
+      What matters most this week? What would make it a good one?
+    </p>
+    <div class="lines fill"></div>
+
+    <div class="page-footer">
+      <span><a href="#month">↑ Month</a></span>
+      <span
+        >{{ week.plan_label }} &nbsp;·&nbsp;
+        <a href="#{{ week.review_anchor }}">review →</a></span
+      >
+    </div>
   </div>
-</div>
 </section>
