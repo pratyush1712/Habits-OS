@@ -41,7 +41,7 @@ export default async function DayPage({
   const dayEvents = events.filter((event) => event.local_date === date);
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Day detail"
         subtitle="Resolved habit explanations stay beside the raw source events that produced them."

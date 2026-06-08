@@ -45,7 +45,7 @@ export default async function HabitDetailPage({
   }
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Habit detail"
         subtitle={`Current month focus · ${formatMonthLabel(month)}`}

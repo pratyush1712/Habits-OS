@@ -42,7 +42,7 @@ export default async function EventsPage({
   });
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Events"
         subtitle="Normalized source events are the debugging substrate for the rest of the system."

@@ -35,7 +35,7 @@ export default async function HabitsPage({
   ]);
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         actions={
           <form action={seedDefaultHabitsAction}>

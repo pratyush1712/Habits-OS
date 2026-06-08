@@ -39,7 +39,7 @@ export default async function MonthPage({
   const returnPath = `/month/${month}`;
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         actions={
           <>

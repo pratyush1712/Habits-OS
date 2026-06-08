@@ -28,7 +28,7 @@ export default async function AutomationPage({
   const thisMonth = format(new Date(), "yyyy-MM");
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Automation"
         subtitle="Scheduler posture, reconciliation window, and manual run controls."

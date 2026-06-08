@@ -31,6 +31,7 @@ type AuthCookieRequestShape = {
  */
 const PUBLIC_PATH_PREFIXES = [
   "/api/auth",
+  "/api/mobile",
   "/login",
 ];
 

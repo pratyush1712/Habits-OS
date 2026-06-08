@@ -32,7 +32,7 @@ export default async function ConnectionsPage({
   ]);
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Connections"
         subtitle="OAuth, SQLite reachability, and sync surfaces belong in one place."

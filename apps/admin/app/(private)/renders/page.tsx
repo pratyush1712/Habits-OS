@@ -36,7 +36,7 @@ export default async function RendersPage({
   const returnPath = "/renders";
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Renders"
         subtitle="Rendered PDFs are machine-owned artifacts, and the admin app treats them that way."

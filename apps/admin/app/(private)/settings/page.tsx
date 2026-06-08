@@ -7,7 +7,7 @@ import { serverRuntimeConfig } from "@/lib/env";
  */
 export default function SettingsPage() {
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Settings"
         subtitle="Only safe deployment metadata is shown here. Secrets stay server-side."

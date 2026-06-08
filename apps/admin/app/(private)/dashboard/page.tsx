@@ -70,7 +70,7 @@ export default async function DashboardPage({
       : readArray(whoopIntegration, "accounts").length;
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Dashboard"
         subtitle="The current month at a glance, plus the smallest set of controls needed to keep the pipeline healthy."
