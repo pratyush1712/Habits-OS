@@ -1,0 +1,99 @@
+from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
+
+from apps.api.deps import get_events_repo
+from apps.api.routes.events import router
+
+
+class _EventsRepo:
+    def __init__(self) -> None:
+        self.events = []
+
+    async def upsert_many_counts(self, events):
+        self.events = list(events)
+        return {"inserted": len(self.events), "updated": 0, "total": len(self.events)}
+
+
+async def test_log_medication_events_normalizes_dose_counts() -> None:
+    app = FastAPI()
+    app.include_router(router)
+    repo = _EventsRepo()
+    app.dependency_overrides[get_events_repo] = lambda: repo
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/events/medication",
+            json={
+                "local_date": "2026-05-31",
+                "timezone": "America/New_York",
+                "doses": [
+                    {
+                        "med_key": "magnesium",
+                        "med_label": "Magnesium",
+                        "taken_count": 1,
+                        "scheduled_count": 2,
+                        "prn": False,
+                    },
+                    {
+                        "med_key": "hydroxyzine",
+                        "med_label": "Hydroxyzine",
+                        "taken_count": 0,
+                        "scheduled_count": 0,
+                        "prn": True,
+                    },
+                ],
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "month": "2026-05",
+        "local_date": "2026-05-31",
+        "events": 2,
+        "inserted": 2,
+        "updated": 0,
+    }
+    assert [event.id for event in repo.events] == [
+        "manual:med-2026-05-31-magnesium",
+        "manual:med-2026-05-31-hydroxyzine",
+    ]
+    magnesium = repo.events[0]
+    assert magnesium.event_type == "medication"
+    assert magnesium.source == "manual"
+    assert magnesium.local_date.isoformat() == "2026-05-31"
+    assert magnesium.timezone == "America/New_York"
+    assert magnesium.metrics == {
+        "med_key": "magnesium",
+        "med_label": "Magnesium",
+        "taken_count": 1,
+        "scheduled_count": 2,
+        "prn": False,
+    }
+
+
+async def test_log_medication_events_rejects_unknown_timezone() -> None:
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_events_repo] = lambda: _EventsRepo()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/events/medication",
+            json={
+                "local_date": "2026-05-31",
+                "timezone": "Not/AZone",
+                "doses": [
+                    {
+                        "med_key": "magnesium",
+                        "med_label": "Magnesium",
+                        "taken_count": 1,
+                        "scheduled_count": 2,
+                    }
+                ],
+            },
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "unknown timezone"

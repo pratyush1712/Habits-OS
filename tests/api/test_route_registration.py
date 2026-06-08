@@ -23,3 +23,4 @@ def test_local_control_surface_routes_registered(monkeypatch):
     assert ("POST", "/remarkable/upload") in routes
     assert ("POST", "/remarkable/sync") in routes
     assert ("POST", "/pipeline/month") in routes
+    assert ("POST", "/events/medication") in routes

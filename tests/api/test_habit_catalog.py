@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-_DEFAULT_KEYS = {"workout", "meditation", "journaling", "sleep", "recovery"}
+_DEFAULT_KEYS = {"workout", "medication", "meditation", "journaling", "sleep", "recovery"}
 
 
 async def test_default_habit_seeding_and_listing(api_client):
@@ -22,7 +22,7 @@ async def test_default_habit_seeding_and_listing(api_client):
     seed = await api_client.post("/habits/seed-defaults")
     assert seed.status_code == 200
     payload = seed.json()
-    assert payload["total_active"] == 5
+    assert payload["total_active"] == len(_DEFAULT_KEYS)
     assert payload["seeded"] >= 0
 
 
