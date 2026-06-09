@@ -15,11 +15,10 @@ final class AppViewModel: ObservableObject {
     @Published private(set) var isSavingProteinShake = false
     @Published var selectedDate = Date() {
         didSet {
-            // The cached monthState only covers a single month. When the
-            // selection moves to a different month, refetch so per-date lookups
-            // (habit entries, medication doses, protein shake counts) resolve
-            // against the right month instead of showing blanks until a manual
-            // refresh. Same-month changes read straight from the cache.
+            // monthState caches a single month, so per-date lookups (habit
+            // entries, medication doses, protein shake counts) only resolve
+            // within it. Refetch when the selection crosses into another month;
+            // same-month changes are served from the cache.
             guard monthState?.month != selectedMonth else { return }
             Task { await refresh() }
         }
@@ -119,9 +118,9 @@ final class AppViewModel: ObservableObject {
         do {
             let client = try makeClient()
             let state = try await client.monthState(month: month)
-            // The selection may have moved to a different month while this
-            // request was in flight; drop the stale result so it can't clobber
-            // newer state.
+            // Apply the result only while the selection still points at the
+            // requested month, so a slower in-flight fetch never overwrites a
+            // newer one.
             guard month == selectedMonth else { return }
             monthState = state
             lastConnectionError = nil
