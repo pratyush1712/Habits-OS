@@ -41,6 +41,9 @@ struct ProteinShakeLogView: View {
                         .disabled(viewModel.isLoading || viewModel.isSavingProteinShake)
                     }
                 }
+                .onAppear(perform: loadCountFromState)
+                .onChange(of: viewModel.monthState) { loadCountFromState() }
+                .onChange(of: viewModel.selectedDate) { loadCountFromState() }
                 .onChange(of: viewModel.notice) { _, _ in
                     withAnimation(.easeOut(duration: 0.12)) {
                         proxy.scrollTo("top", anchor: .top)
@@ -48,6 +51,10 @@ struct ProteinShakeLogView: View {
                 }
             }
         }
+    }
+
+    private func loadCountFromState() {
+        count = viewModel.selectedProteinShakeCount
     }
 
     private var header: some View {
@@ -95,9 +102,9 @@ struct ProteinShakeLogView: View {
                         .accessibilityLabel("Protein shake count \(count)")
                         .contentTransition(.numericText())
 
-                    CountButton(systemImage: "plus", filled: true) {
+                    CountButton(systemImage: "plus", filled: true, disabled: count >= 20) {
                         Haptic.light()
-                        count += 1
+                        count = min(20, count + 1)
                     }
                 }
             }

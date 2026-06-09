@@ -52,14 +52,14 @@ export default function Home() {
             <div className="border-4 border-slate-950 bg-yellow-200 p-5" style={{ fontFamily: "Arial, Helvetica Neue, Helvetica, sans-serif" }}>
               <p className="m-0 text-lg font-black text-slate-950">Need the medication tracker?</p>
               <Link
-                className="mt-3 inline-flex min-h-16 items-center justify-center border-4 border-slate-950 bg-emerald-200 px-8 py-4 text-2xl font-black uppercase tracking-tight text-white no-underline hover:bg-blue-500"
+                className="mt-3 inline-flex min-h-16 items-center justify-center border-4 border-slate-950 bg-emerald-200 px-8 py-4 text-2xl font-black uppercase tracking-tight text-slate-950 no-underline hover:bg-blue-500"
                 href="/medication"
               >
                 Open medication tracker
               </Link>
               <p className="m-0 mt-4 text-lg font-black text-slate-950">Logging a protein shake?</p>
               <Link
-                className="mt-3 inline-flex min-h-16 items-center justify-center border-4 border-slate-950 bg-emerald-200 px-8 py-4 text-2xl font-black uppercase tracking-tight text-white no-underline hover:bg-blue-500"
+                className="mt-3 inline-flex min-h-16 items-center justify-center border-4 border-slate-950 bg-emerald-200 px-8 py-4 text-2xl font-black uppercase tracking-tight text-slate-950 no-underline hover:bg-blue-500"
                 href="/protein-shake"
               >
                 Open protein shake tracker

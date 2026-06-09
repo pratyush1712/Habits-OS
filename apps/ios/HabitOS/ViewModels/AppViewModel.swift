@@ -70,6 +70,15 @@ final class AppViewModel: ObservableObject {
             .map { ($0.medKey, $0.taken) })
     }
 
+    var selectedProteinShakeCount: Int {
+        guard let entry = todayEntries.first(where: { $0.habitKey == "protein_shake" }),
+              let firstWord = entry.summary.split(separator: " ").first,
+              let parsed = Int(firstWord) else {
+            return 1
+        }
+        return min(20, max(0, parsed))
+    }
+
     var connectionStatus: ConnectionStatus {
         if isLoading { return .connecting }
         if lastConnectionError != nil { return .unreachable }
