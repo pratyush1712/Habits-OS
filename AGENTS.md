@@ -370,7 +370,12 @@ meditation
 journaling
 deep_work
 medication
+protein_shake
 ```
+
+`protein_shake` is a manual-only habit logged from the iOS app or the
+admin/web app, mirroring the `medication` logging flow but kept as its own
+habit (it is not part of the medication plan or dose tally).
 
 ---
 

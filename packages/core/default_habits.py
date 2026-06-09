@@ -8,9 +8,11 @@ from packages.core.models import Habit
 def default_habits() -> list[Habit]:
     """Return the built-in habit definitions in stable display order.
 
-    Four habits are deliberate, user-controlled actions and render as cards in
-    the grid and tally: ``workout``, ``medication``, ``meditation``, and
-    ``journaling``.
+    Five habits are deliberate, user-controlled actions and render as cards in
+    the grid and tally: ``workout``, ``medication``, ``protein_shake``,
+    ``meditation``, and ``journaling``. ``protein_shake`` is logged manually
+    from the iOS app or admin/web app (same flow as ``medication``, but tracked
+    as its own habit and not part of the medication plan/tally).
 
     ``sleep`` and ``recovery`` are ``metric_only``: they are still computed and
     stored from WHOOP data (so the numbers stay visible next to each day's date
@@ -44,6 +46,17 @@ def default_habits() -> list[Habit]:
             description="Medication and supplement dose logs from manual tracking events.",
             event_types=["medication"],
             sources=["manual", "medication"],
+        ),
+        Habit(
+            key="protein_shake",
+            label="Protein Shake",
+            short="P",
+            kind="auto",
+            enabled=True,
+            sort_order=25,
+            description="Protein shake logs from manual tracking (app or web app).",
+            event_types=["protein_shake"],
+            sources=["manual"],
         ),
         Habit(
             key="meditation",

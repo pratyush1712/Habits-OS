@@ -145,6 +145,56 @@ export async function logMedicationAction(formData: FormData): Promise<never> {
 
 
 /**
+ * Log one day's protein shake count from the admin app.
+ */
+export async function logProteinShakeAction(formData: FormData): Promise<never> {
+  const localDate = requireField(formData, "localDate");
+  const timezone = requireField(formData, "timezone");
+  const returnPath = requireField(formData, "returnPath");
+  const recompute = readBooleanField(formData, "recompute");
+  const render = readBooleanField(formData, "render");
+  const count = readOptionalNumberField(formData, "count");
+  const month = localDate.slice(0, 7);
+
+  try {
+    await api.logProteinShake({
+      count,
+      local_date: localDate,
+      timezone,
+    });
+
+    if (recompute) {
+      await api.recompute(month);
+    }
+
+    if (render) {
+      await api.renderMonth(month);
+    }
+
+    refreshPaths([
+      "/dashboard",
+      "/events",
+      "/habits",
+      "/protein-shake",
+      `/month/${month}`,
+      "/renders",
+    ]);
+    redirectWithNotice(
+      returnPath,
+      render
+        ? `Logged protein shake, recomputed, and started render for ${month}.`
+        : recompute
+          ? `Logged protein shake and recomputed ${month}.`
+          : "Logged protein shake.",
+    );
+  } catch (error) {
+    unstable_rethrow(error);
+    redirectWithNotice(returnPath, toNoticeMessage(error), "error");
+  }
+}
+
+
+/**
  * Seed the default habits catalog from the backend.
  */
 export async function seedDefaultHabitsAction(formData: FormData): Promise<never> {

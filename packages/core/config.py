@@ -50,6 +50,12 @@ class MedicationRule(_Strict):
     count_prn_without_schedule: bool = True
 
 
+class ProteinShakeRule(_Strict):
+    # Protein shakes are a manual-only log: a day is checked once at least this
+    # many shakes are recorded. Absence of a log is simply blank, not missed.
+    checked_min_count: int = 1
+
+
 class HabitRuleConfig(_Strict):
     workout: WorkoutRule = WorkoutRule()
     meditation: MeditationRule = MeditationRule()
@@ -57,6 +63,7 @@ class HabitRuleConfig(_Strict):
     recovery: RecoveryRule = RecoveryRule()
     journaling: JournalingRule = JournalingRule()
     medication: MedicationRule = MedicationRule()
+    protein_shake: ProteinShakeRule = ProteinShakeRule()
 
 
 DEFAULT_RULES = HabitRuleConfig()

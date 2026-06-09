@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 
-_DEFAULT_KEYS = {"workout", "medication", "meditation", "journaling", "sleep", "recovery"}
+_DEFAULT_KEYS = {
+    "workout",
+    "medication",
+    "protein_shake",
+    "meditation",
+    "journaling",
+    "sleep",
+    "recovery",
+}
 
 
 async def test_default_habit_seeding_and_listing(api_client):

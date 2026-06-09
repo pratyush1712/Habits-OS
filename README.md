@@ -111,6 +111,7 @@ recipes in [docs/api.md](docs/api.md).
 | GET    | `/events?month=&source=&limit=`                    | List ingested source events                                      |
 | POST   | `/events/import-sample`                            | Ingest `data/sample_events.json` into Mongo                      |
 | POST   | `/events/medication`                               | Manually upsert medication/supplement dose-count events          |
+| POST   | `/events/protein-shake`                            | Manually upsert a protein shake count event for one day          |
 | GET    | `/habits`                                          | List habit catalog                                               |
 | POST   | `/habits/seed-defaults`                            | Re-seed default habits                                           |
 | POST   | `/habits/recompute?month=YYYY-MM`                  | Run the rule engine and persist entries                          |
@@ -286,6 +287,12 @@ Manual medication/supplement logging is available in the admin app at
 through `POST /events/medication`, then can recompute and render the selected
 month from the same form.
 
+Manual protein shake logging works the same way at `/protein-shake` (and in the
+iOS app). It writes an idempotent `event_type="protein_shake"` source event with
+the day's `count` through `POST /events/protein-shake`, driving the separate
+`protein_shake` habit. It is intentionally not part of the medication
+plan/tally.
+
 WHOOP predates the formal contract; the blueprint documents the migration
 path without forcing a refactor now.
 
@@ -354,6 +361,7 @@ tests/
   "habits": [
     {"key": "workout", "label": "Workout", "short": "W"},
     {"key": "medication", "label": "Medication", "short": "Rx"},
+    {"key": "protein_shake", "label": "Protein Shake", "short": "P"},
     ...
   ],
   "medication_groups": [

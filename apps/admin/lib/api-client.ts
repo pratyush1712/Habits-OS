@@ -9,6 +9,7 @@ import {
   mongoHabits,
   mongoLatestRender,
   mongoLogMedication,
+  mongoLogProteinShake,
   mongoMonthState,
   mongoRecompute,
   mongoRenderJobs,
@@ -28,6 +29,12 @@ export type MedicationDoseInput = {
 
 export type MedicationLogInput = {
   doses: MedicationDoseInput[];
+  local_date: string;
+  timezone?: string;
+};
+
+export type ProteinShakeLogInput = {
+  count?: number;
   local_date: string;
   timezone?: string;
 };
@@ -70,7 +77,8 @@ export type EventType =
   | "deep_work"
   | "journal"
   | "manual"
-  | "medication";
+  | "medication"
+  | "protein_shake";
 export type Habit = Omit<
   components["schemas"]["Habit"],
   "event_types" | "sources"
@@ -328,6 +336,17 @@ export const api = {
     }
 
     return callApi<JsonRecord>("/events/medication", {
+      body: input,
+      method: "POST",
+    });
+  },
+
+  logProteinShake(input: ProteinShakeLogInput): Promise<JsonRecord> {
+    if (isMongoDataConfigured()) {
+      return mongoLogProteinShake(input);
+    }
+
+    return callApi<JsonRecord>("/events/protein-shake", {
       body: input,
       method: "POST",
     });

@@ -248,6 +248,34 @@ struct MedicationLogResponse: Codable, Hashable {
     }
 }
 
+struct ProteinShakeLogInput: Codable, Hashable {
+    let localDate: DateOnly
+    let timezone: String
+    let count: Int
+
+    enum CodingKeys: String, CodingKey {
+        case localDate = "local_date"
+        case timezone
+        case count
+    }
+}
+
+struct ProteinShakeLogResponse: Codable, Hashable {
+    let month: String
+    let localDate: DateOnly
+    let count: Int
+    let inserted: Int
+    let updated: Int
+
+    enum CodingKeys: String, CodingKey {
+        case month
+        case localDate = "local_date"
+        case count
+        case inserted
+        case updated
+    }
+}
+
 struct DateOnly: Codable, Hashable, Comparable, ExpressibleByStringLiteral {
     let value: String
 

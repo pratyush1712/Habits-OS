@@ -104,7 +104,9 @@ struct MedicationLogView: View {
         var next: [String: Int] = [:]
         for group in viewModel.medicationGroups {
             for med in group.meds {
-                next[med.key] = existing[med.key] ?? counts[med.key] ?? 0
+                // Each med shows the dose count logged for the selected date,
+                // or 0 when nothing is logged that day.
+                next[med.key] = existing[med.key] ?? 0
             }
         }
         counts = next

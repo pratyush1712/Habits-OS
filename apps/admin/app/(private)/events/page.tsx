@@ -85,6 +85,7 @@ export default async function EventsPage({
               <option value="">All event types</option>
               <option value="journal">Journal</option>
               <option value="medication">Medication</option>
+              <option value="protein_shake">Protein shake</option>
               <option value="recovery">Recovery</option>
               <option value="sleep">Sleep</option>
               <option value="workout">Workout</option>

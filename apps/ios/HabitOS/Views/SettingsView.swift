@@ -119,6 +119,23 @@ struct SettingsView: View {
                         }
                     }
 
+                    PaperPanel {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Protein Shake")
+                                .font(HabitOSFont.h3)
+                                .foregroundStyle(Color.ink)
+
+                            Toggle("Update habits after saving", isOn: $viewModel.recomputeAfterProteinShakeSave)
+                                .font(HabitOSFont.body)
+                                .foregroundStyle(Color.ink)
+
+                            Text("When on, saving a protein shake automatically recomputes habit entries for the month.")
+                                .font(HabitOSFont.meta)
+                                .foregroundStyle(Color.inkFaint)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
                     if let notice = viewModel.notice {
                         NoticeBanner(notice: notice) {
                             viewModel.dismissNotice()

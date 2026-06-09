@@ -17,6 +17,7 @@ type HabitRuleConfig = {
   journaling: { checkedMinEntries: number };
   medication: { countPrnWithoutSchedule: boolean };
   meditation: { checkedMinMinutes: number; partialMinMinutes: number };
+  proteinShake: { checkedMinCount: number };
   recovery: { checkedMinScore: number };
   sleep: { targetHours: number };
   workout: { checkedMinMinutes: number; partialMinMinutes: number };
@@ -29,6 +30,7 @@ const DEFAULT_RULES: HabitRuleConfig = {
   recovery: { checkedMinScore: 67 },
   journaling: { checkedMinEntries: 1 },
   medication: { countPrnWithoutSchedule: true },
+  proteinShake: { checkedMinCount: 1 },
 };
 
 type Evaluator = (
@@ -248,6 +250,42 @@ function evaluateMedication(
   };
 }
 
+function evaluateProteinShake(
+  day: string,
+  events: SourceEvent[],
+  config: HabitRuleConfig,
+): HabitEntry | null {
+  const shakes = events.filter((event) => event.event_type === "protein_shake");
+
+  if (shakes.length === 0) {
+    return null;
+  }
+
+  const total = shakes.reduce(
+    (sum, event) => sum + nonnegativeInteger(eventMetrics(event).count ?? 1),
+    0,
+  );
+
+  if (total < config.proteinShake.checkedMinCount) {
+    return null;
+  }
+
+  const noun = total === 1 ? "shake" : "shakes";
+
+  return {
+    confidence: 1,
+    date: day,
+    description: joinDescriptions(shakes),
+    explanation: `${total} protein ${noun} logged (checked >= ${config.proteinShake.checkedMinCount})`,
+    habit_key: "protein_shake",
+    linked_source_event_ids: shakes.map((event) => event.id),
+    manually_overridden: false,
+    source: shakes[0].source,
+    status: "checked",
+    summary: `${total} ${noun}`,
+  };
+}
+
 function evaluateMeditation(
   day: string,
   events: SourceEvent[],
@@ -414,6 +452,7 @@ function evaluateJournaling(
 const EVALUATORS: Record<string, Evaluator> = {
   workout: evaluateWorkout,
   medication: evaluateMedication,
+  protein_shake: evaluateProteinShake,
   meditation: evaluateMeditation,
   sleep: evaluateSleep,
   recovery: evaluateRecovery,

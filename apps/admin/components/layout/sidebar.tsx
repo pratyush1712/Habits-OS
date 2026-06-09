@@ -12,6 +12,7 @@ const NAV_SECTIONS = [
       { href: "/dashboard", label: "Dashboard" },
       { href: "/events", label: "Events" },
       { href: "/medication", label: "Medication" },
+      { href: "/protein-shake", label: "Protein Shake" },
       { href: "/habits", label: "Habits" },
     ],
   },

@@ -18,6 +18,7 @@ import {
   type MedicationGroup,
   type MedicationLogInput,
   type MonthHabitState,
+  type ProteinShakeLogInput,
   type RenderJob,
   type RenderJobsResponse,
   type SourceEvent,
@@ -431,6 +432,51 @@ export async function mongoLogMedication(
 
   return {
     events: operations.length,
+    inserted: result.upsertedCount,
+    local_date: localDate,
+    month: localDate.slice(0, 7),
+    updated: result.modifiedCount,
+  };
+}
+
+export async function mongoLogProteinShake(
+  input: ProteinShakeLogInput,
+): Promise<Record<string, unknown>> {
+  const database = await db();
+  const now = new Date();
+  const localDate = input.local_date;
+  const observedAt = new Date(`${localDate}T12:00:00.000Z`);
+  const timezone = input.timezone ?? "UTC";
+  const count = nonnegativeInteger(input.count ?? 1);
+  const noun = count === 1 ? "shake" : "shakes";
+  const eventId = `manual:protein-shake-${localDate}`;
+  const metrics = { count };
+
+  const result = await database
+    .collection<SourceEventDocument>("source_events")
+    .replaceOne(
+      { _id: eventId },
+      {
+        _id: eventId,
+        created_at: now,
+        description: "Manual protein shake log from the app/web app.",
+        end_time_utc: null,
+        event_type: "protein_shake",
+        local_date: localDate,
+        metrics,
+        raw_payload: metrics,
+        source: "manual",
+        source_event_id: `protein-shake-${localDate}`,
+        start_time_utc: observedAt,
+        timezone,
+        title: `${count} protein ${noun}`,
+        updated_at: now,
+      },
+      { upsert: true },
+    );
+
+  return {
+    count,
     inserted: result.upsertedCount,
     local_date: localDate,
     month: localDate.slice(0, 7),

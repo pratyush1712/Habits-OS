@@ -7,11 +7,22 @@ final class AppViewModel: ObservableObject {
     @AppStorage("habitOSTimezone") var timezoneIdentifier = TimeZone.current.identifier
     @AppStorage("mobileAPIKey") var mobileAPIKey = ""
     @AppStorage("recomputeAfterMedicationSave") var recomputeAfterMedicationSave = true
+    @AppStorage("recomputeAfterProteinShakeSave") var recomputeAfterProteinShakeSave = true
 
     @Published private(set) var monthState: MonthHabitState?
     @Published private(set) var isLoading = false
     @Published private(set) var isSavingMedication = false
-    @Published var selectedDate = Date()
+    @Published private(set) var isSavingProteinShake = false
+    @Published var selectedDate = Date() {
+        didSet {
+            // monthState caches a single month, so per-date lookups (habit
+            // entries, medication doses, protein shake counts) only resolve
+            // within it. Refetch when the selection crosses into another month;
+            // same-month changes are served from the cache.
+            guard monthState?.month != selectedMonth else { return }
+            Task { await refresh() }
+        }
+    }
     @Published var notice: AppNotice?
     @Published private(set) var lastConnectionError: String?
 
@@ -68,6 +79,15 @@ final class AppViewModel: ObservableObject {
             .map { ($0.medKey, $0.taken) })
     }
 
+    var selectedProteinShakeCount: Int {
+        guard let entry = todayEntries.first(where: { $0.habitKey == "protein_shake" }),
+              let firstWord = entry.summary.split(separator: " ").first,
+              let parsed = Int(firstWord) else {
+            return 1
+        }
+        return min(20, max(0, parsed))
+    }
+
     var connectionStatus: ConnectionStatus {
         if isLoading { return .connecting }
         if lastConnectionError != nil { return .unreachable }
@@ -91,15 +111,22 @@ final class AppViewModel: ObservableObject {
     }
 
     func refresh() async {
+        let month = selectedMonth
         isLoading = true
         defer { isLoading = false }
 
         do {
             let client = try makeClient()
-            monthState = try await client.monthState(month: selectedMonth)
+            let state = try await client.monthState(month: month)
+            // Apply the result only while the selection still points at the
+            // requested month, so a slower in-flight fetch never overwrites a
+            // newer one.
+            guard month == selectedMonth else { return }
+            monthState = state
             lastConnectionError = nil
             notice = nil
         } catch {
+            guard month == selectedMonth else { return }
             let message = readable(error)
             lastConnectionError = message
             notice = AppNotice(kind: .error, message: message)
@@ -142,6 +169,39 @@ final class AppViewModel: ObservableObject {
                 message: recomputeAfterMedicationSave
                     ? "Saved medication log and updated habits for \(response.month)."
                     : "Saved medication log for \(response.localDate.value)."
+            )
+            Haptic.success()
+        } catch {
+            notice = AppNotice(kind: .error, message: readable(error))
+            Haptic.error()
+        }
+    }
+
+    func saveProteinShake(count: Int) async {
+        isSavingProteinShake = true
+        defer { isSavingProteinShake = false }
+
+        do {
+            let payload = ProteinShakeLogInput(
+                localDate: selectedDateOnly,
+                timezone: selectedTimeZone.identifier,
+                count: max(0, count)
+            )
+
+            let client = try makeClient()
+            let response = try await client.logProteinShake(payload)
+
+            if recomputeAfterProteinShakeSave {
+                try await client.recompute(month: response.month)
+            }
+
+            monthState = try await client.monthState(month: response.month)
+            lastConnectionError = nil
+            notice = AppNotice(
+                kind: .success,
+                message: recomputeAfterProteinShakeSave
+                    ? "Saved protein shake log and updated habits for \(response.month)."
+                    : "Saved protein shake log for \(response.localDate.value)."
             )
             Haptic.success()
         } catch {

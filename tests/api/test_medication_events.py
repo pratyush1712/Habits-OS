@@ -99,6 +99,80 @@ async def test_log_medication_events_rejects_unknown_timezone() -> None:
     assert response.json()["detail"] == "unknown timezone"
 
 
+async def test_log_protein_shake_event_normalizes_count() -> None:
+    app = FastAPI()
+    app.include_router(router)
+    repo = _EventsRepo()
+    app.dependency_overrides[get_events_repo] = lambda: repo
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/events/protein-shake",
+            json={
+                "local_date": "2026-06-09",
+                "timezone": "America/New_York",
+                "count": 2,
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "month": "2026-06",
+        "local_date": "2026-06-09",
+        "count": 2,
+        "inserted": 1,
+        "updated": 0,
+    }
+    assert [event.id for event in repo.events] == [
+        "manual:protein-shake-2026-06-09",
+    ]
+    shake = repo.events[0]
+    assert shake.event_type == "protein_shake"
+    assert shake.source == "manual"
+    assert shake.local_date.isoformat() == "2026-06-09"
+    assert shake.timezone == "America/New_York"
+    assert shake.metrics == {"count": 2}
+
+
+async def test_log_protein_shake_event_defaults_to_one() -> None:
+    app = FastAPI()
+    app.include_router(router)
+    repo = _EventsRepo()
+    app.dependency_overrides[get_events_repo] = lambda: repo
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/events/protein-shake",
+            json={"local_date": "2026-06-09"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    assert repo.events[0].metrics == {"count": 1}
+
+
+async def test_log_protein_shake_event_rejects_unknown_timezone() -> None:
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_events_repo] = lambda: _EventsRepo()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/events/protein-shake",
+            json={
+                "local_date": "2026-06-09",
+                "timezone": "Not/AZone",
+                "count": 1,
+            },
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "unknown timezone"
+
+
 async def test_log_medication_events_can_be_listed_by_date() -> None:
     app = FastAPI()
     app.include_router(router)

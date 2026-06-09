@@ -278,7 +278,12 @@ meditation
 journaling
 deep_work
 medication
+protein_shake
 ```
+
+`protein_shake` is a manual-only habit logged from the iOS app or the
+admin/web app (same flow as `medication`, but tracked as its own habit and
+not part of the medication plan/tally).
 
 ---
 
@@ -312,6 +317,12 @@ journaling:
 
 deep_work:
 - manual only for v1
+
+protein_shake:
+- manual only; logged from the app/web app
+- checked when a protein shake is logged for the day
+- missed if nothing is logged
+- separate from medication (not part of the medication plan/tally)
 ```
 
 Manual overrides take priority over automatic detection.

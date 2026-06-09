@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/protein-shake": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log Protein Shake Event */
+        post: operations["log_protein_shake_event_events_protein_shake_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/events/import-sample": {
         parameters: {
             query?: never;
@@ -535,7 +552,7 @@ export interface components {
              */
             description: string;
             /** Event Types */
-            event_types?: ("workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication")[];
+            event_types?: ("workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication" | "protein_shake")[];
             /** Sources */
             sources?: ("whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one" | "medication")[];
         };
@@ -685,6 +702,24 @@ export interface components {
             /** Doses */
             doses: components["schemas"]["MedicationDoseInput"][];
         };
+        /** ProteinShakeLogInput */
+        ProteinShakeLogInput: {
+            /**
+             * Local Date
+             * Format: date
+             */
+            local_date: string;
+            /**
+             * Timezone
+             * @default UTC
+             */
+            timezone: string;
+            /**
+             * Count
+             * @default 1
+             */
+            count: number;
+        };
         /**
          * MonthHabitState
          * @description Everything the renderer needs to produce a monthly PDF.
@@ -828,7 +863,7 @@ export interface components {
              * Event Type
              * @enum {string}
              */
-            event_type: "workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication";
+            event_type: "workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication" | "protein_shake";
             /**
              * Start Time Utc
              * Format: date-time
@@ -1097,6 +1132,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["MedicationLogInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_protein_shake_event_events_protein_shake_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProteinShakeLogInput"];
             };
         };
         responses: {
