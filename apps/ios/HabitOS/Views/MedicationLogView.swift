@@ -104,7 +104,10 @@ struct MedicationLogView: View {
         var next: [String: Int] = [:]
         for group in viewModel.medicationGroups {
             for med in group.meds {
-                next[med.key] = existing[med.key] ?? counts[med.key] ?? 0
+                // Derive purely from what's logged for the selected date. Do NOT
+                // fall back to the previous local `counts`, or values from one
+                // date leak onto another when switching dates.
+                next[med.key] = existing[med.key] ?? 0
             }
         }
         counts = next
