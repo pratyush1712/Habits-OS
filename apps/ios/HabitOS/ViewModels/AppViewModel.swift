@@ -112,15 +112,22 @@ final class AppViewModel: ObservableObject {
     }
 
     func refresh() async {
+        let month = selectedMonth
         isLoading = true
         defer { isLoading = false }
 
         do {
             let client = try makeClient()
-            monthState = try await client.monthState(month: selectedMonth)
+            let state = try await client.monthState(month: month)
+            // The selection may have moved to a different month while this
+            // request was in flight; drop the stale result so it can't clobber
+            // newer state.
+            guard month == selectedMonth else { return }
+            monthState = state
             lastConnectionError = nil
             notice = nil
         } catch {
+            guard month == selectedMonth else { return }
             let message = readable(error)
             lastConnectionError = message
             notice = AppNotice(kind: .error, message: message)
