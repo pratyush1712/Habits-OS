@@ -13,7 +13,17 @@ final class AppViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var isSavingMedication = false
     @Published private(set) var isSavingProteinShake = false
-    @Published var selectedDate = Date()
+    @Published var selectedDate = Date() {
+        didSet {
+            // The cached monthState only covers a single month. When the
+            // selection moves to a different month, refetch so per-date lookups
+            // (habit entries, medication doses, protein shake counts) resolve
+            // against the right month instead of showing blanks until a manual
+            // refresh. Same-month changes read straight from the cache.
+            guard monthState?.month != selectedMonth else { return }
+            Task { await refresh() }
+        }
+    }
     @Published var notice: AppNotice?
     @Published private(set) var lastConnectionError: String?
 

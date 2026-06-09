@@ -51,9 +51,6 @@ struct TodayView: View {
         .refreshable {
             await viewModel.refresh()
         }
-        .onChange(of: viewModel.selectedDate) {
-            Task { await viewModel.refresh() }
-        }
     }
 
     private var hero: some View {
