@@ -1,6 +1,6 @@
 # HabitOS iOS
 
-Native SwiftUI companion app for HabitOS. It is intentionally small: it reads the backend month state, shows today's resolved habit entries, and writes medication/supplement dose counts to the existing FastAPI source-event endpoint.
+Native SwiftUI companion app for HabitOS. It is intentionally small: it reads the backend month state, shows today's resolved habit entries, and writes medication/supplement dose counts and protein shake counts to the existing FastAPI source-event endpoints.
 
 ## Open in Xcode
 
@@ -24,6 +24,7 @@ That URL works from both Simulator and a physical iPhone after the matching `app
 
 - `GET /api/mobile/state/month?month=YYYY-MM` loads habits, habit entries, medication schedule metadata, and logged medication days.
 - `POST /api/mobile/events/medication` saves one idempotent source event per medication/supplement for the selected local date.
-- `POST /api/mobile/habits/recompute?month=YYYY-MM` optionally refreshes persisted habit entries after a medication save.
+- `POST /api/mobile/events/protein-shake` saves an idempotent `protein_shake` source event with the day's shake count for the selected local date.
+- `POST /api/mobile/habits/recompute?month=YYYY-MM` optionally refreshes persisted habit entries after a medication or protein shake save.
 
-The backend remains the source of truth. The mobile app does not maintain an independent medication database.
+The backend remains the source of truth. The mobile app does not maintain an independent medication or protein shake database.

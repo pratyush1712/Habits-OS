@@ -36,6 +36,14 @@ class MedicationLogInput(BaseModel):
     doses: list[MedicationDoseInput] = Field(min_length=1, max_length=40)
 
 
+class ProteinShakeLogInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    local_date: date
+    timezone: str = Field(default="UTC", min_length=1, max_length=80)
+    count: int = Field(default=1, ge=0, le=20)
+
+
 router = APIRouter(prefix="/events", tags=["events"])
 
 
@@ -106,6 +114,43 @@ async def log_medication_events(
         "month": payload.local_date.strftime("%Y-%m"),
         "local_date": payload.local_date.isoformat(),
         "events": len(events),
+        "inserted": counts["inserted"],
+        "updated": counts["updated"],
+    }
+
+
+@router.post("/protein-shake")
+async def log_protein_shake_event(
+    payload: ProteinShakeLogInput,
+    repo: SourceEventsRepo = Depends(get_events_repo),
+) -> dict:
+    try:
+        tz = ZoneInfo(payload.timezone)
+    except ZoneInfoNotFoundError as e:
+        raise HTTPException(status_code=400, detail="unknown timezone") from e
+
+    observed_at = datetime.combine(payload.local_date, time(hour=12), tz).astimezone(
+        timezone.utc
+    )
+    noun = "shake" if payload.count == 1 else "shakes"
+    event = SourceEvent(
+        id=f"manual:protein-shake-{payload.local_date.isoformat()}",
+        source="manual",
+        source_event_id=f"protein-shake-{payload.local_date.isoformat()}",
+        event_type="protein_shake",
+        start_time_utc=observed_at,
+        end_time_utc=None,
+        local_date=payload.local_date,
+        timezone=payload.timezone,
+        title=f"{payload.count} protein {noun}",
+        description="Manual protein shake log from the app/web app.",
+        metrics={"count": payload.count},
+    )
+    counts = await repo.upsert_many_counts([event])
+    return {
+        "month": payload.local_date.strftime("%Y-%m"),
+        "local_date": payload.local_date.isoformat(),
+        "count": payload.count,
         "inserted": counts["inserted"],
         "updated": counts["updated"],
     }

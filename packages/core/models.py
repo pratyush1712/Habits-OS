@@ -35,6 +35,7 @@ EventType = Literal[
     "journal",
     "manual",
     "medication",
+    "protein_shake",
 ]
 MedicationDoseStatus = Literal["taken", "partial", "missed", "none"]
 

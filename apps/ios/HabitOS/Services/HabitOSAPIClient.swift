@@ -39,6 +39,10 @@ struct HabitOSAPIClient {
         try await request(path: "/events/medication", method: "POST", body: payload)
     }
 
+    func logProteinShake(_ payload: ProteinShakeLogInput) async throws -> ProteinShakeLogResponse {
+        try await request(path: "/events/protein-shake", method: "POST", body: payload)
+    }
+
     func recompute(month: String) async throws {
         let _: EmptyResponse = try await request(path: "/habits/recompute", method: "POST", query: [URLQueryItem(name: "month", value: month)])
     }

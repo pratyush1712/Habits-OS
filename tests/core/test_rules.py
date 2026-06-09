@@ -12,6 +12,7 @@ from datetime import date, datetime, timedelta, timezone
 from packages.core.config import (
     HabitRuleConfig,
     JournalingRule,
+    ProteinShakeRule,
     RecoveryRule,
     SleepRule,
 )
@@ -21,6 +22,7 @@ from packages.core.rules import (
     evaluate_journaling,
     evaluate_medication,
     evaluate_meditation,
+    evaluate_protein_shake,
     evaluate_recovery,
     evaluate_sleep,
     evaluate_workout,
@@ -173,6 +175,59 @@ def test_medication_prn_taken_is_informational_checked_entry():
     assert entry.status == "checked"
     assert entry.summary == "1 PRN dose"
     assert "absence of PRN" in entry.explanation
+
+# ---------- protein shake ----------
+
+
+def _shake_event(count, *, day=DAY):
+    start = datetime(day.year, day.month, day.day, 12, 0, tzinfo=timezone.utc)
+    return SourceEvent(
+        id=f"manual:protein-shake-{day.isoformat()}",
+        source="manual",
+        source_event_id=f"protein-shake-{day.isoformat()}",
+        event_type="protein_shake",
+        start_time_utc=start,
+        local_date=day,
+        title=f"{count} protein shakes",
+        metrics={"count": count},
+    )
+
+
+def test_protein_shake_no_events_returns_none():
+    assert evaluate_protein_shake(DAY, []) is None
+
+
+def test_protein_shake_ignores_non_shake_events():
+    assert evaluate_protein_shake(DAY, [_event("workout", 30)]) is None
+
+
+def test_protein_shake_single_is_checked_singular_summary():
+    entry = evaluate_protein_shake(DAY, [_shake_event(1)])
+    assert entry is not None
+    assert entry.habit_key == "protein_shake"
+    assert entry.status == "checked"
+    assert entry.source == "manual"
+    assert entry.summary == "1 shake"
+
+
+def test_protein_shake_multiple_is_checked_plural_summary():
+    entry = evaluate_protein_shake(DAY, [_shake_event(2)])
+    assert entry is not None
+    assert entry.status == "checked"
+    assert entry.summary == "2 shakes"
+
+
+def test_protein_shake_zero_count_leaves_day_blank():
+    assert evaluate_protein_shake(DAY, [_shake_event(0)]) is None
+
+
+def test_protein_shake_threshold_can_be_raised():
+    cfg = HabitRuleConfig(protein_shake=ProteinShakeRule(checked_min_count=2))
+    assert evaluate_protein_shake(DAY, [_shake_event(1)], cfg) is None
+    entry = evaluate_protein_shake(DAY, [_shake_event(2)], cfg)
+    assert entry is not None
+    assert entry.status == "checked"
+
 
 # ---------- sleep ----------
 

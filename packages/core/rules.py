@@ -140,6 +140,36 @@ def evaluate_medication(
     )
 
 
+def evaluate_protein_shake(
+    day: date,
+    events: list[SourceEvent],
+    config: HabitRuleConfig = DEFAULT_RULES,
+) -> HabitEntry | None:
+    shakes = [e for e in events if e.event_type == "protein_shake"]
+    if not shakes:
+        return None
+    total = sum(_coerce_nonnegative_int(e.metrics.get("count", 1)) for e in shakes)
+    rule = config.protein_shake
+    if total < rule.checked_min_count:
+        # A logged "zero" (e.g. an edit/undo) leaves the day blank rather than
+        # marking it missed — manual habits are not shame-based.
+        return None
+    noun = "shake" if total == 1 else "shakes"
+    return HabitEntry(
+        date=day,
+        habit_key="protein_shake",
+        status="checked",
+        source=shakes[0].source,
+        summary=f"{total} {noun}",
+        description=_join_descriptions(shakes),
+        linked_source_event_ids=[e.id for e in shakes],
+        explanation=(
+            f"{total} protein {noun} logged "
+            f"(checked >= {rule.checked_min_count})"
+        ),
+    )
+
+
 def evaluate_meditation(
     day: date,
     events: list[SourceEvent],
@@ -273,6 +303,7 @@ def evaluate_journaling(
 EVALUATORS: dict[str, Callable[[date, list[SourceEvent], HabitRuleConfig], HabitEntry | None]] = {
     "workout": evaluate_workout,
     "medication": evaluate_medication,
+    "protein_shake": evaluate_protein_shake,
     "meditation": evaluate_meditation,
     "sleep": evaluate_sleep,
     "recovery": evaluate_recovery,

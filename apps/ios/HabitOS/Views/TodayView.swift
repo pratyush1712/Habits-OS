@@ -19,6 +19,8 @@ struct TodayView: View {
 
                     medicationCard
 
+                    proteinShakeCard
+
                     if viewModel.isLoading {
                         PaperPanel { LoadingRows() }
                     } else if viewModel.lastConnectionError != nil && viewModel.monthState == nil {
@@ -107,6 +109,38 @@ struct TodayView: View {
                             .font(HabitOSFont.h3)
                             .foregroundStyle(Color.ink)
                         Text(viewModel.medicationSummary)
+                            .font(HabitOSFont.data)
+                            .foregroundStyle(Color.inkFaint)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(HabitOSFont.body)
+                        .foregroundStyle(Color.inkFaint)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var proteinShakeCard: some View {
+        NavigationLink {
+            ProteinShakeLogView()
+        } label: {
+            PaperPanel {
+                HStack(spacing: 14) {
+                    Image(systemName: "cup.and.saucer.fill")
+                        .font(HabitOSFont.h3)
+                        .foregroundStyle(.white)
+                        .frame(width: 48, height: 48)
+                        .background(Color.rule)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Log protein shake")
+                            .font(HabitOSFont.h3)
+                            .foregroundStyle(Color.ink)
+                        Text("Record today's protein shakes")
                             .font(HabitOSFont.data)
                             .foregroundStyle(Color.inkFaint)
                             .lineLimit(1)

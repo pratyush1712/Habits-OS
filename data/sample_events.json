@@ -8,6 +8,12 @@
       "short": "Rx",
       "kind": "auto"
     },
+    {
+      "key": "protein_shake",
+      "label": "Protein Shake",
+      "short": "P",
+      "kind": "auto"
+    },
     { "key": "sleep", "label": "Sleep", "short": "Z", "kind": "auto" },
     {
       "key": "meditation",
@@ -63,6 +69,30 @@
       "local_date": "2026-05-01",
       "timezone": "America/New_York",
       "title": "breath"
+    },
+    {
+      "id": "manual:protein-shake-2026-05-01",
+      "source": "manual",
+      "source_event_id": "protein-shake-2026-05-01",
+      "event_type": "protein_shake",
+      "start_time_utc": "2026-05-01T16:00:00Z",
+      "local_date": "2026-05-01",
+      "timezone": "America/New_York",
+      "title": "1 protein shake",
+      "description": "Manual protein shake log from the app/web app.",
+      "metrics": { "count": 1 }
+    },
+    {
+      "id": "manual:protein-shake-2026-05-05",
+      "source": "manual",
+      "source_event_id": "protein-shake-2026-05-05",
+      "event_type": "protein_shake",
+      "start_time_utc": "2026-05-05T16:00:00Z",
+      "local_date": "2026-05-05",
+      "timezone": "America/New_York",
+      "title": "2 protein shakes",
+      "description": "Manual protein shake log from the app/web app.",
+      "metrics": { "count": 2 }
     },
     {
       "id": "whoop:sl-002",

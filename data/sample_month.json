@@ -12,6 +12,11 @@
       "short": "Rx"
     },
     {
+      "key": "protein_shake",
+      "label": "Protein Shake",
+      "short": "P"
+    },
+    {
       "key": "meditation",
       "label": "Meditation",
       "short": "M"
@@ -55,6 +60,12 @@
           "status": "checked",
           "summary": "Score 78",
           "description": "HRV trending up over the week."
+        },
+        {
+          "habit_key": "protein_shake",
+          "status": "checked",
+          "summary": "1 shake",
+          "description": "Post-run."
         },
         {
           "habit_key": "meditation",

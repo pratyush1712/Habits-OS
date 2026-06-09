@@ -20,6 +20,13 @@ struct ContentView: View {
             }
 
             NavigationStack {
+                ProteinShakeLogView()
+            }
+            .tabItem {
+                Label("Shake", systemImage: "cup.and.saucer")
+            }
+
+            NavigationStack {
                 SettingsView()
             }
             .tabItem {
