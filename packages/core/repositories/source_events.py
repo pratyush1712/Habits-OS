@@ -12,6 +12,16 @@ from packages.core.models import SourceEvent
 from packages.core.repositories.base import doc_to_model, model_to_doc, month_range
 
 
+_PERSISTENCE_ONLY_FIELDS = {"created_at", "updated_at"}
+
+
+def _doc_to_source_event(doc: dict) -> SourceEvent:
+    raw = dict(doc)
+    for field in _PERSISTENCE_ONLY_FIELDS:
+        raw.pop(field, None)
+    return doc_to_model(raw, SourceEvent, id_field="id")
+
+
 class SourceEventsRepo:
     COLLECTION = "source_events"
 
@@ -42,18 +52,18 @@ class SourceEventsRepo:
 
     async def get(self, event_id: str) -> SourceEvent | None:
         doc = await self.coll.find_one({"_id": event_id})
-        return doc_to_model(doc, SourceEvent, id_field="id") if doc else None
+        return _doc_to_source_event(doc) if doc else None
 
     async def list_by_local_date(self, day: date) -> list[SourceEvent]:
         cursor = self.coll.find({"local_date": day.isoformat()}).sort("start_time_utc", 1)
-        return [doc_to_model(d, SourceEvent, id_field="id") async for d in cursor]
+        return [_doc_to_source_event(d) async for d in cursor]
 
     async def list_by_month(self, month: str) -> list[SourceEvent]:
         start, end = month_range(month)
         cursor = self.coll.find({"local_date": {"$gte": start, "$lt": end}}).sort(
             [("local_date", 1), ("start_time_utc", 1)]
         )
-        return [doc_to_model(d, SourceEvent, id_field="id") async for d in cursor]
+        return [_doc_to_source_event(d) async for d in cursor]
 
     async def delete_by_source_date_range_except(
         self,
@@ -106,7 +116,7 @@ class SourceEventsRepo:
             .sort([("local_date", -1), ("start_time_utc", -1)])
             .limit(limit)
         )
-        return [doc_to_model(d, SourceEvent, id_field="id") async for d in cursor]
+        return [_doc_to_source_event(d) async for d in cursor]
 
     async def delete(self, event_id: str) -> bool:
         result = await self.coll.delete_one({"_id": event_id})

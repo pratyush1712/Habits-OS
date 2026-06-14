@@ -702,24 +702,6 @@ export interface components {
             /** Doses */
             doses: components["schemas"]["MedicationDoseInput"][];
         };
-        /** ProteinShakeLogInput */
-        ProteinShakeLogInput: {
-            /**
-             * Local Date
-             * Format: date
-             */
-            local_date: string;
-            /**
-             * Timezone
-             * @default UTC
-             */
-            timezone: string;
-            /**
-             * Count
-             * @default 1
-             */
-            count: number;
-        };
         /**
          * MonthHabitState
          * @description Everything the renderer needs to produce a monthly PDF.
@@ -740,6 +722,24 @@ export interface components {
              * Format: date-time
              */
             generated_at?: string;
+        };
+        /** ProteinShakeLogInput */
+        ProteinShakeLogInput: {
+            /**
+             * Local Date
+             * Format: date
+             */
+            local_date: string;
+            /**
+             * Timezone
+             * @default UTC
+             */
+            timezone: string;
+            /**
+             * Count
+             * @default 1
+             */
+            count: number;
         };
         /**
          * RenderJob

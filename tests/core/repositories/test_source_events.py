@@ -78,3 +78,22 @@ async def test_delete(db):
     assert await repo.delete(e.id) is True
     assert await repo.get(e.id) is None
     assert await repo.delete(e.id) is False
+
+
+async def test_reads_admin_documents_with_audit_timestamps(db):
+    repo = SourceEventsRepo(db)
+    event = _event(date(2026, 5, 4), source_event_id="admin-med", event_type="medication")
+    await repo.upsert(event)
+    audit_time = datetime(2026, 5, 4, 14, 0, tzinfo=timezone.utc)
+    await db[repo.COLLECTION].update_one(
+        {"_id": event.id},
+        {"$set": {"created_at": audit_time, "updated_at": audit_time}},
+    )
+
+    got = await repo.get(event.id)
+    assert got is not None
+    assert got.id == event.id
+    assert got.event_type == "medication"
+
+    month_events = await repo.list_by_month("2026-05")
+    assert [e.id for e in month_events] == [event.id]
