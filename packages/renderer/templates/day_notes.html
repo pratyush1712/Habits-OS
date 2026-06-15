@@ -1,81 +1,1162 @@
-<section class="page day-page day-notes-page" id="day-notes-{{ day.date }}">
-  <div class="page-inner">
-    <div class="nav-row">
-      <a class="back-link" href="#month">← {{ month_label }}</a>
-      <a class="back-link" href="#day-{{ day.date }}">← habits</a>
-      {% if day.prev_iso %}<a
-        class="back-link"
-        href="#day-notes-{{ day.prev_iso }}"
-        >← prev</a
-      >{% endif %} {% if day.next_iso %}<a
-        class="back-link"
-        href="#day-notes-{{ day.next_iso }}"
-        >next →</a
-      >{% endif %}
-    </div>
+<!doctype html>
+<html>
+  <head>
+    <title>Work Priority Matrix</title>
+  </head>
+  <body>
+    <style>
+      /* HabitOS — reMarkable 2 PDF stylesheet.
+ *
+ * Design constraints (per CLAUDE.md):
+ *   - grayscale only; no meaning conveyed by color
+ *   - high contrast for e-ink
+ *   - large tap targets (>= ~10mm)
+ *   - generous whitespace, room for handwriting
+ *   - portrait orientation sized for reMarkable 2 (~157 x 210 mm)
+ */
 
-    <header class="page-header page-header-slim">
-      <h1>{{ day.weekday_long }}, {{ day.month_day_long }}</h1>
-      <p class="subtitle">{{ day.date }} &nbsp;·&nbsp; Work Priority Matrix</p>
-    </header>
+      @page {
+        size: 157mm 210mm;
+        margin: 0;
+      }
 
-    <div class="priority-layout">
-      <div class="matrix-outer">
-        <div class="matrix-top-row">
-          <div class="matrix-corner-label">Priority</div>
-          <div class="matrix-col-label">Urgent</div>
-          <div class="matrix-col-label">Not urgent</div>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+        color: #111111;
+        font-family:
+          "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+        font-size: 11pt;
+        line-height: 1.4;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-weight: 600;
+      }
+
+      .sans {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, "Inter", Arial, sans-serif;
+      }
+
+      .page {
+        width: 157mm;
+        height: 210mm;
+        position: relative;
+        page-break-after: always;
+        break-after: page;
+        box-sizing: border-box;
+      }
+      .page:last-of-type {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+
+      .page-inner {
+        width: 100%;
+        height: 100%;
+        padding: 11mm 11mm 9mm 11mm;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      .month-page .page-inner {
+        padding: 9mm 9mm 8mm 9mm;
+      }
+
+      /* ---------- Top nav / back links ---------- */
+
+      .page-header {
+        border-bottom: 1.5pt solid #111;
+        padding-bottom: 4mm;
+        margin-bottom: 6mm;
+      }
+      .day-page .page-header,
+      .week-page .page-header {
+        margin-bottom: 3.6mm;
+      }
+      .page-header h1 {
+        font-size: 22pt;
+        letter-spacing: 0.5pt;
+        margin: 2mm 0 1mm 0;
+        line-height: 1.1;
+      }
+      .page-header .subtitle {
+        margin: 0;
+        font-size: 10pt;
+        color: #444;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      .page-header .subtitle .metrics {
+        font-size: 9pt;
+        color: #666;
+      }
+
+      /* Slim header variant for day-notes page (more room for writing) */
+      .page-header-slim {
+        padding-bottom: 3mm;
+        margin-bottom: 4mm;
+      }
+      .page-header-slim h1 {
+        font-size: 17pt;
+        margin: 1mm 0 1mm 0;
+      }
+
+      .back-link {
+        display: inline-block;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 9pt;
+        letter-spacing: 0.5pt;
+        text-transform: uppercase;
+        padding: 1.5mm 3mm;
+        border: 0.75pt solid #111;
+        margin-right: 2mm;
+        margin-bottom: 1mm;
+      }
+
+      /* ---------- Monthly dashboard ---------- */
+
+      .month-header {
+        text-align: center;
+        margin-bottom: 4mm;
+      }
+      .month-title {
+        font-size: 28pt;
+        letter-spacing: 1pt;
+        margin: 0;
+        line-height: 1;
+      }
+      .month-sub {
+        margin: 1.5mm 0 0 0;
+        font-size: 8pt;
+        color: #444;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        letter-spacing: 2pt;
+        text-transform: uppercase;
+      }
+
+      .weekday-row {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        border-top: 1pt solid #111;
+        border-bottom: 1pt solid #111;
+      }
+      .weekday-cell {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 8pt;
+        font-weight: 700;
+        letter-spacing: 1.5pt;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 1.8mm 0;
+        color: #222;
+      }
+
+      .month-grid {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+      .week-row {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        flex: 1;
+        border-bottom: 0.5pt solid #bbb;
+      }
+      .week-row:last-child {
+        border-bottom: 0.75pt solid #111;
+      }
+
+      .day-cell {
+        padding: 1.5mm 1.5mm 1mm 1.5mm;
+        border-right: 0.5pt solid #bbb;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 22mm;
+      }
+      .day-cell:last-child {
+        border-right: none;
+      }
+      .day-cell.empty {
+        background-image: repeating-linear-gradient(
+          -45deg,
+          #ffffff 0,
+          #ffffff 1.6mm,
+          #ededed 1.6mm,
+          #ededed 1.9mm
+        );
+      }
+      .day-num {
+        font-family: "Iowan Old Style", Georgia, serif;
+        font-size: 13pt;
+        font-weight: 600;
+        line-height: 1;
+      }
+      .day-cell.today .day-num {
+        display: inline-block;
+        border: 1pt solid #111;
+        padding: 0.6mm 1.4mm;
+        border-radius: 1.5mm;
+      }
+      .day-statuses {
+        display: flex;
+        gap: 0.8mm;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 1mm;
+      }
+
+      /* Status glyphs — meaning carried by shape, not color. */
+      .status {
+        display: inline-block;
+        min-width: 3.6mm;
+        font-size: 10pt;
+        text-align: center;
+        line-height: 1;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: #111;
+      }
+      .status.status-none {
+        color: #bbb;
+      }
+
+      /* ---------- Legend / footer on month page ---------- */
+
+      .legend {
+        margin-top: 4mm;
+        padding-top: 3mm;
+        border-top: 0.75pt solid #111;
+        display: grid;
+        grid-template-columns: 1.1fr 1fr 1.4fr;
+        gap: 5mm;
+        font-size: 9pt;
+      }
+      .legend h3 {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 7.5pt;
+        letter-spacing: 1.5pt;
+        text-transform: uppercase;
+        color: #444;
+        margin: 0 0 1.5mm 0;
+      }
+      .legend ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .legend li {
+        margin-bottom: 1mm;
+        line-height: 1.3;
+      }
+      .legend .key {
+        display: inline-block;
+        min-width: 5mm;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 700;
+        color: #111;
+      }
+      .legend a.week-link {
+        display: inline-block;
+        padding: 0.6mm 1.4mm;
+        margin: 0 0.6mm 0.6mm 0;
+        border: 0.6pt solid #888;
+      }
+
+      /* ---------- Day detail page ---------- */
+
+      .nav-row {
+        display: flex;
+        gap: 1mm;
+        margin-bottom: 2mm;
+        flex-wrap: wrap;
+      }
+
+      .habit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-auto-rows: 1fr;
+        gap: 3mm;
+        margin-bottom: 4mm;
+      }
+      .habit-grid-compact {
+        grid-auto-rows: auto;
+        gap: 2mm;
+        margin-bottom: 2.5mm;
+      }
+      .habit-card {
+        border: 0.9pt solid #111;
+        padding: 2.5mm 3mm 2.5mm 3mm;
+        min-height: 17mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        background: #fff;
+      }
+      .habit-card .card-top {
+        display: flex;
+        align-items: center;
+        gap: 2mm;
+        margin-bottom: 1.5mm;
+      }
+      .habit-card .card-glyph {
+        font-size: 13pt;
+        line-height: 1;
+        min-width: 5mm;
+        display: inline-block;
+        text-align: left;
+      }
+      .habit-card .card-name {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 9pt;
+        font-weight: 700;
+        letter-spacing: 1.2pt;
+        text-transform: uppercase;
+        flex: 1;
+      }
+      .habit-card .card-state {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 7.5pt;
+        letter-spacing: 1pt;
+        text-transform: uppercase;
+        color: #555;
+        margin-left: auto;
+        white-space: nowrap;
+      }
+      .habit-card .card-summary {
+        font-size: 10pt;
+        line-height: 1.35;
+        color: #222;
+        min-height: 4.5mm;
+      }
+      .habit-card.empty {
+        border-color: #aaa;
+        border-style: dashed;
+      }
+      .habit-card.empty .card-glyph {
+        color: #aaa;
+      }
+      .habit-card.empty .card-name {
+        color: #777;
+      }
+      .habit-card.empty .card-state {
+        color: #999;
+      }
+      .habit-card.empty .card-summary {
+        color: #aaa;
+      }
+
+      .details {
+        margin-bottom: 3mm;
+      }
+      .details + .section-heading {
+        margin-top: 1mm;
+      }
+      .entry-detail {
+        font-size: 9.5pt;
+        line-height: 1.4;
+        margin: 0 0 1.5mm 0;
+        color: #222;
+      }
+      .entry-detail .label {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 7.5pt;
+        letter-spacing: 1pt;
+        text-transform: uppercase;
+        color: #555;
+        margin-right: 1.5mm;
+      }
+
+      /* ---------- Section headings ---------- */
+
+      .section-heading {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 9pt;
+        letter-spacing: 2pt;
+        text-transform: uppercase;
+        color: #333;
+        margin: 4mm 0 2mm 0;
+        padding-bottom: 1mm;
+        border-bottom: 0.5pt solid #aaa;
+      }
+      .day-page .section-heading:first-of-type,
+      .week-page .section-heading:first-of-type {
+        margin-top: 1.9mm;
+      }
+
+      /* ---------- Handwriting space ---------- */
+
+      .lines {
+        border-top: 0.5pt solid #aaa;
+        border-bottom: 0.5pt solid #aaa;
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 7.5mm,
+          #b8b8b8 7.5mm,
+          #b8b8b8 7.6mm
+        );
+        margin-top: 2mm;
+      }
+      .lines.short {
+        height: 30mm;
+        flex: 0 0 30mm;
+      }
+      .lines.medium {
+        height: 50mm;
+        flex: 0 0 50mm;
+      }
+      .lines.tall {
+        flex: 1 1 auto;
+        min-height: 75mm;
+      }
+      .lines.fill {
+        flex: 1 1 auto;
+        min-height: 60mm;
+      }
+
+      .prompt {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 9pt;
+        font-style: italic;
+        color: #555;
+        margin: 0 0 2mm 0;
+        line-height: 1.4;
+      }
+
+      .dotted {
+        border-top: 0.5pt solid #aaa;
+        border-bottom: 0.5pt solid #aaa;
+        background-image: radial-gradient(
+          circle,
+          #b0b0b0 0.3mm,
+          transparent 0.3mm
+        );
+        background-size: 5mm 5mm;
+        margin-top: 2mm;
+      }
+      .dotted.tall {
+        flex: 1;
+        min-height: 60mm;
+      }
+
+      /* ---------- Week page ---------- */
+
+      .week-days {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 4mm 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5mm 5mm;
+      }
+      .week-days li a {
+        display: block;
+        padding: 1.8mm 2.5mm;
+        border: 0.6pt solid #888;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 9.5pt;
+      }
+      .week-days li a .date {
+        font-weight: 700;
+        margin-right: 2mm;
+      }
+      .week-days li a .status-strip {
+        float: right;
+        letter-spacing: 1pt;
+      }
+
+      .week-summary {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 3mm;
+        margin-bottom: 4mm;
+        font-size: 9.5pt;
+      }
+      .week-summary .stat {
+        border: 0.9pt solid #111;
+        padding: 2.5mm 3mm 3mm 3mm;
+      }
+      .week-summary .stat .label {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 7pt;
+        letter-spacing: 1.5pt;
+        text-transform: uppercase;
+        color: #555;
+        display: block;
+        margin-bottom: 1.5mm;
+      }
+      .week-summary .stat .value {
+        font-family: "Iowan Old Style", Georgia, serif;
+        font-size: 20pt;
+        font-weight: 600;
+        line-height: 1;
+      }
+      .week-summary .stat .value-denom {
+        font-size: 11pt;
+        font-weight: 400;
+        color: #777;
+        margin-left: 0.5mm;
+      }
+
+      /* ---------- Tally board page ---------- */
+
+      .tally-board {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        border-top: 0.75pt solid #111;
+      }
+      .tally-row {
+        display: grid;
+        grid-template-columns: 38mm 1fr;
+        align-items: center;
+        gap: 3mm;
+        padding: 2.4mm 0;
+        border-bottom: 0.5pt solid #bbb;
+        min-height: 14mm;
+      }
+      .tally-label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6mm;
+        padding-right: 2mm;
+      }
+      .tally-habit {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 10pt;
+        font-weight: 700;
+        letter-spacing: 0.6pt;
+        text-transform: uppercase;
+        color: #111;
+        line-height: 1.1;
+      }
+      .tally-count {
+        font-family: "Iowan Old Style", Georgia, serif;
+        font-size: 11pt;
+        color: #333;
+        line-height: 1;
+      }
+      .tally-count-denom {
+        color: #888;
+        font-size: 9pt;
+      }
+      .tally-days {
+        display: grid;
+        grid-template-columns: repeat(16, 1fr);
+        gap: 1mm 0.8mm;
+        align-items: center;
+        justify-items: center;
+      }
+      .tally-day {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 5.4mm;
+        height: 5.4mm;
+        border: 0.6pt solid #111;
+        border-radius: 50%;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 7.5pt;
+        font-weight: 500;
+        color: #111;
+        background: #ffffff;
+        line-height: 1;
+      }
+      .tally-day.filled {
+        background: rgba(17, 17, 17, 0.55);
+        color: #ffffff;
+        border-color: #111;
+        font-weight: 700;
+      }
+      /* Partial dose (for multi-dose medications) */
+      .tally-day.partial {
+        background: rgba(17, 17, 17, 0.18);
+        color: #333;
+        border-color: #666;
+        border-style: dashed;
+      }
+
+      /* ---------- Footer ---------- */
+
+      .page-footer {
+        margin-top: auto;
+        padding-top: 3mm;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 7.5pt;
+        letter-spacing: 1pt;
+        color: #777;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      /* ================================================================
+   WORK PRIORITY MATRIX (day-notes page)
+   ================================================================ */
+
+      .day-notes-page .page-header-slim {
+        margin-bottom: 3mm;
+      }
+
+      .priority-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 40mm;
+        gap: 3mm;
+        flex: 0 0 92mm;
+        margin-bottom: 3mm;
+        min-height: 0;
+      }
+
+      .matrix-shell {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .matrix-board {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .axis-marker,
+      .axis-label,
+      .todo-header,
+      .quadrant-label {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        text-transform: uppercase;
+      }
+
+      .axis-marker {
+        position: absolute;
+        z-index: 4;
+        font-size: 10pt;
+        line-height: 1;
+        font-weight: 700;
+        color: #222;
+        background: #fff;
+        padding: 0 0.8mm 0.8mm;
+      }
+
+      .axis-marker-top {
+        top: -2.7mm;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 1pt solid #111;
+        border-radius: 9999px;
+      }
+
+      .axis-marker-bottom {
+        bottom: -2.7mm;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 1pt solid #111;
+        border-radius: 9999px;
+      }
+
+      .axis-marker-left {
+        left: -2.5mm;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 1pt solid #111;
+        border-radius: 9999px;
+      }
+
+      .axis-marker-right {
+        right: -2.5mm;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 1pt solid #111;
+        border-radius: 9999px;
+      }
+
+      .axis-line {
+        position: absolute;
+        z-index: 2;
+        background: #111;
+      }
+
+      .axis-line-v {
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 0.75pt;
+        transform: translateX(-50%);
+      }
+
+      .axis-line-h {
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 0.75pt;
+        transform: translateY(-50%);
+      }
+
+      .axis-label {
+        position: absolute;
+        z-index: 5;
+        font-size: 6.1pt;
+        font-weight: 700;
+        letter-spacing: 1.15pt;
+        color: #222;
+        background: #fff;
+        padding: 0.5mm 1.2mm;
+        text-align: center;
+      }
+
+      .axis-label-v {
+        left: 50%;
+        top: 25%;
+        transform: translate(-50%, -50%) rotate(-90deg);
+      }
+
+      .axis-label-h {
+        top: 50%;
+        left: 28%;
+        transform: translate(-50%, -50%);
+      }
+
+      .matrix-grid {
+        height: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        border: 0.75pt solid #111;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .matrix-quadrant {
+        padding: 2mm 2.3mm 1.6mm;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      /* internal borders handled by centered axes */
+
+      .quadrant-label {
+        font-size: 7pt;
+        font-weight: 700;
+        letter-spacing: 1.2pt;
+        color: #222;
+        margin-bottom: 1.4mm;
+        padding-bottom: 0.8mm;
+        border-bottom: 0.4pt solid #ccc;
+        flex-shrink: 0;
+      }
+
+      .quadrant-lines {
+        flex: 1;
+        min-height: 0;
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 6.2mm,
+          #c8c8c8 6.2mm,
+          #c8c8c8 6.3mm
+        );
+      }
+
+      /* ---------- Todo panel ---------- */
+
+      .todo-panel {
+        width: 40mm;
+        border: 0.75pt solid #111;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .todo-header {
+        font-size: 7.5pt;
+        font-weight: 700;
+        letter-spacing: 1.8pt;
+        color: #222;
+        padding: 2mm 2.5mm 1.5mm;
+        border-bottom: 0.75pt solid #111;
+        flex-shrink: 0;
+      }
+
+      .todo-items {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .todo-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 0 2mm 0 2.5mm;
+        border-bottom: 0.4pt solid #ddd;
+        min-height: 0;
+      }
+
+      .todo-item:last-child {
+        border-bottom: none;
+      }
+
+      .todo-item::before {
+        content: "○";
+        font-size: 9pt;
+        color: #444;
+        line-height: 1;
+      }
+
+      .day-notes-page .notes-heading {
+        margin-top: 1.5mm;
+        margin-bottom: 1mm;
+      }
+
+      .day-notes-page .notes-lines {
+        flex: 0 0 43mm;
+        height: 43mm;
+        margin-top: 0;
+        border-top: none;
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 6.2mm,
+          #b8b8b8 6.2mm,
+          #b8b8b8 6.3mm
+        );
+      }
+
+      /* ================================================================
+   MEDICATION TRACKER — new styles
+   ================================================================ */
+
+      /* ---------- Day page: medication schedule ---------- */
+
+      .med-schedule {
+        display: flex;
+        flex-direction: column;
+        border-top: 0.5pt solid #aaa;
+        border-bottom: 0.5pt solid #aaa;
+        margin-bottom: 2mm;
+      }
+
+      .med-group {
+        display: grid;
+        grid-template-columns: 21mm 1fr;
+        gap: 1.5mm;
+        align-items: start;
+        padding: 1.5mm 0;
+        border-bottom: 0.4pt solid #e0e0e0;
+      }
+      .med-group:last-child {
+        border-bottom: none;
+      }
+
+      .med-time-label {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 7pt;
+        font-weight: 700;
+        letter-spacing: 1.5pt;
+        text-transform: uppercase;
+        color: #666;
+        padding-top: 1.5mm;
+        line-height: 1;
+      }
+
+      .med-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5mm;
+        align-items: center;
+      }
+
+      /* Individual medication chip */
+      .med-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 1.5mm;
+        border: 0.6pt solid #888;
+        padding: 1.2mm 2.5mm 1.2mm 2mm;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: #fff;
+        line-height: 1;
+      }
+      .med-chip.status-missed {
+        border-style: dashed;
+        border-color: #aaa;
+      }
+      .med-chip.status-none {
+        border-style: dotted;
+        border-color: #ccc;
+      }
+
+      .med-glyph {
+        font-size: 10pt;
+        min-width: 3.5mm;
+        text-align: center;
+        line-height: 1;
+        color: #111;
+      }
+      .med-chip.status-none .med-glyph,
+      .med-chip.status-missed .med-glyph {
+        color: #aaa;
+      }
+
+      .med-name {
+        font-size: 8.5pt;
+        font-weight: 700;
+        letter-spacing: 0.3pt;
+        color: #111;
+      }
+
+      .med-dose {
+        font-size: 7pt;
+        color: #888;
+        letter-spacing: 0.2pt;
+      }
+
+      /* Dose count for multi-dose meds (e.g. "2/3") */
+      .med-count {
+        font-family: "Iowan Old Style", Georgia, serif;
+        font-size: 9pt;
+        font-weight: 600;
+        color: #222;
+        letter-spacing: 0;
+      }
+
+      /* PRN label for as-needed medications */
+      .med-prn {
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 6pt;
+        font-style: italic;
+        letter-spacing: 0.5pt;
+        color: #999;
+        text-transform: uppercase;
+        padding-left: 0.5mm;
+      }
+
+      /* ---------- Week plan: medication reference card ---------- */
+
+      .med-week-ref {
+        border-top: 0.5pt solid #ddd;
+        border-bottom: 0.5pt solid #ddd;
+        margin-bottom: 3mm;
+      }
+
+      .med-ref-row {
+        display: grid;
+        grid-template-columns: 21mm 1fr;
+        gap: 2mm;
+        align-items: baseline;
+        padding: 1.3mm 0;
+        border-bottom: 0.4pt solid #eeeeee;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      .med-ref-row:last-child {
+        border-bottom: none;
+      }
+
+      .med-ref-time {
+        font-size: 7pt;
+        font-weight: 700;
+        letter-spacing: 1.5pt;
+        text-transform: uppercase;
+        color: #777;
+      }
+
+      .med-ref-list {
+        font-size: 8.5pt;
+        color: #333;
+        line-height: 1.35;
+      }
+      .med-ref-list em {
+        font-size: 7.5pt;
+        color: #888;
+      }
+
+      /* ---------- Week review: medication adherence bar ---------- */
+
+      .med-adherence-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5mm 2.5mm;
+        margin-bottom: 3mm;
+        align-items: baseline;
+      }
+
+      .med-adh-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 1mm;
+        border: 0.6pt solid #999;
+        padding: 1mm 2mm 1.2mm 2mm;
+        font-family:
+          -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      .med-adh-item.adh-full {
+        border-color: #111;
+      }
+      .med-adh-item.adh-zero {
+        border-style: dashed;
+        border-color: #bbb;
+      }
+
+      .adh-label {
+        font-size: 6.5pt;
+        font-weight: 700;
+        letter-spacing: 1pt;
+        text-transform: uppercase;
+        color: #555;
+      }
+      .adh-count {
+        font-family: "Iowan Old Style", Georgia, serif;
+        font-size: 11pt;
+        font-weight: 600;
+        color: #111;
+        line-height: 1;
+      }
+      .adh-denom {
+        font-size: 8pt;
+        font-weight: 400;
+        color: #888;
+      }
+      .med-adh-item.adh-zero .adh-count {
+        color: #bbb;
+      }
+
+      /* ---------- Med tally page ---------- */
+
+      .med-tally-page .tally-habit {
+        /* allow slightly smaller text for dose annotation */
+        font-size: 9pt;
+      }
+      .tally-med-dose {
+        font-weight: 400;
+        font-size: 7.5pt;
+        color: #777;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+    </style>
+    <section class="page day-page day-notes-page" id="day-notes-{{ day.date }}">
+      <div class="page-inner">
+        <div class="nav-row">
+          <a class="back-link" href="#month">← {{ month_label }}</a>
+          <a class="back-link" href="#day-{{ day.date }}">← habits</a>
+          {% if day.prev_iso %}<a
+            class="back-link"
+            href="#day-notes-{{ day.prev_iso }}"
+            >← prev</a
+          >{% endif %} {% if day.next_iso %}<a
+            class="back-link"
+            href="#day-notes-{{ day.next_iso }}"
+            >next →</a
+          >{% endif %}
         </div>
 
-        <div class="matrix-grid">
-          <div class="matrix-row-label important">Important</div>
+        <header class="page-header page-header-slim">
+          <h1>{{ day.weekday_long }}, {{ day.month_day_long }}</h1>
+          <p class="subtitle">
+            {{ day.date }} &nbsp;·&nbsp; Work Priority Matrix
+          </p>
+        </header>
 
-          <div class="matrix-quadrant quadrant-do">
-            <div class="quadrant-label">Do immediately</div>
-            <div class="quadrant-lines"></div>
+        <div class="priority-layout">
+          <div class="matrix-shell">
+            <div class="matrix-board">
+              <span class="axis-marker axis-marker-top">+</span>
+              <span class="axis-marker axis-marker-bottom">−</span>
+              <span class="axis-marker axis-marker-left">+</span>
+              <span class="axis-marker axis-marker-right">−</span>
+
+              <div class="axis-line axis-line-v" aria-hidden="true"></div>
+              <div class="axis-line axis-line-h" aria-hidden="true"></div>
+
+              <div class="axis-label axis-label-v">Importance</div>
+              <div class="axis-label axis-label-h">Urgency</div>
+
+              <div class="matrix-grid">
+                <div class="matrix-quadrant quadrant-do">
+                  <div class="quadrant-label">Do immediately</div>
+                  <div class="quadrant-lines"></div>
+                </div>
+
+                <div class="matrix-quadrant quadrant-plan">
+                  <div class="quadrant-label">Plan</div>
+                  <div class="quadrant-lines"></div>
+                </div>
+
+                <div class="matrix-quadrant quadrant-delegate">
+                  <div class="quadrant-label">Delegate</div>
+                  <div class="quadrant-lines"></div>
+                </div>
+
+                <div class="matrix-quadrant quadrant-delete">
+                  <div class="quadrant-label">Delete</div>
+                  <div class="quadrant-lines"></div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="matrix-quadrant quadrant-plan">
-            <div class="quadrant-label">Plan</div>
-            <div class="quadrant-lines"></div>
+          <div class="todo-panel">
+            <div class="todo-header">To Do List</div>
+            <div class="todo-items">
+              {% for _ in range(10) %}
+              <div class="todo-item"></div>
+              {% endfor %}
+            </div>
           </div>
+        </div>
 
-          <div class="matrix-row-label not-important">Not important</div>
+        <h2 class="section-heading notes-heading">Notes</h2>
+        <div class="lines notes-lines"></div>
 
-          <div class="matrix-quadrant quadrant-delegate">
-            <div class="quadrant-label">Delegate</div>
-            <div class="quadrant-lines"></div>
-          </div>
-
-          <div class="matrix-quadrant quadrant-delete">
-            <div class="quadrant-label">Delete</div>
-            <div class="quadrant-lines"></div>
-          </div>
+        <div class="page-footer">
+          <span><a href="#month">↑ Month</a></span>
+          <span
+            ><a href="#day-{{ day.date }}">← habits</a> &nbsp;·&nbsp; {{
+            day.date }}</span
+          >
         </div>
       </div>
-
-      <div class="todo-panel">
-        <div class="todo-header">To Do List</div>
-        <div class="todo-items">
-          {% for _ in range(10) %}
-          <div class="todo-item">
-            <span class="todo-check">○</span>
-            <span class="todo-line"></span>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    <h2 class="section-heading notes-heading">Notes</h2>
-    <div class="lines notes-lines"></div>
-
-    <div class="page-footer">
-      <span><a href="#month">↑ Month</a></span>
-      <span
-        ><a href="#day-{{ day.date }}">← habits</a> &nbsp;·&nbsp; {{ day.date
-        }}</span
-      >
-    </div>
-  </div>
-</section>
+    </section>
+  </body>
+</html>
