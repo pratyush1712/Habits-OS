@@ -594,6 +594,212 @@ h3 {
 }
 
 /* ================================================================
+   WORK PRIORITY MATRIX (day-notes page)
+   ================================================================ */
+
+.day-notes-page .page-header-slim {
+  margin-bottom: 3mm;
+}
+
+.priority-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40mm;
+  gap: 3mm;
+  flex: 0 0 92mm;
+  margin-bottom: 3mm;
+  min-height: 0;
+}
+
+.matrix-outer {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.matrix-top-row {
+  display: grid;
+  grid-template-columns: 24mm 1fr 1fr;
+  align-items: end;
+  gap: 0;
+  margin-bottom: 1mm;
+  flex: 0 0 auto;
+}
+
+.matrix-corner-label,
+.matrix-col-label,
+.matrix-row-label,
+.todo-header,
+.quadrant-label {
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-transform: uppercase;
+}
+
+.matrix-corner-label {
+  font-size: 6pt;
+  font-weight: 700;
+  letter-spacing: 1.2pt;
+  color: #666;
+  padding: 0 1.5mm 0.8mm 0;
+}
+
+.matrix-col-label {
+  font-size: 7pt;
+  font-weight: 700;
+  letter-spacing: 1.4pt;
+  color: #222;
+  text-align: center;
+  padding: 0 1mm 0.8mm;
+  border-bottom: 0.6pt solid #111;
+}
+
+.matrix-col-label + .matrix-col-label {
+  border-left: 0.5pt solid #bbb;
+}
+
+.matrix-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 24mm 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  border: 0.75pt solid #111;
+  min-width: 0;
+  min-height: 0;
+}
+
+.matrix-row-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5mm;
+  font-size: 6.2pt;
+  font-weight: 700;
+  letter-spacing: 0.45pt;
+  line-height: 1.25;
+  text-align: center;
+  color: #333;
+  border-right: 0.75pt solid #111;
+}
+
+.matrix-row-label.important {
+  border-bottom: 0.75pt solid #111;
+}
+
+.matrix-quadrant {
+  padding: 2mm 2.3mm 1.6mm;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.quadrant-do,
+.quadrant-plan {
+  border-bottom: 0.75pt solid #111;
+}
+
+.quadrant-do,
+.quadrant-delegate {
+  border-right: 0.75pt solid #111;
+}
+
+.quadrant-label {
+  font-size: 7pt;
+  font-weight: 700;
+  letter-spacing: 1.2pt;
+  color: #222;
+  margin-bottom: 1.4mm;
+  padding-bottom: 0.8mm;
+  border-bottom: 0.4pt solid #ccc;
+  flex-shrink: 0;
+}
+
+.quadrant-lines {
+  flex: 1;
+  min-height: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 6.2mm,
+    #c8c8c8 6.2mm,
+    #c8c8c8 6.3mm
+  );
+}
+
+/* ---------- Todo panel ---------- */
+
+.todo-panel {
+  width: 40mm;
+  border: 0.75pt solid #111;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.todo-header {
+  font-size: 7.5pt;
+  font-weight: 700;
+  letter-spacing: 1.8pt;
+  color: #222;
+  padding: 2mm 2.5mm 1.5mm;
+  border-bottom: 0.75pt solid #111;
+  flex-shrink: 0;
+}
+
+.todo-items {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.todo-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 2mm;
+  padding: 0 2mm 0 2.5mm;
+  border-bottom: 0.4pt solid #ddd;
+  min-height: 0;
+}
+
+.todo-item:last-child {
+  border-bottom: none;
+}
+
+.todo-check {
+  font-size: 9pt;
+  color: #444;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.todo-line {
+  display: block;
+  flex: 1;
+  border-bottom: 0.45pt solid #bbb;
+  height: 1mm;
+}
+
+.day-notes-page .notes-heading {
+  margin-top: 1.5mm;
+  margin-bottom: 1mm;
+}
+
+.day-notes-page .notes-lines {
+  flex: 0 0 43mm;
+  height: 43mm;
+  margin-top: 0;
+  border-top: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 6.2mm,
+    #b8b8b8 6.2mm,
+    #b8b8b8 6.3mm
+  );
+}
+
+/* ================================================================
    MEDICATION TRACKER — new styles
    ================================================================ */
 

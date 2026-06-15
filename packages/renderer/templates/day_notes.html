@@ -16,28 +16,59 @@
 
     <header class="page-header page-header-slim">
       <h1>{{ day.weekday_long }}, {{ day.month_day_long }}</h1>
-      <p class="subtitle">
-        {{ day.date }} &nbsp;·&nbsp; Notes &amp; Reflection
-      </p>
+      <p class="subtitle">{{ day.date }} &nbsp;·&nbsp; Work Priority Matrix</p>
     </header>
 
-    {% set has_details = namespace(value=false) %} {% for h in habits %}{% if
-    day.by_habit.get(h.key) and day.by_habit[h.key].description %}{% set
-    has_details.value = true %}{% endif %}{% endfor %} {% if has_details.value
-    %}
-    <h2 class="section-heading">Details</h2>
-    <div class="details">
-      {% for h in habits %} {% set entry = day.by_habit.get(h.key) %} {% if
-      entry and entry.description %}
-      <p class="entry-detail">
-        <span class="label">{{ h.label }}</span>{{ entry.description }}
-      </p>
-      {% endif %} {% endfor %}
-    </div>
-    {% endif %}
+    <div class="priority-layout">
+      <div class="matrix-outer">
+        <div class="matrix-top-row">
+          <div class="matrix-corner-label">Priority</div>
+          <div class="matrix-col-label">Urgent</div>
+          <div class="matrix-col-label">Not urgent</div>
+        </div>
 
-    <h2 class="section-heading">Notes &amp; Reflection</h2>
-    <div class="lines fill"></div>
+        <div class="matrix-grid">
+          <div class="matrix-row-label important">Important</div>
+
+          <div class="matrix-quadrant quadrant-do">
+            <div class="quadrant-label">Do immediately</div>
+            <div class="quadrant-lines"></div>
+          </div>
+
+          <div class="matrix-quadrant quadrant-plan">
+            <div class="quadrant-label">Plan</div>
+            <div class="quadrant-lines"></div>
+          </div>
+
+          <div class="matrix-row-label not-important">Not important</div>
+
+          <div class="matrix-quadrant quadrant-delegate">
+            <div class="quadrant-label">Delegate</div>
+            <div class="quadrant-lines"></div>
+          </div>
+
+          <div class="matrix-quadrant quadrant-delete">
+            <div class="quadrant-label">Delete</div>
+            <div class="quadrant-lines"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="todo-panel">
+        <div class="todo-header">To Do List</div>
+        <div class="todo-items">
+          {% for _ in range(10) %}
+          <div class="todo-item">
+            <span class="todo-check">○</span>
+            <span class="todo-line"></span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-heading notes-heading">Notes</h2>
+    <div class="lines notes-lines"></div>
 
     <div class="page-footer">
       <span><a href="#month">↑ Month</a></span>
