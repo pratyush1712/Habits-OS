@@ -31,7 +31,9 @@ export default async function EventsPage({
   const start = params.start ?? "";
   const end = params.end ?? "";
   const hasDateBounds = start.length > 0 || end.length > 0;
-  const month = hasDateBounds ? (params.month ?? "") : (params.month ?? format(new Date(), "yyyy-MM"));
+  const month = hasDateBounds
+    ? (params.month ?? "")
+    : (params.month ?? format(new Date(), "yyyy-MM"));
   const events = await api.events({
     end: end || undefined,
     event_type: eventType || undefined,
@@ -83,9 +85,10 @@ export default async function EventsPage({
               name="event_type"
             >
               <option value="">All event types</option>
+              <option value="intake">Intake</option>
               <option value="journal">Journal</option>
               <option value="medication">Medication</option>
-              <option value="protein_shake">Protein shake</option>
+              <option value="protein_shake">Protein</option>
               <option value="recovery">Recovery</option>
               <option value="sleep">Sleep</option>
               <option value="workout">Workout</option>
@@ -115,6 +118,14 @@ export default async function EventsPage({
       >
         <div className="data-column">
           <Table className="border-y border-rule">
+            <colgroup>
+              <col className="w-[34%]" />
+              <col className="w-[9%]" />
+              <col className="w-[10%]" />
+              <col className="w-[11%]" />
+              <col className="w-[28%]" />
+              <col className="w-[8%]" />
+            </colgroup>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>ID</TableHead>
@@ -128,15 +139,15 @@ export default async function EventsPage({
             <TableBody>
               {events.map((event) => (
                 <TableRow key={event.id}>
-                  <TableCell className="font-mono text-[13px] text-ink-mid">
+                  <TableCell className="break-all font-mono text-[13px] text-ink-mid whitespace-normal">
                     {event.id}
                   </TableCell>
-                  <TableCell>{formatSourceLabel(event.source)}</TableCell>
-                  <TableCell>{event.event_type}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatSourceLabel(event.source)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{event.event_type}</TableCell>
                   <TableCell className="font-mono text-[13px]">
                     {event.local_date}
                   </TableCell>
-                  <TableCell className="max-w-[320px] whitespace-normal">
+                  <TableCell className="whitespace-normal">
                     <p className="m-0">{event.title || "Untitled event"}</p>
                     <p className="m-0 text-sm text-ink-mid">
                       {event.description || "No description"}

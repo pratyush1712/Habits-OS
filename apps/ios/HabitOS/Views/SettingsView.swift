@@ -121,7 +121,7 @@ struct SettingsView: View {
 
                     PaperPanel {
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Protein Shake")
+                            Text("Protein")
                                 .font(HabitOSFont.h3)
                                 .foregroundStyle(Color.ink)
 
@@ -129,7 +129,24 @@ struct SettingsView: View {
                                 .font(HabitOSFont.body)
                                 .foregroundStyle(Color.ink)
 
-                            Text("When on, saving a protein shake automatically recomputes habit entries for the month.")
+                            Text("When on, saving protein automatically recomputes habit entries for the month.")
+                                .font(HabitOSFont.meta)
+                                .foregroundStyle(Color.inkFaint)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
+                    PaperPanel {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Intake")
+                                .font(HabitOSFont.h3)
+                                .foregroundStyle(Color.ink)
+
+                            Toggle("Update habits after saving", isOn: $viewModel.recomputeAfterIntakeSave)
+                                .font(HabitOSFont.body)
+                                .foregroundStyle(Color.ink)
+
+                            Text("When on, saving intake automatically recomputes habit entries for the month.")
                                 .font(HabitOSFont.meta)
                                 .foregroundStyle(Color.inkFaint)
                                 .fixedSize(horizontal: false, vertical: true)

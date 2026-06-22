@@ -80,7 +80,7 @@ export default async function HabitsPage({
 
                 return (
                   <TableRow key={habit.key}>
-                    <TableCell className="max-w-[260px] whitespace-normal">
+                    <TableCell className="whitespace-normal">
                       <p className="m-0">{habit.label}</p>
                       <p className="m-0 text-sm text-ink-mid">
                         {habit.description || "No description"}

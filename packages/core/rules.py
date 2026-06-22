@@ -154,7 +154,7 @@ def evaluate_protein_shake(
         # A logged "zero" (e.g. an edit/undo) leaves the day blank rather than
         # marking it missed — manual habits are not shame-based.
         return None
-    noun = "shake" if total == 1 else "shakes"
+    noun = "serving" if total == 1 else "servings"
     return HabitEntry(
         date=day,
         habit_key="protein_shake",
@@ -166,6 +166,39 @@ def evaluate_protein_shake(
         explanation=(
             f"{total} protein {noun} logged "
             f"(checked >= {rule.checked_min_count})"
+        ),
+    )
+
+
+def evaluate_intake(
+    day: date,
+    events: list[SourceEvent],
+    config: HabitRuleConfig = DEFAULT_RULES,
+) -> HabitEntry | None:
+    intake_events = [e for e in events if e.event_type == "intake"]
+    if not intake_events:
+        return None
+
+    items = _intake_items(intake_events)
+    total = len(items) if items else sum(
+        _coerce_nonnegative_int(e.metrics.get("count", 1)) for e in intake_events
+    )
+    rule = config.intake
+    if total < rule.checked_min_items:
+        return None
+
+    noun = "item" if total == 1 else "items"
+    return HabitEntry(
+        date=day,
+        habit_key="intake",
+        status="checked",
+        source=intake_events[0].source,
+        summary=f"{total} intake {noun}",
+        description=_intake_description(items) or _join_descriptions(intake_events),
+        linked_source_event_ids=[e.id for e in intake_events],
+        explanation=(
+            f"{total} itemized intake {noun} logged "
+            f"(checked >= {rule.checked_min_items})"
         ),
     )
 
@@ -304,6 +337,7 @@ EVALUATORS: dict[str, Callable[[date, list[SourceEvent], HabitRuleConfig], Habit
     "workout": evaluate_workout,
     "medication": evaluate_medication,
     "protein_shake": evaluate_protein_shake,
+    "intake": evaluate_intake,
     "meditation": evaluate_meditation,
     "sleep": evaluate_sleep,
     "recovery": evaluate_recovery,
@@ -422,6 +456,54 @@ def _workout_summary(events: list[SourceEvent]) -> str:
         return f"{_fmt_min(e.duration_minutes or 0.0)} {title}"
     total = sum((e.duration_minutes or 0.0) for e in events)
     return f"{_fmt_min(total)} total · {len(events)} sessions"
+
+
+def _intake_items(events: list[SourceEvent]) -> list[dict]:
+    items: list[dict] = []
+    for event in events:
+        raw_items = event.metrics.get("items")
+        if isinstance(raw_items, list):
+            items.extend(item for item in raw_items if isinstance(item, dict))
+        elif event.title:
+            items.append({"label": event.title})
+    return items
+
+
+def _intake_description(items: list[dict]) -> str:
+    details: list[str] = []
+    for item in items:
+        product = str(item.get("product_label") or item.get("brand_label") or "").strip()
+        ingredient = str(item.get("ingredient_label") or "").strip()
+        if product and ingredient:
+            label = f"{product} — {ingredient}"
+        else:
+            label = str(item.get("label") or item.get("key") or "item")
+        amount = item.get("amount")
+        unit = str(item.get("unit") or "").strip()
+        caffeine_mg = item.get("caffeine_mg")
+        category = str(item.get("category") or "").strip()
+        time_of_day = str(item.get("time_of_day") or "").strip()
+        notes = str(item.get("notes") or "").strip()
+
+        parts = [label]
+        if amount is not None and unit:
+            parts.append(
+                f"{amount:g} {unit}"
+                if isinstance(amount, float)
+                else f"{amount} {unit}"
+            )
+        elif unit:
+            parts.append(unit)
+        if isinstance(caffeine_mg, int | float) and caffeine_mg > 0:
+            parts.append(f"{caffeine_mg:g} mg caffeine")
+        if category:
+            parts.append(category)
+        if time_of_day:
+            parts.append(time_of_day)
+        if notes:
+            parts.append(notes)
+        details.append(" — ".join(parts))
+    return " · ".join(details)
 
 
 def _meditation_summary(events: list[SourceEvent]) -> str:

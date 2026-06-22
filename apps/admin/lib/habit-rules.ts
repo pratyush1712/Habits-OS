@@ -14,6 +14,7 @@ export type HabitOverride = {
 };
 
 type HabitRuleConfig = {
+  intake: { checkedMinItems: number };
   journaling: { checkedMinEntries: number };
   medication: { countPrnWithoutSchedule: boolean };
   meditation: { checkedMinMinutes: number; partialMinMinutes: number };
@@ -28,6 +29,7 @@ const DEFAULT_RULES: HabitRuleConfig = {
   meditation: { checkedMinMinutes: 5, partialMinMinutes: 2 },
   sleep: { targetHours: 7 },
   recovery: { checkedMinScore: 67 },
+  intake: { checkedMinItems: 1 },
   journaling: { checkedMinEntries: 1 },
   medication: { countPrnWithoutSchedule: true },
   proteinShake: { checkedMinCount: 1 },
@@ -270,7 +272,7 @@ function evaluateProteinShake(
     return null;
   }
 
-  const noun = total === 1 ? "shake" : "shakes";
+  const noun = total === 1 ? "serving" : "servings";
 
   return {
     confidence: 1,
@@ -283,6 +285,118 @@ function evaluateProteinShake(
     source: shakes[0].source,
     status: "checked",
     summary: `${total} ${noun}`,
+  };
+}
+
+
+function intakeItems(events: SourceEvent[]): Record<string, unknown>[] {
+  const items: Record<string, unknown>[] = [];
+
+  for (const event of events) {
+    const rawItems = eventMetrics(event).items;
+
+    if (Array.isArray(rawItems)) {
+      for (const item of rawItems) {
+        const itemRecord = record(item);
+        if (Object.keys(itemRecord).length > 0) {
+          items.push(itemRecord);
+        }
+      }
+    } else if (event.title) {
+      items.push({ label: event.title });
+    }
+  }
+
+  return items;
+}
+
+function intakeDescription(items: Record<string, unknown>[]): string {
+  return items
+    .map((item) => {
+      const product =
+        typeof item.product_label === "string" && item.product_label.trim().length > 0
+          ? item.product_label.trim()
+          : typeof item.brand_label === "string"
+            ? item.brand_label.trim()
+            : "";
+      const ingredient =
+        typeof item.ingredient_label === "string"
+          ? item.ingredient_label.trim()
+          : "";
+      const label =
+        product.length > 0 && ingredient.length > 0
+          ? `${product} — ${ingredient}`
+          : String(item.label ?? item.key ?? "item");
+      const amount = typeof item.amount === "number" ? item.amount : null;
+      const unit = typeof item.unit === "string" ? item.unit.trim() : "";
+      const caffeineMg =
+        typeof item.caffeine_mg === "number" && item.caffeine_mg > 0
+          ? item.caffeine_mg
+          : null;
+      const category = typeof item.category === "string" ? item.category.trim() : "";
+      const timeOfDay =
+        typeof item.time_of_day === "string" ? item.time_of_day.trim() : "";
+      const notes = typeof item.notes === "string" ? item.notes.trim() : "";
+      const parts = [label];
+
+      if (amount !== null && unit.length > 0) {
+        parts.push(`${amount} ${unit}`);
+      } else if (unit.length > 0) {
+        parts.push(unit);
+      }
+
+      if (caffeineMg !== null) {
+        parts.push(`${caffeineMg} mg caffeine`);
+      }
+
+      for (const value of [category, timeOfDay, notes]) {
+        if (value.length > 0) {
+          parts.push(value);
+        }
+      }
+
+      return parts.join(" — ");
+    })
+    .join(" · ");
+}
+
+function evaluateIntake(
+  day: string,
+  events: SourceEvent[],
+  config: HabitRuleConfig,
+): HabitEntry | null {
+  const intakeEvents = events.filter((event) => event.event_type === "intake");
+
+  if (intakeEvents.length === 0) {
+    return null;
+  }
+
+  const items = intakeItems(intakeEvents);
+  const total =
+    items.length > 0
+      ? items.length
+      : intakeEvents.reduce(
+          (sum, event) => sum + nonnegativeInteger(eventMetrics(event).count ?? 1),
+          0,
+        );
+
+  if (total < config.intake.checkedMinItems) {
+    return null;
+  }
+
+  const noun = total === 1 ? "item" : "items";
+
+  return {
+    confidence: 1,
+    date: day,
+    description: intakeDescription(items) || joinDescriptions(intakeEvents),
+    explanation: `${total} itemized intake ${noun} logged (checked >= ${config.intake.checkedMinItems})`,
+    habit_key: "intake",
+    linked_source_event_ids: intakeEvents.map((event) => event.id),
+    manually_overridden: false,
+    source: intakeEvents[0].source,
+    status: "checked",
+    summary: `${total} intake ${noun}`,
   };
 }
 
@@ -453,6 +567,7 @@ const EVALUATORS: Record<string, Evaluator> = {
   workout: evaluateWorkout,
   medication: evaluateMedication,
   protein_shake: evaluateProteinShake,
+  intake: evaluateIntake,
   meditation: evaluateMeditation,
   sleep: evaluateSleep,
   recovery: evaluateRecovery,

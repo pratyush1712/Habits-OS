@@ -13,8 +13,13 @@
     },
     {
       "key": "protein_shake",
-      "label": "Protein Shake",
+      "label": "Protein",
       "short": "P"
+    },
+    {
+      "key": "intake",
+      "label": "Intake",
+      "short": "I"
     },
     {
       "key": "meditation",
@@ -66,6 +71,12 @@
           "status": "checked",
           "summary": "1 shake",
           "description": "Post-run."
+        },
+        {
+          "habit_key": "intake",
+          "status": "checked",
+          "summary": "2 intake items",
+          "description": "Everyday Dose Coffee+ \u2014 Lion's Mane Fruiting Body Extract \u2014 1 serving component \u2014 mushroom \u2014 morning \u00b7 RYZE Mushroom Hot Cocoa \u2014 Glycine \u2014 1000 mg \u2014 amino_acid \u2014 night"
         },
         {
           "habit_key": "meditation",

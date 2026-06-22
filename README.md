@@ -5,7 +5,7 @@ calm, hyperlinked monthly PDF for **reMarkable 2**.
 
 The full pipeline is wired end to end:
 
-> WHOOP + Day One + manual medication/supplement events → normalized `source_events` → habit rule engine → persisted `habit_entries` → rendered monthly PDF → manual or automated reMarkable sync.
+> WHOOP + Day One + manual medication/supplement/intake events → normalized `source_events` → habit rule engine → persisted `habit_entries` → rendered monthly PDF → manual or automated reMarkable sync.
 
 A nightly APScheduler job reconciles a rolling window, recomputes touched
 months, renders the current month, and (optionally) pushes the PDF to the
@@ -81,7 +81,7 @@ and applied idempotently at app startup via `ensure_indexes()`.
 
 Collections currently in use:
 
-- `source_events` — normalized events from WHOOP, Day One, manual medication/supplement import
+- `source_events` — normalized events from WHOOP, Day One, manual medication/supplement import, and itemized intake logs
 - `habit_entries` — resolved per-day habit results
 - `habits` — habit catalog (seeded with defaults on startup)
 - `manual_overrides` — user overrides that take priority over rules
@@ -111,7 +111,9 @@ recipes in [docs/api.md](docs/api.md).
 | GET    | `/events?month=&source=&limit=`                    | List ingested source events                                      |
 | POST   | `/events/import-sample`                            | Ingest `data/sample_events.json` into Mongo                      |
 | POST   | `/events/medication`                               | Manually upsert medication/supplement dose-count events          |
-| POST   | `/events/protein-shake`                            | Manually upsert a protein shake count event for one day          |
+| POST   | `/events/protein`                                  | Manually upsert a protein serving count event for one day  |
+| POST   | `/events/protein-shake`                            | Compatibility alias for protein logging                    |
+| POST   | `/events/intake`                                   | Manually upsert itemized supplements/mushroom coffees/substances |
 | GET    | `/habits`                                          | List habit catalog                                               |
 | POST   | `/habits/seed-defaults`                            | Re-seed default habits                                           |
 | POST   | `/habits/recompute?month=YYYY-MM`                  | Run the rule engine and persist entries                          |
@@ -254,7 +256,7 @@ authenticating rmapi locally. The default remains `manual`.
 | ---------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | WHOOP                  | ✅ OAuth, manual + nightly sync              | Workouts, sleep, recovery. See [docs/whoop_integration.md](docs/whoop_integration.md).         |
 | Day One                | ✅ Local SQLite, metadata-only by default    | Drives the `journaling` habit. See [docs/integrations/dayone.md](docs/integrations/dayone.md). |
-| Manual / sample events | ✅ `/events/import-sample`, sample fixtures  | Includes medication/supplement dose-count events.                                              |
+| Manual / sample events | ✅ `/events/import-sample`, sample fixtures  | Includes medication/supplement dose counts plus itemized intake logs for coffees/mushrooms/etc. |
 | reMarkable (manual)    | ✅ Upload instructions, never mutates device | Default adapter.                                                                               |
 | reMarkable (rmapi)     | ✅ Cloud sync via ddvk/rmapi                 | Folder allowlist, replace gated by env var.                                                    |
 | Muse / Apple Health    | ⏳ Not started                               | Sketch in [docs/integration_examples.md](docs/integration_examples.md).                        |
@@ -287,10 +289,12 @@ Manual medication/supplement logging is available in the admin app at
 through `POST /events/medication`, then can recompute and render the selected
 month from the same form.
 
-Manual protein shake logging works the same way at `/protein-shake` (and in the
-iOS app). It writes an idempotent `event_type="protein_shake"` source event with
-the day's `count` through `POST /events/protein-shake`, driving the separate
-`protein_shake` habit. It is intentionally not part of the medication
+Manual protein logging works the same way at `/protein-shake` in the admin app
+(the URL is retained for compatibility) and through the Protein card in the iOS
+app. It writes an idempotent `event_type="protein_shake"` source event with the
+day's serving `count` through `POST /events/protein`; `POST
+/events/protein-shake` remains as a compatibility alias. This drives the
+separate `protein_shake` habit and is intentionally not part of the medication
 plan/tally.
 
 WHOOP predates the formal contract; the blueprint documents the migration
@@ -361,7 +365,7 @@ tests/
   "habits": [
     {"key": "workout", "label": "Workout", "short": "W"},
     {"key": "medication", "label": "Medication", "short": "Rx"},
-    {"key": "protein_shake", "label": "Protein Shake", "short": "P"},
+    {"key": "protein_shake", "label": "Protein", "short": "P"},
     ...
   ],
   "medication_groups": [

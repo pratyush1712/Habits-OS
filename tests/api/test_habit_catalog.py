@@ -5,6 +5,7 @@ _DEFAULT_KEYS = {
     "workout",
     "medication",
     "protein_shake",
+    "intake",
     "meditation",
     "journaling",
     "sleep",

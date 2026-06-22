@@ -75,7 +75,14 @@ export default async function DayPage({
       >
         <div className="data-column space-y-4">
           {dayEvents.length > 0 ? (
-            <Table className="border-y border-rule">
+            <Table className="table-fixed border-y border-rule">
+              <colgroup>
+                <col className="w-[10%]" />
+                <col className="w-[12%]" />
+                <col className="w-[38%]" />
+                <col className="w-[30%]" />
+                <col className="w-[10%]" />
+              </colgroup>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead>Source</TableHead>
@@ -88,17 +95,17 @@ export default async function DayPage({
               <TableBody>
                 {dayEvents.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell className="font-mono text-[13px]">
+                    <TableCell className="font-mono text-[13px] whitespace-nowrap">
                       {formatSourceLabel(event.source)}
                     </TableCell>
-                    <TableCell>{event.event_type}</TableCell>
-                    <TableCell className="max-w-[320px] whitespace-normal">
+                    <TableCell className="whitespace-nowrap">{event.event_type}</TableCell>
+                    <TableCell className="whitespace-normal">
                       <p className="m-0">{event.title || "Untitled event"}</p>
                       <p className="m-0 text-sm text-ink-mid">
                         {event.description || "No description"}
                       </p>
                     </TableCell>
-                    <TableCell className="font-mono text-[13px]">
+                    <TableCell className="break-all font-mono text-[13px] whitespace-normal">
                       {event.start_time_utc}
                     </TableCell>
                     <TableCell className="font-mono text-[13px]">

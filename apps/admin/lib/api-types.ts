@@ -140,6 +140,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/intake": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log Intake Event */
+        post: operations["log_intake_event_events_intake_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/events/import-sample": {
         parameters: {
             query?: never;
@@ -552,7 +569,7 @@ export interface components {
              */
             description: string;
             /** Event Types */
-            event_types?: ("workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication" | "protein_shake")[];
+            event_types?: ("workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication" | "protein_shake" | "intake")[];
             /** Sources */
             sources?: ("whoop" | "muse" | "apple_health" | "manual" | "calendar" | "github" | "remarkable" | "day_one" | "medication")[];
         };
@@ -605,6 +622,84 @@ export interface components {
              * @default false
              */
             manually_overridden: boolean;
+        };
+        /** IntakeItemInput */
+        IntakeItemInput: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Brand Key
+             * @default
+             */
+            brand_key: string;
+            /**
+             * Brand Label
+             * @default
+             */
+            brand_label: string;
+            /**
+             * Product Key
+             * @default
+             */
+            product_key: string;
+            /**
+             * Product Label
+             * @default
+             */
+            product_label: string;
+            /**
+             * Ingredient Key
+             * @default
+             */
+            ingredient_key: string;
+            /**
+             * Ingredient Label
+             * @default
+             */
+            ingredient_label: string;
+            /**
+             * Category
+             * @default other
+             * @enum {string}
+             */
+            category: "adaptogen" | "amino_acid" | "base" | "cacao" | "coffee" | "collagen" | "dairy" | "drink" | "fat" | "fiber" | "flavor" | "hormone" | "mineral" | "mushroom" | "nootropic" | "probiotic" | "stimulant" | "substance" | "supplement" | "sweetener" | "other";
+            /** Amount */
+            amount?: number | null;
+            /**
+             * Unit
+             * @default
+             */
+            unit: string;
+            /** Caffeine Mg */
+            caffeine_mg?: number | null;
+            /**
+             * Time Of Day
+             * @default unknown
+             * @enum {string}
+             */
+            time_of_day: "morning" | "afternoon" | "evening" | "night" | "unknown";
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+        };
+        /** IntakeLogInput */
+        IntakeLogInput: {
+            /**
+             * Local Date
+             * Format: date
+             */
+            local_date: string;
+            /**
+             * Timezone
+             * @default UTC
+             */
+            timezone: string;
+            /** Items */
+            items: components["schemas"]["IntakeItemInput"][];
         };
         /**
          * MedicationDayDose
@@ -863,7 +958,7 @@ export interface components {
              * Event Type
              * @enum {string}
              */
-            event_type: "workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication" | "protein_shake";
+            event_type: "workout" | "sleep" | "recovery" | "meditation" | "deep_work" | "journal" | "manual" | "medication" | "protein_shake" | "intake";
             /**
              * Start Time Utc
              * Format: date-time
@@ -1167,6 +1262,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ProteinShakeLogInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_intake_event_events_intake_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IntakeLogInput"];
             };
         };
         responses: {

@@ -276,6 +276,71 @@ struct ProteinShakeLogResponse: Codable, Hashable {
     }
 }
 
+
+struct IntakeItemInput: Codable, Hashable, Identifiable {
+    let key: String
+    let label: String
+    let brandKey: String
+    let brandLabel: String
+    let productKey: String
+    let productLabel: String
+    let ingredientKey: String
+    let ingredientLabel: String
+    let category: String
+    let amount: Double?
+    let unit: String
+    let caffeineMg: Int?
+    let timeOfDay: String
+    let notes: String
+
+    var id: String { key }
+
+    enum CodingKeys: String, CodingKey {
+        case key
+        case label
+        case brandKey = "brand_key"
+        case brandLabel = "brand_label"
+        case productKey = "product_key"
+        case productLabel = "product_label"
+        case ingredientKey = "ingredient_key"
+        case ingredientLabel = "ingredient_label"
+        case category
+        case amount
+        case unit
+        case caffeineMg = "caffeine_mg"
+        case timeOfDay = "time_of_day"
+        case notes
+    }
+}
+
+struct IntakeLogInput: Codable, Hashable {
+    let localDate: DateOnly
+    let timezone: String
+    let items: [IntakeItemInput]
+
+    enum CodingKeys: String, CodingKey {
+        case localDate = "local_date"
+        case timezone
+        case items
+    }
+}
+
+struct IntakeLogResponse: Codable, Hashable {
+    let month: String
+    let localDate: DateOnly
+    let items: Int
+    let inserted: Int
+    let updated: Int
+
+    enum CodingKeys: String, CodingKey {
+        case month
+        case localDate = "local_date"
+        case items
+        case inserted
+        case updated
+    }
+}
+
 struct DateOnly: Codable, Hashable, Comparable, ExpressibleByStringLiteral {
     let value: String
 

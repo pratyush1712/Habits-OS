@@ -10,9 +10,11 @@ def default_habits() -> list[Habit]:
 
     Five habits are deliberate, user-controlled actions and render as cards in
     the grid and tally: ``workout``, ``medication``, ``protein_shake``,
-    ``meditation``, and ``journaling``. ``protein_shake`` is logged manually
-    from the iOS app or admin/web app (same flow as ``medication``, but tracked
-    as its own habit and not part of the medication plan/tally).
+    ``intake``, ``meditation``, and ``journaling``. ``protein_shake`` is logged
+    manually from the iOS app or admin/web app. ``intake`` is a separate
+    manual, itemized log for supplements, mushroom coffees, nootropics, and
+    other substances that should be visible for quantified-self review without
+    becoming part of medication adherence.
 
     ``sleep`` and ``recovery`` are ``metric_only``: they are still computed and
     stored from WHOOP data (so the numbers stay visible next to each day's date
@@ -49,13 +51,27 @@ def default_habits() -> list[Habit]:
         ),
         Habit(
             key="protein_shake",
-            label="Protein Shake",
+            label="Protein",
             short="P",
             kind="auto",
             enabled=True,
             sort_order=25,
-            description="Protein shake logs from manual tracking (app or web app).",
+            description="Protein serving logs from manual tracking (app or web app).",
             event_types=["protein_shake"],
+            sources=["manual"],
+        ),
+        Habit(
+            key="intake",
+            label="Intake",
+            short="I",
+            kind="auto",
+            enabled=True,
+            sort_order=27,
+            description=(
+                "Itemized manual logs for supplements, mushroom coffees, "
+                "nootropics, and other daily substances."
+            ),
+            event_types=["intake"],
             sources=["manual"],
         ),
         Habit(

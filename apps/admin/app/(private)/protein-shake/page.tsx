@@ -31,7 +31,7 @@ function readNumber(record: Record<string, unknown> | null, key: string): number
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
-function shakeCount(events: SourceEvent[]): number {
+function proteinCount(events: SourceEvent[]): number {
   for (const event of events) {
     const metrics = asRecord(event.metrics) ?? asRecord(event.raw_payload);
     const count = readNumber(metrics, "count");
@@ -75,7 +75,7 @@ export default async function ProteinShakePage({
     limit: 10,
     start: selectedDate,
   });
-  const count = shakeCount(events);
+  const count = proteinCount(events);
 
   return (
     <div className="mx-auto space-y-6">
@@ -87,13 +87,13 @@ export default async function ProteinShakePage({
             <input name="timezone" type="hidden" value={DEFAULT_TIMEZONE} />
             <input name="count" type="hidden" value={count} />
             <Button className="focus-ring" type="submit">
-              Save protein shake
+              Save protein
             </Button>
           </form>
         }
-        eyebrow="Protein Shake"
-        subtitle="Log how many protein shakes you had today."
-        title="Protein shake tracker"
+        eyebrow="Protein"
+        subtitle="Log how many protein servings you had today."
+        title="Protein tracker"
       />
 
       {notice ? <NoticeBanner tone={notice.tone}>{notice.message}</NoticeBanner> : null}
@@ -118,7 +118,7 @@ export default async function ProteinShakePage({
 
         <section className="border-4 border-slate-950 bg-white p-5">
           <h2 className="m-0 border-b-4 border-slate-950 pb-3 text-3xl font-black uppercase">
-            Protein shakes
+            Protein servings
           </h2>
           <label className="mt-5 block border-2 border-slate-950 bg-slate-50 p-4">
             <span className="block text-2xl font-black">How many today?</span>
@@ -150,7 +150,7 @@ export default async function ProteinShakePage({
             </label>
           </div>
           <button className={`${buttonClassName("blue")} mt-5 w-full sm:w-auto`} type="submit">
-            Save protein shake
+            Save protein
           </button>
         </section>
       </form>
@@ -175,7 +175,7 @@ export default async function ProteinShakePage({
                   return (
                     <tr key={event.id}>
                       <td className="border-2 border-slate-950 p-3 text-lg font-bold">
-                        {event.title || "Protein shake"}
+                        {event.title || "Protein"}
                       </td>
                       <td className="border-2 border-slate-950 p-3 font-mono text-lg font-black">
                         {loggedCount}

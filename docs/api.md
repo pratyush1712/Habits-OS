@@ -40,6 +40,21 @@ curl "$BASE/whoop/oauth/start"
 curl "$BASE/whoop/status"
 ```
 
+Log itemized intake manually when you want quantified-self detail beyond a yes/no habit:
+
+```bash
+curl -X POST "$BASE/events/intake" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "local_date": "2026-05-01",
+    "timezone": "America/New_York",
+    "items": [
+      {"key":"everyday_dose","label":"Everyday Dose Coffee","category":"coffee","amount":1,"unit":"serving","caffeine_mg":45,"time_of_day":"morning"},
+      {"key":"ryze_mushroom_coffee","label":"Ryze Mushroom Coffee","category":"mushroom","amount":1,"unit":"cup","time_of_day":"night"}
+    ]
+  }'
+```
+
 Run each step manually:
 
 ```bash
@@ -133,6 +148,48 @@ Response:
     },
     "remarkable": { "adapter": "manual", "last_upload_status": "not_persisted" }
   }
+}
+```
+
+### POST /events/intake
+
+Upserts manual, itemized intake events for a local date. Each item is stored as its own source event so later same-day logs add to the stack instead of replacing earlier items. Use this for
+Everyday Dose, Cuppa, Ryze mushroom coffee, supplements, nootropics, or other
+substances where the exact item matters for quantified-self review. The
+corresponding `intake` habit is checked once at least one item is logged;
+absence stays blank, not missed.
+
+Request:
+
+```bash
+curl -X POST "$BASE/events/intake" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "local_date": "2026-05-01",
+    "timezone": "America/New_York",
+    "items": [
+      {
+        "key": "everyday_dose",
+        "label": "Everyday Dose Coffee",
+        "category": "coffee",
+        "amount": 1,
+        "unit": "serving",
+        "caffeine_mg": 45,
+        "time_of_day": "morning"
+      }
+    ]
+  }'
+```
+
+Response:
+
+```json
+{
+  "month": "2026-05",
+  "local_date": "2026-05-01",
+  "items": 1,
+  "inserted": 1,
+  "updated": 0
 }
 ```
 

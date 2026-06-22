@@ -13,20 +13,6 @@ struct ContentView: View {
             }
 
             NavigationStack {
-                MedicationLogView()
-            }
-            .tabItem {
-                Label("Meds", systemImage: "pills")
-            }
-
-            NavigationStack {
-                ProteinShakeLogView()
-            }
-            .tabItem {
-                Label("Shake", systemImage: "cup.and.saucer")
-            }
-
-            NavigationStack {
                 SettingsView()
             }
             .tabItem {

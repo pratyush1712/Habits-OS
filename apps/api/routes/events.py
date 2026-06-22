@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time, timezone
+from typing import Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -42,6 +43,63 @@ class ProteinShakeLogInput(BaseModel):
     local_date: date
     timezone: str = Field(default="UTC", min_length=1, max_length=80)
     count: int = Field(default=1, ge=0, le=20)
+
+
+IntakeCategory = Literal[
+    "adaptogen",
+    "amino_acid",
+    "base",
+    "cacao",
+    "coffee",
+    "collagen",
+    "dairy",
+    "drink",
+    "fat",
+    "fiber",
+    "flavor",
+    "hormone",
+    "mineral",
+    "mushroom",
+    "nootropic",
+    "probiotic",
+    "stimulant",
+    "substance",
+    "supplement",
+    "sweetener",
+    "other",
+]
+IntakeTimeOfDay = Literal["morning", "afternoon", "evening", "night", "unknown"]
+
+
+class IntakeItemInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    key: str = Field(min_length=1, max_length=80, pattern=r"^[a-z0-9_\-]+$")
+    label: str = Field(min_length=1, max_length=120)
+    brand_key: str = Field(default="", max_length=80, pattern=r"^$|^[a-z0-9_\-]+$")
+    brand_label: str = Field(default="", max_length=120)
+    product_key: str = Field(default="", max_length=80, pattern=r"^$|^[a-z0-9_\-]+$")
+    product_label: str = Field(default="", max_length=120)
+    ingredient_key: str = Field(default="", max_length=80, pattern=r"^$|^[a-z0-9_\-]+$")
+    ingredient_label: str = Field(default="", max_length=120)
+    category: IntakeCategory = "other"
+    amount: float | None = Field(default=None, ge=0, le=10000)
+    unit: str = Field(default="", max_length=40)
+    caffeine_mg: int | None = Field(default=None, ge=0, le=2000)
+    time_of_day: IntakeTimeOfDay = "unknown"
+    notes: str = Field(default="", max_length=240)
+
+
+class IntakeLogInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    local_date: date
+    timezone: str = Field(default="UTC", min_length=1, max_length=80)
+    items: list[IntakeItemInput] = Field(min_length=1, max_length=40)
+
+
+def _intake_event_id(local_date: date, item: IntakeItemInput) -> str:
+    return f"manual:intake-{local_date.isoformat()}-{item.key}-{item.time_of_day}"
 
 
 router = APIRouter(prefix="/events", tags=["events"])
@@ -119,6 +177,7 @@ async def log_medication_events(
     }
 
 
+@router.post("/protein")
 @router.post("/protein-shake")
 async def log_protein_shake_event(
     payload: ProteinShakeLogInput,
@@ -132,7 +191,7 @@ async def log_protein_shake_event(
     observed_at = datetime.combine(payload.local_date, time(hour=12), tz).astimezone(
         timezone.utc
     )
-    noun = "shake" if payload.count == 1 else "shakes"
+    noun = "serving" if payload.count == 1 else "servings"
     event = SourceEvent(
         id=f"manual:protein-shake-{payload.local_date.isoformat()}",
         source="manual",
@@ -143,7 +202,7 @@ async def log_protein_shake_event(
         local_date=payload.local_date,
         timezone=payload.timezone,
         title=f"{payload.count} protein {noun}",
-        description="Manual protein shake log from the app/web app.",
+        description="Manual protein log from the app/web app.",
         metrics={"count": payload.count},
     )
     counts = await repo.upsert_many_counts([event])
@@ -151,6 +210,51 @@ async def log_protein_shake_event(
         "month": payload.local_date.strftime("%Y-%m"),
         "local_date": payload.local_date.isoformat(),
         "count": payload.count,
+        "inserted": counts["inserted"],
+        "updated": counts["updated"],
+    }
+
+
+@router.post("/intake")
+async def log_intake_event(
+    payload: IntakeLogInput,
+    repo: SourceEventsRepo = Depends(get_events_repo),
+) -> dict:
+    try:
+        tz = ZoneInfo(payload.timezone)
+    except ZoneInfoNotFoundError as e:
+        raise HTTPException(status_code=400, detail="unknown timezone") from e
+
+    observed_at = datetime.combine(payload.local_date, time(hour=12), tz).astimezone(
+        timezone.utc
+    )
+    events = []
+    for item in payload.items:
+        item_payload = item.model_dump()
+        events.append(
+            SourceEvent(
+                id=_intake_event_id(payload.local_date, item),
+                source="manual",
+                source_event_id=(
+                    f"intake-{payload.local_date.isoformat()}-"
+                    f"{item.key}-{item.time_of_day}"
+                ),
+                event_type="intake",
+                start_time_utc=observed_at,
+                end_time_utc=None,
+                local_date=payload.local_date,
+                timezone=payload.timezone,
+                title=item.label,
+                description="Manual itemized intake log from the app/web app.",
+                metrics={"count": 1, "items": [item_payload]},
+            )
+        )
+
+    counts = await repo.upsert_many_counts(events)
+    return {
+        "month": payload.local_date.strftime("%Y-%m"),
+        "local_date": payload.local_date.isoformat(),
+        "items": len(events),
         "inserted": counts["inserted"],
         "updated": counts["updated"],
     }

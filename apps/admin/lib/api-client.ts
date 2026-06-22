@@ -8,6 +8,7 @@ import {
   mongoHabitEntries,
   mongoHabits,
   mongoLatestRender,
+  mongoLogIntake,
   mongoLogMedication,
   mongoLogProteinShake,
   mongoMonthState,
@@ -35,6 +36,59 @@ export type MedicationLogInput = {
 
 export type ProteinShakeLogInput = {
   count?: number;
+  local_date: string;
+  timezone?: string;
+};
+
+export type IntakeCategory =
+  | "adaptogen"
+  | "amino_acid"
+  | "base"
+  | "cacao"
+  | "coffee"
+  | "collagen"
+  | "dairy"
+  | "drink"
+  | "fat"
+  | "fiber"
+  | "flavor"
+  | "hormone"
+  | "mineral"
+  | "mushroom"
+  | "nootropic"
+  | "probiotic"
+  | "stimulant"
+  | "substance"
+  | "supplement"
+  | "sweetener"
+  | "other";
+
+export type IntakeTimeOfDay =
+  | "morning"
+  | "afternoon"
+  | "evening"
+  | "night"
+  | "unknown";
+
+export type IntakeItemInput = {
+  amount?: number | null;
+  brand_key?: string;
+  brand_label?: string;
+  caffeine_mg?: number | null;
+  category?: IntakeCategory;
+  ingredient_key?: string;
+  ingredient_label?: string;
+  product_key?: string;
+  product_label?: string;
+  key: string;
+  label: string;
+  notes?: string;
+  time_of_day?: IntakeTimeOfDay;
+  unit?: string;
+};
+
+export type IntakeLogInput = {
+  items: IntakeItemInput[];
   local_date: string;
   timezone?: string;
 };
@@ -78,7 +132,8 @@ export type EventType =
   | "journal"
   | "manual"
   | "medication"
-  | "protein_shake";
+  | "protein_shake"
+  | "intake";
 export type Habit = Omit<
   components["schemas"]["Habit"],
   "event_types" | "sources"
@@ -346,7 +401,18 @@ export const api = {
       return mongoLogProteinShake(input);
     }
 
-    return callApi<JsonRecord>("/events/protein-shake", {
+    return callApi<JsonRecord>("/events/protein", {
+      body: input,
+      method: "POST",
+    });
+  },
+
+  logIntake(input: IntakeLogInput): Promise<JsonRecord> {
+    if (isMongoDataConfigured()) {
+      return mongoLogIntake(input);
+    }
+
+    return callApi<JsonRecord>("/events/intake", {
       body: input,
       method: "POST",
     });

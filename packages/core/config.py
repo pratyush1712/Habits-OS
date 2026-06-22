@@ -56,6 +56,12 @@ class ProteinShakeRule(_Strict):
     checked_min_count: int = 1
 
 
+class IntakeRule(_Strict):
+    # Intake is checked once at least this many itemized substances/supplements
+    # are logged. Absence of a log is blank, not missed.
+    checked_min_items: int = 1
+
+
 class HabitRuleConfig(_Strict):
     workout: WorkoutRule = WorkoutRule()
     meditation: MeditationRule = MeditationRule()
@@ -64,6 +70,7 @@ class HabitRuleConfig(_Strict):
     journaling: JournalingRule = JournalingRule()
     medication: MedicationRule = MedicationRule()
     protein_shake: ProteinShakeRule = ProteinShakeRule()
+    intake: IntakeRule = IntakeRule()
 
 
 DEFAULT_RULES = HabitRuleConfig()

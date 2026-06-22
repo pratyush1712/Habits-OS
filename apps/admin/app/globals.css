@@ -262,7 +262,8 @@ samp {
   }
 
   .data-column {
-    max-width: 1040px;
+    width: 100%;
+    max-width: none;
   }
 
   .paper-panel {

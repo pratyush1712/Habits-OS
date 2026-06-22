@@ -8,15 +8,17 @@ final class AppViewModel: ObservableObject {
     @AppStorage("mobileAPIKey") var mobileAPIKey = ""
     @AppStorage("recomputeAfterMedicationSave") var recomputeAfterMedicationSave = true
     @AppStorage("recomputeAfterProteinShakeSave") var recomputeAfterProteinShakeSave = true
+    @AppStorage("recomputeAfterIntakeSave") var recomputeAfterIntakeSave = true
 
     @Published private(set) var monthState: MonthHabitState?
     @Published private(set) var isLoading = false
     @Published private(set) var isSavingMedication = false
     @Published private(set) var isSavingProteinShake = false
+    @Published private(set) var isSavingIntake = false
     @Published var selectedDate = Date() {
         didSet {
             // monthState caches a single month, so per-date lookups (habit
-            // entries, medication doses, protein shake counts) only resolve
+            // entries, medication doses, protein counts) only resolve
             // within it. Refetch when the selection crosses into another month;
             // same-month changes are served from the cache.
             guard monthState?.month != selectedMonth else { return }
@@ -86,6 +88,13 @@ final class AppViewModel: ObservableObject {
             return 1
         }
         return min(20, max(0, parsed))
+    }
+
+    var selectedIntakeSummary: String {
+        guard let entry = todayEntries.first(where: { $0.habitKey == "intake" }) else {
+            return "Log Everyday Dose or Cuppa"
+        }
+        return entry.summary.isEmpty ? "Intake logged" : entry.summary
     }
 
     var connectionStatus: ConnectionStatus {
@@ -200,8 +209,42 @@ final class AppViewModel: ObservableObject {
             notice = AppNotice(
                 kind: .success,
                 message: recomputeAfterProteinShakeSave
-                    ? "Saved protein shake log and updated habits for \(response.month)."
-                    : "Saved protein shake log for \(response.localDate.value)."
+                    ? "Saved protein log and updated habits for \(response.month)."
+                    : "Saved protein log for \(response.localDate.value)."
+            )
+            Haptic.success()
+        } catch {
+            notice = AppNotice(kind: .error, message: readable(error))
+            Haptic.error()
+        }
+    }
+
+    func saveIntake(items: [IntakeItemInput]) async {
+        guard !items.isEmpty else { return }
+        isSavingIntake = true
+        defer { isSavingIntake = false }
+
+        do {
+            let payload = IntakeLogInput(
+                localDate: selectedDateOnly,
+                timezone: selectedTimeZone.identifier,
+                items: items
+            )
+
+            let client = try makeClient()
+            let response = try await client.logIntake(payload)
+
+            if recomputeAfterIntakeSave {
+                try await client.recompute(month: response.month)
+            }
+
+            monthState = try await client.monthState(month: response.month)
+            lastConnectionError = nil
+            notice = AppNotice(
+                kind: .success,
+                message: recomputeAfterIntakeSave
+                    ? "Saved intake and updated habits for \(response.month)."
+                    : "Saved intake for \(response.localDate.value)."
             )
             Haptic.success()
         } catch {

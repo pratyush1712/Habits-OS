@@ -16,6 +16,7 @@
 		A10000000000000000000007 /* Views/MedicationLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* Views/MedicationLogView.swift */; };
 		A10000000000000000000008 /* Views/SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* Views/SettingsView.swift */; };
 		A1000000000000000000002A /* Views/ProteinShakeLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000002B /* Views/ProteinShakeLogView.swift */; };
+		A1000000000000000000002C /* Views/IntakeLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000002D /* Views/IntakeLogView.swift */; };
 		A10000000000000000000009 /* Views/DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000019 /* Views/DesignSystem.swift */; };
 		A1000000000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000001A /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -32,6 +33,7 @@
 		A10000000000000000000017 /* Views/MedicationLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/MedicationLogView.swift; sourceTree = "<group>"; };
 		A10000000000000000000018 /* Views/SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
 		A1000000000000000000002B /* Views/ProteinShakeLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ProteinShakeLogView.swift; sourceTree = "<group>"; };
+		A1000000000000000000002D /* Views/IntakeLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/IntakeLogView.swift; sourceTree = "<group>"; };
 		A10000000000000000000019 /* Views/DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/DesignSystem.swift; sourceTree = "<group>"; };
 		A1000000000000000000001A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -68,6 +70,7 @@
 				A10000000000000000000017 /* Views/MedicationLogView.swift */,
 				A10000000000000000000018 /* Views/SettingsView.swift */,
 				A1000000000000000000002B /* Views/ProteinShakeLogView.swift */,
+				A1000000000000000000002D /* Views/IntakeLogView.swift */,
 				A10000000000000000000019 /* Views/DesignSystem.swift */,
 				A1000000000000000000001A /* Assets.xcassets */,
 			);
@@ -159,6 +162,7 @@
 				A10000000000000000000006 /* Views/TodayView.swift in Sources */,
 				A10000000000000000000007 /* Views/MedicationLogView.swift in Sources */,
 				A1000000000000000000002A /* Views/ProteinShakeLogView.swift in Sources */,
+				A1000000000000000000002C /* Views/IntakeLogView.swift in Sources */,
 				A10000000000000000000008 /* Views/SettingsView.swift in Sources */,
 				A10000000000000000000009 /* Views/DesignSystem.swift in Sources */,
 			);

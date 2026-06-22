@@ -1,7 +1,12 @@
 {
   "month": "2026-05",
   "habits": [
-    { "key": "workout", "label": "Workout", "short": "W", "kind": "auto" },
+    {
+      "key": "workout",
+      "label": "Workout",
+      "short": "W",
+      "kind": "auto"
+    },
     {
       "key": "medication",
       "label": "Medication",
@@ -10,11 +15,22 @@
     },
     {
       "key": "protein_shake",
-      "label": "Protein Shake",
+      "label": "Protein",
       "short": "P",
       "kind": "auto"
     },
-    { "key": "sleep", "label": "Sleep", "short": "Z", "kind": "auto" },
+    {
+      "key": "sleep",
+      "label": "Sleep",
+      "short": "Z",
+      "kind": "auto"
+    },
+    {
+      "key": "intake",
+      "label": "Intake",
+      "short": "I",
+      "kind": "auto"
+    },
     {
       "key": "meditation",
       "label": "Meditation",
@@ -27,7 +43,12 @@
       "short": "J",
       "kind": "manual"
     },
-    { "key": "deep_work", "label": "Deep work", "short": "D", "kind": "manual" }
+    {
+      "key": "deep_work",
+      "label": "Deep work",
+      "short": "D",
+      "kind": "manual"
+    }
   ],
   "source_events": [
     {
@@ -78,9 +99,11 @@
       "start_time_utc": "2026-05-01T16:00:00Z",
       "local_date": "2026-05-01",
       "timezone": "America/New_York",
-      "title": "1 protein shake",
-      "description": "Manual protein shake log from the app/web app.",
-      "metrics": { "count": 1 }
+      "title": "1 protein serving",
+      "description": "Manual protein serving log from the app/web app.",
+      "metrics": {
+        "count": 1
+      }
     },
     {
       "id": "manual:protein-shake-2026-05-05",
@@ -90,9 +113,73 @@
       "start_time_utc": "2026-05-05T16:00:00Z",
       "local_date": "2026-05-05",
       "timezone": "America/New_York",
-      "title": "2 protein shakes",
-      "description": "Manual protein shake log from the app/web app.",
-      "metrics": { "count": 2 }
+      "title": "2 protein servings",
+      "description": "Manual protein serving log from the app/web app.",
+      "metrics": {
+        "count": 2
+      }
+    },
+    {
+      "id": "manual:intake-2026-05-01-everyday_dose_coffee_plus_lions_mane-morning",
+      "source": "manual",
+      "source_event_id": "intake-2026-05-01-everyday_dose_coffee_plus_lions_mane-morning",
+      "event_type": "intake",
+      "start_time_utc": "2026-05-01T16:00:00Z",
+      "local_date": "2026-05-01",
+      "timezone": "America/New_York",
+      "title": "Everyday Dose Coffee+ \u2014 Lion's Mane",
+      "description": "Manual itemized intake log from the app/web app.",
+      "metrics": {
+        "count": 1,
+        "items": [
+          {
+            "key": "everyday_dose_coffee_plus_lions_mane",
+            "label": "Everyday Dose Coffee+ \u2014 Lion's Mane",
+            "brand_key": "everyday_dose",
+            "brand_label": "Everyday Dose",
+            "product_key": "everyday_dose_coffee_plus",
+            "product_label": "Everyday Dose Coffee+",
+            "ingredient_key": "lions_mane",
+            "ingredient_label": "Lion's Mane Fruiting Body Extract",
+            "category": "mushroom",
+            "amount": 1,
+            "unit": "serving component",
+            "time_of_day": "morning",
+            "notes": "morning stack"
+          }
+        ]
+      }
+    },
+    {
+      "id": "manual:intake-2026-05-01-ryze_mushroom_hot_cocoa_glycine-night",
+      "source": "manual",
+      "source_event_id": "intake-2026-05-01-ryze_mushroom_hot_cocoa_glycine-night",
+      "event_type": "intake",
+      "start_time_utc": "2026-05-01T16:00:00Z",
+      "local_date": "2026-05-01",
+      "timezone": "America/New_York",
+      "title": "RYZE Mushroom Hot Cocoa \u2014 Glycine",
+      "description": "Manual itemized intake log from the app/web app.",
+      "metrics": {
+        "count": 1,
+        "items": [
+          {
+            "key": "ryze_mushroom_hot_cocoa_glycine",
+            "label": "RYZE Mushroom Hot Cocoa \u2014 Glycine",
+            "brand_key": "ryze",
+            "brand_label": "RYZE",
+            "product_key": "ryze_mushroom_hot_cocoa",
+            "product_label": "RYZE Mushroom Hot Cocoa",
+            "ingredient_key": "glycine",
+            "ingredient_label": "Glycine",
+            "category": "amino_acid",
+            "amount": 1000,
+            "unit": "mg",
+            "time_of_day": "night",
+            "notes": "night cup"
+          }
+        ]
+      }
     },
     {
       "id": "whoop:sl-002",

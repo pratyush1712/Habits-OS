@@ -13,6 +13,7 @@ import {
   type HabitEntriesResponse,
   type HabitEntry,
   type HabitListResponse,
+  type IntakeLogInput,
   type LatestRenderResponse,
   type MedicationDayDose,
   type MedicationGroup,
@@ -225,9 +226,9 @@ function medicationDays(events: SourceEvent[]): MedicationDayDose[] {
       med_key: medKey,
       taken: nonnegativeInteger(
         metrics.taken_count ??
-        metrics.taken ??
-        rawPayload.taken_count ??
-        rawPayload.taken,
+          metrics.taken ??
+          rawPayload.taken_count ??
+          rawPayload.taken,
       ),
       total: total == null ? null : nonnegativeInteger(total),
     });
@@ -448,7 +449,7 @@ export async function mongoLogProteinShake(
   const observedAt = new Date(`${localDate}T12:00:00.000Z`);
   const timezone = input.timezone ?? "UTC";
   const count = nonnegativeInteger(input.count ?? 1);
-  const noun = count === 1 ? "shake" : "shakes";
+  const noun = count === 1 ? "serving" : "servings";
   const eventId = `manual:protein-shake-${localDate}`;
   const metrics = { count };
 
@@ -459,7 +460,7 @@ export async function mongoLogProteinShake(
       {
         _id: eventId,
         created_at: now,
-        description: "Manual protein shake log from the app/web app.",
+        description: "Manual protein log from the app/web app.",
         end_time_utc: null,
         event_type: "protein_shake",
         local_date: localDate,
@@ -478,6 +479,63 @@ export async function mongoLogProteinShake(
   return {
     count,
     inserted: result.upsertedCount,
+    local_date: localDate,
+    month: localDate.slice(0, 7),
+    updated: result.modifiedCount,
+  };
+}
+
+function intakeEventId(
+  localDate: string,
+  item: IntakeLogInput["items"][number],
+): string {
+  return `manual:intake-${localDate}-${item.key}-${item.time_of_day ?? "unknown"}`;
+}
+
+export async function mongoLogIntake(
+  input: IntakeLogInput,
+): Promise<Record<string, unknown>> {
+  const database = await db();
+  const now = new Date();
+  const localDate = input.local_date;
+  const observedAt = new Date(`${localDate}T12:00:00.000Z`);
+  const timezone = input.timezone ?? "UTC";
+  const operations: AnyBulkWriteOperation<SourceEventDocument>[] =
+    input.items.map((item) => {
+      const eventId = intakeEventId(localDate, item);
+      const itemMetrics = { count: 1, items: [item] };
+
+      return {
+        replaceOne: {
+          filter: { _id: eventId },
+          replacement: {
+            _id: eventId,
+            created_at: now,
+            description: "Manual itemized intake log from the app/web app.",
+            end_time_utc: null,
+            event_type: "intake",
+            local_date: localDate,
+            metrics: itemMetrics,
+            raw_payload: itemMetrics,
+            source: "manual",
+            source_event_id: `intake-${localDate}-${item.key}-${item.time_of_day ?? "unknown"}`,
+            start_time_utc: observedAt,
+            timezone,
+            title: item.label,
+            updated_at: now,
+          },
+          upsert: true,
+        },
+      };
+    });
+
+  const result = await database
+    .collection<SourceEventDocument>("source_events")
+    .bulkWrite(operations, { ordered: false });
+
+  return {
+    inserted: result.upsertedCount,
+    items: operations.length,
     local_date: localDate,
     month: localDate.slice(0, 7),
     updated: result.modifiedCount,
@@ -541,8 +599,8 @@ export async function mongoRecompute(
   const writeResult =
     operations.length > 0
       ? await database
-        .collection<HabitEntryDocument>("habit_entries")
-        .bulkWrite(operations, { ordered: false })
+          .collection<HabitEntryDocument>("habit_entries")
+          .bulkWrite(operations, { ordered: false })
       : null;
 
   return {

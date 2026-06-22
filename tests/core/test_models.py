@@ -174,7 +174,6 @@ def test_automation_run_rejects_invalid_date_string():
         )
 
 
-
 def test_source_event_accepts_medication_literal():
     e = SourceEvent(
         id="manual:med-2026-05-31-magnesium",
@@ -186,6 +185,22 @@ def test_source_event_accepts_medication_literal():
         metrics={"med_key": "magnesium", "taken_count": 1, "scheduled_count": 2},
     )
     assert e.event_type == "medication"
+
+
+def test_source_event_accepts_intake_literal():
+    e = SourceEvent(
+        id="manual:intake-2026-06-09",
+        source="manual",
+        source_event_id="intake-2026-06-09",
+        event_type="intake",
+        start_time_utc=datetime(2026, 6, 9, 16, 0, tzinfo=timezone.utc),
+        local_date=date(2026, 6, 9),
+        metrics={
+            "count": 1,
+            "items": [{"key": "everyday_dose_coffee_plus_lions_mane", "label": "Everyday Dose Coffee+ — Lion's Mane", "brand_label": "Everyday Dose", "product_label": "Everyday Dose Coffee+", "ingredient_label": "Lion's Mane Fruiting Body Extract"}],
+        },
+    )
+    assert e.event_type == "intake"
 
 
 def test_month_state_accepts_medication_schedule_metadata():

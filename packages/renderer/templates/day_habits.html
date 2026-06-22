@@ -78,6 +78,21 @@ dict {taken/partial/missed/none → glyph char} day.by_med — dict {med_key:
       {% endfor %}
     </div>
 
+    {% set has_details = namespace(value=false) %} {% for h in habits %}{% if
+    day.by_habit.get(h.key) and day.by_habit[h.key].description %}{% set
+    has_details.value = true %}{% endif %}{% endfor %} {% if has_details.value
+    %}
+    <h2 class="section-heading">Details</h2>
+    <div class="details">
+      {% for h in habits %} {% set entry = day.by_habit.get(h.key) %} {% if
+      entry and entry.description %}
+      <p class="entry-detail">
+        <span class="label">{{ h.label }}</span>{{ entry.description }}
+      </p>
+      {% endif %} {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="page-footer">
       <span><a href="#month">↑ Month</a></span>
       <span

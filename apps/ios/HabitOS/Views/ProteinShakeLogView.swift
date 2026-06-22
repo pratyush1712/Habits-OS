@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ProteinShakeLogView: View {
+struct ProteinLogView: View {
     @EnvironmentObject private var viewModel: AppViewModel
     @State private var count = 1
 
@@ -26,7 +26,7 @@ struct ProteinShakeLogView: View {
                     }
                     .padding(12)
                 }
-                .navigationTitle("Protein Shake")
+                .navigationTitle("Protein")
                 .refreshable {
                     await viewModel.refresh()
                 }
@@ -60,10 +60,10 @@ struct ProteinShakeLogView: View {
     private var header: some View {
         PaperPanel {
             VStack(alignment: .leading, spacing: 14) {
-                Text("Protein shake log")
+                Text("Protein log")
                     .font(HabitOSFont.meta)
                     .foregroundStyle(Color.inkFaint)
-                Text("Tap +/- to log shakes")
+                Text("Tap +/- to log servings")
                     .font(HabitOSFont.h1)
                     .foregroundStyle(Color.ink)
                 DatePicker("Date", selection: $viewModel.selectedDate, displayedComponents: .date)
@@ -79,10 +79,10 @@ struct ProteinShakeLogView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Protein Shake")
+                        Text("Protein")
                             .font(HabitOSFont.h3)
                             .foregroundStyle(Color.ink)
-                        Text("How many shakes today?")
+                        Text("How many protein servings today?")
                             .font(HabitOSFont.data)
                             .foregroundStyle(Color.inkFaint)
                     }
@@ -99,7 +99,7 @@ struct ProteinShakeLogView: View {
                         .font(.system(size: 42, weight: .black, design: .monospaced))
                         .frame(minWidth: 72)
                         .foregroundStyle(Color.ink)
-                        .accessibilityLabel("Protein shake count \(count)")
+                        .accessibilityLabel("Protein serving count \(count)")
                         .contentTransition(.numericText())
 
                     CountButton(systemImage: "plus", filled: true, disabled: count >= 20) {

@@ -21,6 +21,8 @@ struct TodayView: View {
 
                     proteinShakeCard
 
+                    intakeCard
+
                     if viewModel.isLoading {
                         PaperPanel { LoadingRows() }
                     } else if viewModel.lastConnectionError != nil && viewModel.monthState == nil {
@@ -123,7 +125,7 @@ struct TodayView: View {
 
     private var proteinShakeCard: some View {
         NavigationLink {
-            ProteinShakeLogView()
+            ProteinLogView()
         } label: {
             PaperPanel {
                 HStack(spacing: 14) {
@@ -134,10 +136,42 @@ struct TodayView: View {
                         .background(Color.rule)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Log protein shake")
+                        Text("Log protein")
                             .font(HabitOSFont.h3)
                             .foregroundStyle(Color.ink)
-                        Text("Record today's protein shakes")
+                        Text("Record today's protein servings")
+                            .font(HabitOSFont.data)
+                            .foregroundStyle(Color.inkFaint)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(HabitOSFont.body)
+                        .foregroundStyle(Color.inkFaint)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var intakeCard: some View {
+        NavigationLink {
+            IntakeLogView()
+        } label: {
+            PaperPanel {
+                HStack(spacing: 14) {
+                    Image(systemName: "leaf.fill")
+                        .font(HabitOSFont.h3)
+                        .foregroundStyle(.white)
+                        .frame(width: 48, height: 48)
+                        .background(Color.rule)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Log intake")
+                            .font(HabitOSFont.h3)
+                            .foregroundStyle(Color.ink)
+                        Text(viewModel.selectedIntakeSummary)
                             .font(HabitOSFont.data)
                             .foregroundStyle(Color.inkFaint)
                             .lineLimit(1)
@@ -159,7 +193,7 @@ struct TodayView: View {
                 Text("Nothing logged yet")
                     .font(HabitOSFont.h3)
                     .foregroundStyle(Color.ink)
-                Text("Pull down to refresh tracker data, or tap Log medication to record doses for this day.")
+                Text("Pull down to refresh tracker data, or use the log cards for medication, protein, and intake.")
                     .font(HabitOSFont.body)
                     .foregroundStyle(Color.inkMid)
                     .fixedSize(horizontal: false, vertical: true)

@@ -16,6 +16,7 @@ HABITS = [
     Habit(key="workout", label="Workout", short="W", kind="auto"),
     Habit(key="sleep", label="Sleep", short="Z", kind="auto"),
     Habit(key="medication", label="Medication", short="Rx", kind="auto"),
+    Habit(key="intake", label="Intake", short="I", kind="auto"),
     Habit(key="meditation", label="Meditation", short="M", kind="auto"),
     Habit(key="journaling", label="Journaling", short="J", kind="manual"),
     Habit(key="deep_work", label="Deep work", short="D", kind="manual"),
@@ -93,6 +94,11 @@ def test_full_sample_events_file_loads_and_evaluates():
     assert by_key[("2026-05-01", "workout")].status == "checked"
     assert by_key[("2026-05-01", "sleep")].status == "checked"
     assert by_key[("2026-05-01", "meditation")].status == "checked"
+    intake = by_key[("2026-05-01", "intake")]
+    assert intake.status == "checked"
+    assert intake.summary == "2 intake items"
+    assert "Everyday Dose Coffee" in intake.description
+    assert "RYZE Mushroom Hot Cocoa — Glycine" in intake.description
 
     # May 2: sleep is under target → warning. No workout event → no entry.
     assert by_key[("2026-05-02", "sleep")].status == "warning"

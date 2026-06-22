@@ -11,6 +11,7 @@ from datetime import date, datetime, timedelta, timezone
 
 from packages.core.config import (
     HabitRuleConfig,
+    IntakeRule,
     JournalingRule,
     ProteinShakeRule,
     RecoveryRule,
@@ -19,6 +20,7 @@ from packages.core.config import (
 from packages.core.models import Habit, HabitOverride, SourceEvent
 from packages.core.rules import (
     evaluate_day,
+    evaluate_intake,
     evaluate_journaling,
     evaluate_medication,
     evaluate_meditation,
@@ -188,7 +190,7 @@ def _shake_event(count, *, day=DAY):
         event_type="protein_shake",
         start_time_utc=start,
         local_date=day,
-        title=f"{count} protein shakes",
+        title=f"{count} protein servings",
         metrics={"count": count},
     )
 
@@ -207,14 +209,14 @@ def test_protein_shake_single_is_checked_singular_summary():
     assert entry.habit_key == "protein_shake"
     assert entry.status == "checked"
     assert entry.source == "manual"
-    assert entry.summary == "1 shake"
+    assert entry.summary == "1 serving"
 
 
 def test_protein_shake_multiple_is_checked_plural_summary():
     entry = evaluate_protein_shake(DAY, [_shake_event(2)])
     assert entry is not None
     assert entry.status == "checked"
-    assert entry.summary == "2 shakes"
+    assert entry.summary == "2 servings"
 
 
 def test_protein_shake_zero_count_leaves_day_blank():
@@ -225,6 +227,94 @@ def test_protein_shake_threshold_can_be_raised():
     cfg = HabitRuleConfig(protein_shake=ProteinShakeRule(checked_min_count=2))
     assert evaluate_protein_shake(DAY, [_shake_event(1)], cfg) is None
     entry = evaluate_protein_shake(DAY, [_shake_event(2)], cfg)
+    assert entry is not None
+    assert entry.status == "checked"
+
+
+
+
+# ---------- intake ----------
+
+
+def _intake_event(items, *, day=DAY):
+    start = datetime(day.year, day.month, day.day, 12, 0, tzinfo=timezone.utc)
+    return SourceEvent(
+        id=f"manual:intake-{day.isoformat()}",
+        source="manual",
+        source_event_id=f"intake-{day.isoformat()}",
+        event_type="intake",
+        start_time_utc=start,
+        local_date=day,
+        title=f"{len(items)} intake items",
+        metrics={"count": len(items), "items": items},
+    )
+
+
+def test_intake_no_events_returns_none():
+    assert evaluate_intake(DAY, []) is None
+
+
+def test_intake_ignores_non_intake_events():
+    assert evaluate_intake(DAY, [_event("workout", 30)]) is None
+
+
+def test_intake_itemized_log_is_checked_with_details():
+    entry = evaluate_intake(DAY, [
+        _intake_event([
+            {
+                "key": "everyday_dose_coffee_plus_lions_mane",
+                "label": "Everyday Dose Coffee+ — Lion's Mane",
+                "brand_label": "Everyday Dose",
+                "product_label": "Everyday Dose Coffee+",
+                "ingredient_label": "Lion's Mane Fruiting Body Extract",
+                "category": "mushroom",
+                "amount": 1.0,
+                "unit": "serving",
+                "caffeine_mg": 45,
+                "time_of_day": "morning",
+            },
+            {
+                "key": "ryze_mushroom_hot_cocoa_glycine",
+                "label": "RYZE Mushroom Hot Cocoa — Glycine",
+                "brand_label": "RYZE",
+                "product_label": "RYZE Mushroom Hot Cocoa",
+                "ingredient_label": "Glycine",
+                "category": "amino_acid",
+                "time_of_day": "night",
+            },
+        ])
+    ])
+    assert entry is not None
+    assert entry.habit_key == "intake"
+    assert entry.status == "checked"
+    assert entry.source == "manual"
+    assert entry.summary == "2 intake items"
+    assert "Everyday Dose Coffee+ — Lion's Mane Fruiting Body Extract" in entry.description
+    assert "45 mg caffeine" in entry.description
+    assert "RYZE Mushroom Hot Cocoa — Glycine" in entry.description
+    assert "night" in entry.description
+
+
+def test_intake_threshold_can_be_raised():
+    cfg = HabitRuleConfig(intake=IntakeRule(checked_min_items=2))
+    assert (
+        evaluate_intake(
+            DAY, [_intake_event([{"key": "cuppa", "label": "Cuppa Coffee"}])], cfg
+        )
+        is None
+    )
+    entry = evaluate_intake(
+        DAY,
+        [
+            _intake_event(
+                [
+                    {"key": "cuppa", "label": "Cuppa Coffee"},
+                    {"key": "lions_mane", "label": "Lion's Mane"},
+                ]
+            )
+        ],
+        cfg,
+    )
     assert entry is not None
     assert entry.status == "checked"
 

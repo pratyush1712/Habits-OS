@@ -173,6 +173,161 @@ async def test_log_protein_shake_event_rejects_unknown_timezone() -> None:
     assert response.json()["detail"] == "unknown timezone"
 
 
+async def test_log_intake_event_normalizes_itemized_substances() -> None:
+    app = FastAPI()
+    app.include_router(router)
+    repo = _EventsRepo()
+    app.dependency_overrides[get_events_repo] = lambda: repo
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/events/intake",
+            json={
+                "local_date": "2026-06-09",
+                "timezone": "America/New_York",
+                "items": [
+                    {
+                        "key": "everyday_dose_coffee_plus_lions_mane",
+                        "label": "Everyday Dose Coffee+ — Lion's Mane",
+                        "brand_key": "everyday_dose",
+                        "brand_label": "Everyday Dose",
+                        "product_key": "everyday_dose_coffee_plus",
+                        "product_label": "Everyday Dose Coffee+",
+                        "ingredient_key": "lions_mane",
+                        "ingredient_label": "Lion's Mane Fruiting Body Extract",
+                        "category": "mushroom",
+                        "amount": 1,
+                        "unit": "serving",
+                        "caffeine_mg": 45,
+                        "time_of_day": "morning",
+                    },
+                    {
+                        "key": "ryze_mushroom_hot_cocoa_glycine",
+                        "label": "RYZE Mushroom Hot Cocoa — Glycine",
+                        "brand_key": "ryze",
+                        "brand_label": "RYZE",
+                        "product_key": "ryze_mushroom_hot_cocoa",
+                        "product_label": "RYZE Mushroom Hot Cocoa",
+                        "ingredient_key": "glycine",
+                        "ingredient_label": "Glycine",
+                        "category": "amino_acid",
+                        "time_of_day": "night",
+                        "notes": "night cup",
+                    },
+                ],
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "month": "2026-06",
+        "local_date": "2026-06-09",
+        "items": 2,
+        "inserted": 2,
+        "updated": 0,
+    }
+    assert [event.id for event in repo.events] == [
+        "manual:intake-2026-06-09-everyday_dose_coffee_plus_lions_mane-morning",
+        "manual:intake-2026-06-09-ryze_mushroom_hot_cocoa_glycine-night",
+    ]
+    intake = repo.events[0]
+    assert intake.event_type == "intake"
+    assert intake.source == "manual"
+    assert intake.local_date.isoformat() == "2026-06-09"
+    assert intake.timezone == "America/New_York"
+    assert intake.title == "Everyday Dose Coffee+ — Lion's Mane"
+    assert intake.metrics["count"] == 1
+    assert intake.metrics["items"][0]["brand_label"] == "Everyday Dose"
+    assert intake.metrics["items"][0]["ingredient_label"] == "Lion's Mane Fruiting Body Extract"
+    assert repo.events[1].metrics["items"][0]["product_label"] == "RYZE Mushroom Hot Cocoa"
+    assert repo.events[1].metrics["items"][0]["time_of_day"] == "night"
+
+
+async def test_log_intake_event_same_day_logs_accumulate_by_item() -> None:
+    app = FastAPI()
+    app.include_router(router)
+
+    class _AccumulatingRepo(_EventsRepo):
+        async def upsert_many_counts(self, events):
+            by_id = {event.id: event for event in self.events}
+            inserted = 0
+            updated = 0
+            for event in events:
+                if event.id in by_id:
+                    updated += 1
+                else:
+                    inserted += 1
+                by_id[event.id] = event
+            self.events = list(by_id.values())
+            return {"inserted": inserted, "updated": updated, "total": inserted + updated}
+
+    repo = _AccumulatingRepo()
+    app.dependency_overrides[get_events_repo] = lambda: repo
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        first = await client.post(
+            "/events/intake",
+            json={
+                "local_date": "2026-06-09",
+                "items": [
+                    {
+                        "key": "everyday_dose_coffee_plus_lions_mane",
+                        "label": "Everyday Dose Coffee+ — Lion's Mane",
+                        "time_of_day": "morning",
+                    }
+                ],
+            },
+        )
+        second = await client.post(
+            "/events/intake",
+            json={
+                "local_date": "2026-06-09",
+                "items": [
+                    {
+                        "key": "ryze_mushroom_hot_cocoa_glycine",
+                        "label": "RYZE Mushroom Hot Cocoa — Glycine",
+                        "time_of_day": "night",
+                    }
+                ],
+            },
+        )
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert second.json()["inserted"] == 1
+    assert {event.id for event in repo.events} == {
+        "manual:intake-2026-06-09-everyday_dose_coffee_plus_lions_mane-morning",
+        "manual:intake-2026-06-09-ryze_mushroom_hot_cocoa_glycine-night",
+    }
+    labels = {event.metrics["items"][0]["label"] for event in repo.events}
+    assert labels == {
+        "Everyday Dose Coffee+ — Lion's Mane",
+        "RYZE Mushroom Hot Cocoa — Glycine",
+    }
+
+
+async def test_log_intake_event_rejects_unknown_timezone() -> None:
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_events_repo] = lambda: _EventsRepo()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/events/intake",
+            json={
+                "local_date": "2026-06-09",
+                "timezone": "Not/AZone",
+                "items": [{"key": "cuppa", "label": "Cuppa Coffee"}],
+            },
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "unknown timezone"
+
+
 async def test_log_medication_events_can_be_listed_by_date() -> None:
     app = FastAPI()
     app.include_router(router)
