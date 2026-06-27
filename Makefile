@@ -41,21 +41,21 @@ service-status:
 	launchctl print gui/$$(id -u)/com.pratyush.habitos.api
 
 remarkable-status:
-	curl -s "$(API)/remarkable/status" | $(PY) -m json.tool
+	PYTHON=$(PY) ./scripts/api_json.sh "$(API)/remarkable/status"
 
 sync-remarkable-dry:
 	@echo "Dry-run sync for $(MONTH) — no files will be uploaded"
-	curl -s -X POST "$(API)/remarkable/sync?month=$(MONTH)&dry_run=true" | $(PY) -m json.tool
+	PYTHON=$(PY) ./scripts/api_json.sh -X POST "$(API)/remarkable/sync?month=$(MONTH)&dry_run=true"
 
 sync-remarkable:
 	@echo "Syncing $(MONTH) to reMarkable…"
-	curl -s -X POST "$(API)/remarkable/sync?month=$(MONTH)&dry_run=false" | $(PY) -m json.tool
+	PYTHON=$(PY) ./scripts/api_json.sh -X POST "$(API)/remarkable/sync?month=$(MONTH)&dry_run=false"
 
 nightly-run:
-	curl -s -X POST "$(API)/automation/nightly-run?dry_run=false" | $(PY) -m json.tool
+	PYTHON=$(PY) ./scripts/api_json.sh -X POST "$(API)/automation/nightly-run?dry_run=false"
 
 render-month:
-	curl -s -X POST "$(API)/render/month?month=$(MONTH)" | $(PY) -m json.tool
+	PYTHON=$(PY) ./scripts/api_json.sh -X POST "$(API)/render/month?month=$(MONTH)"
 
 run-admin:
 	pnpm --dir apps/admin dev

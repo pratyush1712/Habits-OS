@@ -15,6 +15,10 @@ def _to_habit(doc: dict) -> Habit:
     raw = dict(doc)
     raw.pop("_id", None)
     raw.pop("archived_at", None)
+    # Older seed/admin paths wrote audit fields to habit catalog documents.
+    # They are persistence metadata, not part of the strict Habit domain model.
+    raw.pop("created_at", None)
+    raw.pop("updated_at", None)
     return Habit.model_validate(raw)
 
 
