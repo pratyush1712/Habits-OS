@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from packages.core.models import Habit
 from packages.core.repositories import HabitsRepo
 
@@ -48,3 +50,20 @@ async def test_upsert_many_round_trip(db):
     ])
     assert n == 2
     assert len(await repo.list_active()) == 2
+
+
+async def test_get_ignores_legacy_audit_fields(db):
+    repo = HabitsRepo(db)
+    await repo.coll.insert_one({
+        "_id": "workout",
+        "key": "workout",
+        "label": "Workout",
+        "short": "W",
+        "archived_at": None,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    })
+
+    got = await repo.get("workout")
+
+    assert got == Habit(key="workout", label="Workout", short="W")
